@@ -11,20 +11,6 @@ export default async function ListImages({
   currentPage: number;
 }) {
 
-
-  // const results = await fetch(
-  //   `https://images-api.nasa.gov/search?media_type=image&q=${query}`
-  // );
-  const ITEMS_PER_PAGE = 10
-  // const previews = await results.json();
-  // let gallery = previews.collection.items
-  // if (query.length === 0) {
-  //   gallery = []
-  // }
-  //  console.log(previews.collection, "previews.collection")
-
-  console.log(await fetchFilteredImages(query, currentPage))
-
   let { gallery, totalPages } = await fetchFilteredImages(query, currentPage)
 
 
