@@ -14,7 +14,7 @@ export async function fetchFilteredImages(
     const gallery = previews.collection.items
 
     const totalPages = Math.ceil(Number(gallery.length) / ITEMS_PER_PAGE);
-    const result =  { gallery : gallery.slice(offset , offset + ITEMS_PER_PAGE) ,totalPages : totalPages };
+    const result =  { gallery : gallery.slice(offset , offset + ITEMS_PER_PAGE) ?? [] ,totalPages : totalPages };
 
     return result
   } catch (error) {

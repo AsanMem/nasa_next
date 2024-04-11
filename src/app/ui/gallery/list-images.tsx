@@ -13,9 +13,8 @@ export default async function ListImages({
 
   let { gallery, totalPages } = await fetchFilteredImages(query, currentPage)
 
-
-  if (query.length === 0) {
-    gallery = []
+  if (query === "") {
+    return <></>
   }
 
   return (<>
