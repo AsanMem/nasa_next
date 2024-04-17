@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Pagination from '../gallery/pagination';
-import { fetchFilteredVideos } from '@/app/lib/data/videos/fetchFilteredVideos';
+import { fetchFilteredVideos } from '@/app/lib/data/fetchFilteredVideos';
 import CardVideo from './card-video';
 
 
