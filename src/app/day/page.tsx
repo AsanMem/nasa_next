@@ -1,6 +1,6 @@
 import Header from "@/app/ui/header/Header";
 import { fetchPictureOfTheDay } from "../lib/data/fetchPictureOfTheDay";
-import HelloTittle from "../ui/hello-tittle";
+import HelloTittle from "../ui/hello-title";
 
 export default async function Day() {
   const photoData = await fetchPictureOfTheDay()
