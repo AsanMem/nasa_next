@@ -1,8 +1,8 @@
 'use client';
 
 
-import Link from 'next/link';
 import { generatePagination } from '@/app/lib/utils';
+import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 export default function Pagination({ totalPages }: { totalPages: number }) {

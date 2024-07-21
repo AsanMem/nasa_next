@@ -1,7 +1,7 @@
-import Header from "@/app/ui/header/Header";
-import HelloTittle from "../ui/hello-tittle";
-import SearchVideos from "../ui/videos/search-videos";
-import ListVideos from "../ui/videos/list-videos";
+import HelloTittle from "@/app/ui/hello-tittle";
+import ListVideos from "@/app/ui/videos/list-videos";
+import SearchVideos from "@/app/ui/videos/search-videos";
+
 interface IProps {
     searchParams?: {
         query?: string;

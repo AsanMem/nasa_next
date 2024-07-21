@@ -7,10 +7,10 @@
 // import { Suspense } from 'react';
 // import { fetchInvoicesPages } from '@/app/lib/data';
 import { Metadata } from "next";
-import SearchImages from "../ui/gallery/search-images";
-import HelloTittle from "../ui/hello-tittle";
-import ListImages from "../ui/gallery/list-images";
-import Pagination from "../ui/gallery/pagination";
+import HelloTittle from "@/app/ui/hello-tittle";
+import ListImages from "@/app/ui/gallery/list-images";
+import Pagination from "@/app/ui/gallery/pagination";
+import SearchImages from "@/app/ui/gallery/search-images";
 // export const metadata: Metadata = {
 //     title: 'Invoices',
 // };

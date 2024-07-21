@@ -12,6 +12,7 @@ const bungee = Bungee({
 export const metadata: Metadata = {
   title: "Nassa Galerey",
   description: "Nassa , UFO , Austronaut",
+
 };
 
 export default function RootLayout({
@@ -21,6 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <link rel="icon" href="/media/favicon.ico" />
       <body className={`${bungee.className}`}>
         <Header />
         <main className={`p-4`}>
