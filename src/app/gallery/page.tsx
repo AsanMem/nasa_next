@@ -8,9 +8,9 @@
 // import { fetchInvoicesPages } from '@/app/lib/data';
 import { Metadata } from "next";
 import SearchImages from "../ui/gallery/search-images";
-import HelloTittle from "../ui/shared/hello-title";
 import ListImages from "../ui/gallery/list-images";
-import Pagination from "../ui/shared/pagination";
+import HelloTitle from "../ui/shared/hello-title";
+
 // export const metadata: Metadata = {
 //     title: 'Invoices',
 // };
@@ -29,7 +29,7 @@ export default async function Page({ searchParams }: IProps) {
   // console.log({query,currentPage,totalPages})
   return (
     <>
-      <HelloTittle mainText="Hello Earthlings!" supportiveText="Here you can find photos of our planet, other planets, stars and galaxies!" />
+      <HelloTitle mainText="Hello Earthlings!" supportiveText="Here you can find photos of our planet, other planets, stars and galaxies!" />
       <SearchImages />
       <ListImages query={query} currentPage={currentPage} />
 

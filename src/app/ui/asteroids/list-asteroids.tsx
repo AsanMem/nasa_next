@@ -22,7 +22,7 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                                     <table
                                         className="min-w-full text-center text-sm font-light text-surface dark:text-white">
                                         <thead
-                                            className="border-b border-b-neutral-700  font-bold text-xl text-rose-950 dark:border-white/10">
+                                            className="border-b border-b-neutral-700  font-bold text-3xl text-blue-600 dark:border-white/10">
                                             <tr>
                                                 <th scope="col" className="px-6 py-2">#</th>
                                                 <th scope="col" className="px-6 py-2">Name</th>
@@ -82,7 +82,7 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                                             //   } asteroid
                                             return (
                                                 <tbody >
-                                                    <tr className="border-b border-b-neutral-700 dark:border-white/10">
+                                                    <tr className="border-b border-b-neutral-700 dark:border-white text-base text-slate-200">
                                                         <td className="whitespace-nowrap px-6 py-2 font-medium">{i + 1}</td>
                                                         <td className="whitespace-nowrap px-6 py-2">{name}</td>
                                                         <td className="whitespace-nowrap px-6 py-2">{Math.round(relative_velocity.kilometers_per_second)}</td>
