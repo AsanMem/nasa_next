@@ -8,9 +8,9 @@
 // import { fetchInvoicesPages } from '@/app/lib/data';
 import { Metadata } from "next";
 import SearchImages from "../ui/gallery/search-images";
-import HelloTittle from "../ui/hello-title";
+import HelloTittle from "../ui/shared/hello-title";
 import ListImages from "../ui/gallery/list-images";
-import Pagination from "../ui/gallery/pagination";
+import Pagination from "../ui/shared/pagination";
 // export const metadata: Metadata = {
 //     title: 'Invoices',
 // };

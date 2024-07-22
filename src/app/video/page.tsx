@@ -1,5 +1,5 @@
 import Header from "@/app/ui/header/Header";
-import HelloTittle from "../ui/hello-title";
+import HelloTittle from "../ui/shared/hello-title";
 import SearchVideos from "../ui/videos/search-videos";
 import ListVideos from "../ui/videos/list-videos";
 interface IProps {

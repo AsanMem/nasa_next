@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import CardImage from './card-image';
-import Pagination from './pagination';
+
 import { fetchFilteredImages } from '@/app/lib/data/fetchFilteredImages';
+import Pagination from '../shared/pagination';
 
 export default async function ListImages({
   query,

@@ -1,12 +1,12 @@
 import Header from "@/app/ui/header/Header";
 import { fetchPictureOfTheDay } from "../lib/data/fetchPictureOfTheDay";
-import HelloTittle from "../ui/hello-title";
+import HelloTittle from "../ui/shared/hello-title";
 
 export default async function Day() {
   const photoData = await fetchPictureOfTheDay()
 
   return (
-    <main className="">
+    <main className=" pb-24">
       <>
         <HelloTittle mainText={photoData.title} supportiveText={`Today is ${photoData.date}, which means meet this beautiful snapshot of
             the day`} />
