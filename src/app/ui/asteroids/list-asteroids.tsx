@@ -1,6 +1,7 @@
 import React from 'react'
 import Pagination from '../shared/pagination'
 import CardAsteroid from './card-asteroid'
+import Link from 'next/link'
 
 export default function ListAsteroids({ asteroidsObjects }: any) {
 
@@ -87,6 +88,19 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                                                         <td className="whitespace-nowrap px-6 py-2">{name}</td>
                                                         <td className="whitespace-nowrap px-6 py-2">{Math.round(relative_velocity.kilometers_per_second)}</td>
                                                         <td className="whitespace-nowrap px-6 py-2">{Math.round(estimated_diameterMin)} / {Math.round(estimated_diameterMax)}</td>
+                                                        <td className="whitespace-nowrap px-6 py-2">
+                                                            <div className="mb-2 md:mb-0">
+                                                                <Link
+                                                                    key={"asteroid_id"}
+                                                                    href={`/asteroids/${asteroid.id}`}
+                                                                    aria-current="page"
+                                                                    className="inline-block"
+                                                                >
+                                                                    OPEN
+                                                                </Link>
+                                                            </div>
+
+                                                        </td>
                                                     </tr>
 
                                                 </tbody>)
@@ -96,16 +110,6 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                             </div>
                         </div>
                     </div>
-
-
-
-
-
-
-
-
-
-
 
                     <div className="mt-5 flex w-full justify-center">
                         <Pagination totalPages={4} />
