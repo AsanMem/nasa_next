@@ -102,7 +102,6 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
 
                                                         </td>
                                                     </tr>
-
                                                 </tbody>)
                                         })}
                                     </table>

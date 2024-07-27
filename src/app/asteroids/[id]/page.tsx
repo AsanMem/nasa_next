@@ -93,7 +93,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative">
       <BackgroundImage src="/media/bg/earth_back.jpg" className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
       <main className="relative z-10 grid grid-cols-5 gap-4 p-4">
         <div className="col-span-2">
