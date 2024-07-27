@@ -19,6 +19,6 @@ export default async function Asteroids() {
       <div className=" my-8 ">
         <ListAsteroids asteroidsObjects={asteroidsObjects} />
       </div>
-      <h1>Hello, Asteroids!</h1>
+
     </div>)
 }

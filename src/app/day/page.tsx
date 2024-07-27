@@ -2,13 +2,17 @@ import Header from "@/app/ui/header/Header";
 import { fetchPictureOfTheDay } from "../lib/data/fetchPictureOfTheDay";
 import HelloTittle from "../ui/shared/hello-title";
 import MainTittle from "../ui/shared/main-tittle";
+import BackgroundImage from "../ui/shared/background-image";
 
 export default async function Day() {
   const photoData = await fetchPictureOfTheDay()
 
   return (
-    <main className="">
-      <>
+
+    <>
+
+      <BackgroundImage src={photoData.url} className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
+      <main className="mb-12">
 
         <MainTittle title={`Today is ${photoData.title}`} description="" />
 
@@ -23,7 +27,7 @@ export default async function Day() {
             {photoData.explanation}
           </p>
         </div>
-      </>
 
-    </main>)
+
+      </main>  </>)
 }
