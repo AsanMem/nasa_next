@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { EffectComposer, OrbitControls, OutputPass, RenderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
 
 interface ThreeSceneProps {
     asteroid: any; // Уточните тип данных
@@ -63,10 +64,35 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
             mountRef.current.appendChild(renderer.domElement);
 
 
+            // Настройка смены камеры позиции
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableZoom = false;
+            controls.enablePan = false;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.2;
+            camera.position.z = 50;
+
+            const composer = new EffectComposer(renderer);
+            const renderPass = new RenderPass(scene, camera);
+
+            composer.addPass(renderPass);
+
+            const bloomPass = new UnrealBloomPass();
+            bloomPass.threshold = 0;
+            bloomPass.strength = 0.2;
+            bloomPass.radius = 0.5;
+            composer.addPass(bloomPass);
+
+            const outputPass = new OutputPass();
+            composer.addPass(outputPass);
+            //
+
+
+
             // Добавление осей для отладки
             const axesHelper = new THREE.AxesHelper(5);
             scene.add(axesHelper);
-
+            //
             // Добавление объекта (например, куба)
             const geometryCube = new THREE.BoxGeometry();
 
@@ -78,20 +104,22 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
             // Создание материала и геометрии для сферы
             const geometrySphere = new THREE.SphereGeometry(1.5, 32, 32);
             const material = new THREE.MeshNormalMaterial();
+            //     const material = new THREE.Mes;
+
             const sphere = new THREE.Mesh(geometrySphere, material);
             scene.add(sphere);
 
-            // Настройка света
-            const ambientLight = new THREE.AmbientLight(0x404040); // мягкий белый свет
-            scene.add(ambientLight);
+            // // Настройка света
+            // const ambientLight = new THREE.AmbientLight(0x404040); // мягкий белый свет
+            // scene.add(ambientLight);
 
-            const spotLight1 = new THREE.SpotLight(0xeeeece);
-            spotLight1.position.set(1000, 1000, 1000);
-            scene.add(spotLight1);
+            // const spotLight1 = new THREE.SpotLight(0xeeeece);
+            // spotLight1.position.set(1000, 1000, 1000);
+            // scene.add(spotLight1);
 
-            const spotLight2 = new THREE.SpotLight(0xffffff);
-            spotLight2.position.set(-200, -200, -200);
-            scene.add(spotLight2);
+            // const spotLight2 = new THREE.SpotLight(0xffffff);
+            // spotLight2.position.set(-200, -200, -200);
+            // scene.add(spotLight2);
 
 
 
@@ -103,8 +131,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
             // Анимация
             const animate = () => {
                 requestAnimationFrame(animate);
-                // sphere.rotation.x += 0.01;
-                // sphere.rotation.y += 0.01;
+                sphere.rotation.x += 0.01;
+                sphere.rotation.y += 0.01;
 
                 // Движение звезд
                 // stars.rotation.x += 0.001;

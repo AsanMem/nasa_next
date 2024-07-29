@@ -29,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ClientLayout>
           {children}
         </ClientLayout>
+        <footer className={`h-6`}></footer>
       </body>
     </html>
   );

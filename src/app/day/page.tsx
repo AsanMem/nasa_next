@@ -10,13 +10,9 @@ export default async function Day() {
   return (
 
     <>
-
       <BackgroundImage src={photoData.url} className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
       <main className="mb-12">
-
         <MainTittle title={`Today is ${photoData.title}`} description="" />
-
-
         <div className="my-6">
           <img
             className="rounded-2xl object-contain max-h-[80vh] mr-4 float-left"
@@ -27,7 +23,6 @@ export default async function Day() {
             {photoData.explanation}
           </p>
         </div>
-
-
-      </main>  </>)
+      </main>
+    </>)
 }

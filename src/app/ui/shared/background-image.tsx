@@ -8,11 +8,11 @@ interface BackgroundImageProps {
 
 const BackgroundImage: React.FC<BackgroundImageProps> = ({ src, className = "" }) => {
     return (
-        <div className={`background-photo ${className} -z-10`}>
+        <div className={`background-photo ${className} -z-10`} style={{ zIndex: -10 }}>
+
             <Image
                 src={src}
                 alt="Background Photo"
-
                 layout="fill"
                 objectFit="cover" // покрывает контейнер, сохраняя пропорции
                 quality={75} // уменьшает качество для оптимизации
