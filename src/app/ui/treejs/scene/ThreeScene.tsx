@@ -24,6 +24,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
 
 
             // Создание звезд
+            // Создание множество звезд, используя геометрию BufferGeometry и материал PointsMaterial.
+            // Каждая звезда добавляется в массив вершин, который потом передается в BufferGeometry
             const starGeometry = new THREE.BufferGeometry();
             const starMaterial = new THREE.PointsMaterial({ color: 0xffffff });
 
@@ -48,6 +50,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
 
 
             // Настройка смены камеры позиции
+            // Добавление элементов управления камерой, позволяющие автоматически вращать камеру вокруг сцены.
             const controls = new OrbitControls(camera, renderer.domElement);
             controls.enableZoom = false;
             controls.enablePan = false;
@@ -55,9 +58,10 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
             controls.autoRotateSpeed = 0.2;
             camera.position.z = 50;
 
+
+            // Создаем систему пост-обработки с использованием эффектов Bloom для улучшения визуального качества.
             const composer = new EffectComposer(renderer);
             const renderPass = new RenderPass(scene, camera);
-
             composer.addPass(renderPass);
 
             const bloomPass = new UnrealBloomPass();
@@ -87,14 +91,13 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
             const geometrySphere = new THREE.SphereGeometry(1.5, 32, 32);
             const material = new THREE.MeshNormalMaterial();
             //     const material = new THREE.Mes;
-
             const sphere = new THREE.Mesh(geometrySphere, material);
             scene.add(sphere);
 
-
-            camera.position.z = 5;
+            camera.position.z = 7;
 
             // Анимация
+            // Функция animate анимирует вращение сферы и движение звезд, а также обновляет рендер сцены на каждом кадре.
             const animate = () => {
                 requestAnimationFrame(animate);
                 sphere.rotation.x += 0.01;
@@ -114,7 +117,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
                     if (positions[i + 2] > 1000) positions[i + 2] = -1000;
                 }
                 starGeometry.attributes.position.needsUpdate = true;
-
                 renderer.render(scene, camera);
             };
             animate();
