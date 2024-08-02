@@ -88,20 +88,46 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
             // heightSegments — количество вертикальных сегментов. Минимальное значение равно 2, значение по умолчанию 6
             // К слову, чем больше вы укажете количество треугольников, тем более гладкой будет поверхность сферы.
             // Создание материала и геометрии для сферы
-            const geometrySphere = new THREE.SphereGeometry(1.5, 32, 32);
+
+            const planetGeometry = new THREE.TetrahedronGeometry(2.282, 2);
+            // const planetGeometry = new THREE.DodecahedronGeometry(3.2, 2)
             const material = new THREE.MeshNormalMaterial();
-            //     const material = new THREE.Mes;
-            const sphere = new THREE.Mesh(geometrySphere, material);
+
+            const sphere = new THREE.Mesh(planetGeometry, material);
             scene.add(sphere);
 
             camera.position.z = 7;
+
+            // Логика создания планеты и атмосферы
+
+
+            // const planetGeometry = new THREE.SphereGeometry(1.5, 2, 32);
+            // const planetMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+            // const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+            // scene.add(planet);
+
+            // const atmosphereGeometry = new THREE.SphereGeometry(1.6, 32, 32);
+            // const atmosphereMaterial = new THREE.MeshBasicMaterial({
+            //     color: 0x00ff00,
+            //     side: THREE.BackSide,
+            //     opacity: 0.4,
+            //     transparent: true,
+            // });
+            // const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+            // scene.add(atmosphere);
+
+            //
+
+
+
+
 
             // Анимация
             // Функция animate анимирует вращение сферы и движение звезд, а также обновляет рендер сцены на каждом кадре.
             const animate = () => {
                 requestAnimationFrame(animate);
-                sphere.rotation.x += 0.01;
-                sphere.rotation.y += 0.01;
+                sphere.rotation.x += 0.010  // медленно 0.001; // быстро 0.021;
+                sphere.rotation.z += 0.007  // медленно 0.001; // быстро 0.031;
 
                 // Движение звезд
                 const positions = starGeometry.attributes.position.array as Float32Array;
