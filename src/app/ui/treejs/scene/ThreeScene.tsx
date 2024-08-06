@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { EffectComposer, OrbitControls, OutputPass, RenderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
+import { fragmentShader, noiseFunctions, vertexShader } from '../PlanetShaders';
 
 interface ThreeSceneProps {
     asteroid: any;
@@ -20,6 +21,72 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
 
             scene.background = new THREE.CubeTextureLoader()
                 .load([]);
+
+
+
+
+            // const uniforms = {
+            //     type: { value: 2 },
+            //     radius: { value: 20.0 },
+            //     amplitude: { value: 1.19 },
+            //     sharpness: { value: 2.6 },
+            //     offset: { value: -0.016 },
+            //     period: { value: 0.6 },
+            //     persistence: { value: 0.484 },
+            //     lacunarity: { value: 1.8 },
+            //     octaves: { value: 10 }
+            // };
+
+            // const shaderMaterial = new THREE.ShaderMaterial({
+            //     uniforms: uniforms,
+            //     vertexShader: noiseFunctions + vertexShader,
+            //     fragmentShader: fragmentShader,
+            //     lights: false,
+            //     clipping: false
+            // });
+
+            // const shaderMaterial = new THREE.ShaderMaterial({
+            //     uniforms: uniforms,
+            //     vertexShader: vertexShader,
+            //     fragmentShader: fragmentShader,
+            // });
+
+            const uniforms = {
+                time: { value: 1.0 }
+            };
+
+            const vertexShader = `
+            uniform float time;
+            varying vec3 vNormal;
+            varying vec3 vPosition;
+            void main() {
+                vNormal = normal;
+                vPosition = position;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `;
+
+            const fragmentShader = `
+            varying vec3 vNormal;
+            varying vec3 vPosition;
+            void main() {
+                float intensity = dot(vNormal, vec3(0.0, 0.0, 1.0));
+                gl_FragColor = vec4(intensity, intensity, intensity, 1.0);
+            }
+        `;
+
+            // const shaderMaterial = new THREE.ShaderMaterial({
+            //     uniforms: uniforms,
+            //     vertexShader: vertexShader,
+            //     fragmentShader: fragmentShader
+            // });
+            const shaderMaterial = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: noiseFunctions + vertexShader,
+                fragmentShader: fragmentShader
+            });
+
+
 
 
 
@@ -88,15 +155,43 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
             // heightSegments — количество вертикальных сегментов. Минимальное значение равно 2, значение по умолчанию 6
             // К слову, чем больше вы укажете количество треугольников, тем более гладкой будет поверхность сферы.
             // Создание материала и геометрии для сферы
+            // rask
+            // const planetGeometry = new THREE.TetrahedronGeometry(1.282, 2); // new THREE.TetrahedronGeometry(2.282, 2);
+            // //   const planetGeometry = new THREE.DodecahedronGeometry(3.2, 2)
+            // const material = new THREE.MeshNormalMaterial();
 
-            const planetGeometry = new THREE.TetrahedronGeometry(2.282, 2);
-            // const planetGeometry = new THREE.DodecahedronGeometry(3.2, 2)
-            const material = new THREE.MeshNormalMaterial();
+            // const sphere = new THREE.Mesh(planetGeometry, material);
+            // scene.add(sphere);
+            // rask
 
-            const sphere = new THREE.Mesh(planetGeometry, material);
-            scene.add(sphere);
+            // const geometry = new THREE.SphereGeometry(2, 64, 64);
+            // const planet = new THREE.Mesh(geometry, material);
+            // scene.add(planet);
 
-            camera.position.z = 7;
+            // до тест 
+            // const geometry = new THREE.SphereGeometry(2, 64, 64);
+            // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+            // const planet = new THREE.Mesh(geometry, material);
+            // scene.add(planet);
+
+            const geometry = new THREE.SphereGeometry(2, 64, 64);
+
+
+
+            const planet = new THREE.Mesh(geometry, shaderMaterial);
+            scene.add(planet);
+            console.log(planet);
+
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(5, 5, 5);
+            scene.add(light);
+
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+
+
+
+            camera.position.z = 15 // 7 ;
 
             // Логика создания планеты и атмосферы
 
@@ -126,9 +221,16 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
             // Функция animate анимирует вращение сферы и движение звезд, а также обновляет рендер сцены на каждом кадре.
             const animate = () => {
                 requestAnimationFrame(animate);
-                sphere.rotation.x += 0.010  // медленно 0.001; // быстро 0.021;
-                sphere.rotation.z += 0.007  // медленно 0.001; // быстро 0.031;
-
+                // rask
+                // sphere.rotation.x += 0.010  // медленно 0.001; // быстро 0.021;
+                // sphere.rotation.z += 0.007  // медленно 0.001; // быстро 0.031;
+                // rask
+                // planet.rotation.y += 0.002;
+                // renderer.render(scene, camera);
+                //  composer.render();
+                uniforms.time.value += 0.05;
+                planet.rotation.y += 0.01;
+                renderer.render(scene, camera);
                 // Движение звезд
                 const positions = starGeometry.attributes.position.array as Float32Array;
 
@@ -147,9 +249,18 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
             };
             animate();
 
+            const handleResize = () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            };
+            window.addEventListener('resize', handleResize);
+
+
             // Очистка при размонтировании компонента
             return () => {
                 mountRef.current?.removeChild(renderer.domElement);
+                window.removeEventListener('resize', handleResize);
             };
         }
     }, [asteroid]);
