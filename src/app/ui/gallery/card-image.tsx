@@ -34,7 +34,7 @@ export default function CardImage({ nasaPicture, title, description, keywords }:
                 <div className="p-4 font-light text-base text-neutral-100 flex align-middle">{truncateText(title, 38)}</div>
             </div>
             {showModal && (
-                <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4 pt-14 bg-gray-900 bg-opacity-75">
+                <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4 pt-14 bg-gray-900 bg-opacity-75 " >
                     <div className="block rounded-lg bg-white shadow-secondary-1 dark:bg-surface-dark dark:text-white text-surface max-w-full sm:max-w-[95vw]  max-h-full" style={{ maxHeight: '100vh', overflowY: 'auto' }}>
                         <div className="flex flex-col sm:flex-row h-full">
                             <div className="flex-1">

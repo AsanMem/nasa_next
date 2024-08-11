@@ -45,12 +45,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
             //     clipping: false
             // });
 
-            // const shaderMaterial = new THREE.ShaderMaterial({
-            //     uniforms: uniforms,
-            //     vertexShader: vertexShader,
-            //     fragmentShader: fragmentShader,
-            // });
-
             const uniforms = {
                 time: { value: 1.0 }
             };
@@ -75,11 +69,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
             }
         `;
 
-            // const shaderMaterial = new THREE.ShaderMaterial({
-            //     uniforms: uniforms,
-            //     vertexShader: vertexShader,
-            //     fragmentShader: fragmentShader
-            // });
             const shaderMaterial = new THREE.ShaderMaterial({
                 uniforms: uniforms,
                 vertexShader: noiseFunctions + vertexShader,
@@ -144,41 +133,22 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
 
 
             // Добавление осей для отладки
-            const axesHelper = new THREE.AxesHelper(5);
-            scene.add(axesHelper);
+            //    const axesHelper = new THREE.AxesHelper(5);
+            //    scene.add(axesHelper);
 
 
 
-            // Для построения сферы используется класс SphereGeometry, который принимает на себя:
-            // радиус (значение по умолчанию равно 1)
-            // widthSegments — количество горизонтальных сегментов (треугольников). Минимальное значение равно 3, значение по умолчанию 8
-            // heightSegments — количество вертикальных сегментов. Минимальное значение равно 2, значение по умолчанию 6
-            // К слову, чем больше вы укажете количество треугольников, тем более гладкой будет поверхность сферы.
-            // Создание материала и геометрии для сферы
-            // rask
-            // const planetGeometry = new THREE.TetrahedronGeometry(1.282, 2); // new THREE.TetrahedronGeometry(2.282, 2);
-            // //   const planetGeometry = new THREE.DodecahedronGeometry(3.2, 2)
-            // const material = new THREE.MeshNormalMaterial();
 
-            // const sphere = new THREE.Mesh(planetGeometry, material);
-            // scene.add(sphere);
-            // rask
+            const planetTetrahedron = new THREE.TetrahedronGeometry(1.982, 2); // new THREE.TetrahedronGeometry(2.282, 2);
+            const planetDedecahedron = new THREE.DodecahedronGeometry(3.2, 2)
 
-            // const geometry = new THREE.SphereGeometry(2, 64, 64);
-            // const planet = new THREE.Mesh(geometry, material);
-            // scene.add(planet);
 
-            // до тест 
-            // const geometry = new THREE.SphereGeometry(2, 64, 64);
-            // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-            // const planet = new THREE.Mesh(geometry, material);
-            // scene.add(planet);
 
             const geometry = new THREE.SphereGeometry(2, 64, 64);
 
 
 
-            const planet = new THREE.Mesh(geometry, shaderMaterial);
+            const planet = new THREE.Mesh(planetTetrahedron, shaderMaterial);
             scene.add(planet);
             console.log(planet);
 

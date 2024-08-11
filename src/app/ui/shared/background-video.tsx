@@ -8,6 +8,7 @@ export default function BackgroundVideo() {
             loop
             muted
             playsInline
+
             style={{ "zIndex": -1 }}
         >
             <source src="/media/videos/planet_earth.mp4" type="video/mp4" />

@@ -80,7 +80,7 @@ function PaginationNumber({
   //     'text-gray-300': position === 'middle',
   //   },
   // );
-  const className = `flex h-10 w-10 items-center justify-center text-sm border  ${position === 'first' || position === 'single' ? 'rounded-l-md' : position === 'last' || position === 'single' ? 'rounded-r-md' : position === 'middle' ? 'text-gray-300' : ""}  ${isActive ? 'z-10 bg-blue-600 border-blue-600 text-white' : !isActive && position !== 'middle' ? 'hover:bg-gray-100' : ""} `;
+  const className = `flex h-10 w-10 items-center justify-center text-sm border text-white ${position === 'first' || position === 'single' ? 'rounded-l-md' : position === 'last' || position === 'single' ? 'rounded-r-md' : position === 'middle' ? 'text-gray-300' : ""}  ${isActive ? ' bg-blue-600 border-blue-600 text-white' : !isActive && position !== 'middle' ? 'hover:bg-gray-100 hover:text-black' : ""} `;
 
   return isActive || position === 'middle' ? (
     <div className={className}>{page}</div>
@@ -109,14 +109,19 @@ function PaginationArrow({
   //     'ml-2 md:ml-4': direction === 'right',
   //   },
   // );
-  const className = `flex h-10 w-10 items-center justify-center rounded-md border  ${isDisabled ? 'pointer-events-none text-gray-300' : 'hover:bg-gray-100'}  ${direction === 'left' ? 'mr-2 md:mr-4' : direction === 'right' ? 'ml-2 md:ml-4' : ""} `;
+  const className = `flex h-10 w-10 items-center justify-center rounded-md border  ${isDisabled ? 'pointer-events-none text-gray-300' : 'hover:bg-gray-100 '}  ${direction === 'left' ? 'mr-2 md:mr-4' : direction === 'right' ? 'ml-2 md:ml-4' : ""} `;
   const icon =
     direction === 'left' ? (
-      // <ArrowLeftIcon className="w-4" />
-      "-"
+
+      <svg className="w-3 h-3 text-white hover:bg-gray-100 hover:text-black font-bold" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 8 14">
+        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" stroke-width="2" d="M7 1 1.3 6.326a.91.91 0 0 0 0 1.348L7 13" />
+      </svg>
+
     ) : (
-      // <ArrowRightIcon className="w-4" />
-      "+"
+
+      <svg className="w-3 h-3 text-white  hover:bg-gray-100 hover:text-black font-bold" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 8 14">
+        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" stroke-width="2" d="m1 13 5.7-5.326a.909.909 0 0 0 0-1.348L1 1" />
+      </svg>
     );
 
   return isDisabled ? (
@@ -127,3 +132,4 @@ function PaginationArrow({
     </Link>
   );
 }
+

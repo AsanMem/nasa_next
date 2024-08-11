@@ -3,6 +3,7 @@ import { Bungee } from "next/font/google";
 import "./globals.css";
 import Header from "@/app/ui/header/Header";
 import ClientLayout from "./ClientLayout";
+import type { Viewport } from 'next'
 
 const bungee = Bungee({
   weight: '400',
@@ -12,18 +13,28 @@ const bungee = Bungee({
 
 
 
-
 export const metadata: Metadata = {
-  title: "Nassa Galerey",
-  description: "Nassa , UFO , Austronaut",
+  title: "SPACE TRAVEL",
+  description: "Nassa , UFO , Austronaut , Nassa Galerey",
+  manifest: "/manifest.json",
+  icons: {
+    icon: '/media/favicon.ico',
+  },
+
 };
+
+export function generateViewport(): Viewport {
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover',
+  };
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/media/favicon.ico" />
-      </head>
+
       <body className={`${bungee.className}`}>
         <Header />
         <ClientLayout>
