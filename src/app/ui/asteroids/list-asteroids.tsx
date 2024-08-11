@@ -28,7 +28,7 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                                                 <th scope="col" className="px-6 py-2">#</th>
                                                 <th scope="col" className="px-6 py-2">Name</th>
                                                 <th scope="col" className="px-6 py-2">Speed -  KM / sec </th>
-                                                <th scope="col" className="px-6 py-2">Diameter -  Min / Max meters</th>
+                                                <th scope="col" className="px-6 py-2">Diameter - Meters</th>
                                             </tr>
                                         </thead>
 
@@ -39,55 +39,15 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                                             const relative_velocity = asteroid.close_approach_data[0].relative_velocity
                                             const estimated_diameterMin = asteroid.estimated_diameter.meters.estimated_diameter_min
                                             const estimated_diameterMax = asteroid.estimated_diameter.meters.estimated_diameter_max
+                                            const averageDiameter = (estimated_diameterMin + estimated_diameterMax) / 2
 
-                                            //   console.log(relative_velocity, "relative_velocity")
-                                            // {
-                                            //     links: {
-                                            //       self: 'http://api.nasa.gov/neo/rest/v1/neo/54434076?api_key=VauDsiHPdow83sG05SNp04z8eTKDnUACx9I5mCoa'
-                                            //     },
-                                            //     id: '54434076',
-                                            //     neo_reference_id: '54434076',
-                                            //     name: '(2024 GF5)',
-                                            //     nasa_jpl_url: 'https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=54434076',
-                                            //     absolute_magnitude_h: 27.29,
-                                            //     estimated_diameter: {
-                                            //       kilometers: {
-                                            //         estimated_diameter_min: 0.0092588058,
-                                            //         estimated_diameter_max: 0.0207033192
-                                            //       },
-                                            //       meters: {
-                                            //         estimated_diameter_min: 9.2588058337,
-                                            //         estimated_diameter_max: 20.7033192345
-                                            //       },
-                                            //       miles: {
-                                            //         estimated_diameter_min: 0.0057531534,
-                                            //         estimated_diameter_max: 0.0128644422
-                                            //       },
-                                            //       feet: {
-                                            //         estimated_diameter_min: 30.3766605313,
-                                            //         estimated_diameter_max: 67.9242778774
-                                            //       }
-                                            //     },
-                                            //     is_potentially_hazardous_asteroid: false,
-                                            //     close_approach_data: [
-                                            //       {
-                                            //         close_approach_date: '2024-04-17',
-                                            //         close_approach_date_full: '2024-Apr-17 14:47',
-                                            //         epoch_date_close_approach: 1713365220000,
-                                            //         relative_velocity: [Object],
-                                            //         miss_distance: [Object],
-                                            //         orbiting_body: 'Earth'
-                                            //       }
-                                            //     ],
-                                            //     is_sentry_object: false
-                                            //   } asteroid
                                             return (
                                                 <tbody >
                                                     <tr className="border-b border-b-neutral-700 dark:border-white text-base text-slate-200">
                                                         <td className="whitespace-nowrap px-6 py-2 font-medium">{i + 1}</td>
                                                         <td className="whitespace-nowrap px-6 py-2">{name}</td>
                                                         <td className="whitespace-nowrap px-6 py-2">{Math.round(relative_velocity.kilometers_per_second)}</td>
-                                                        <td className="whitespace-nowrap px-6 py-2">{Math.round(estimated_diameterMin)} / {Math.round(estimated_diameterMax)}</td>
+                                                        <td className="whitespace-nowrap px-6 py-2">{Math.round(averageDiameter)}</td>
                                                         <td className="whitespace-nowrap px-6 py-2">
                                                             <div className="mb-2 md:mb-0">
                                                                 <Link
@@ -120,6 +80,3 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
         </div>
     )
 }
-{/* <CardAsteroid
-                             asteroid={asteroid}
-                            /> */}

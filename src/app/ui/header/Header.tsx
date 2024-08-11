@@ -21,7 +21,7 @@ export default function Header() {
   const pathname = usePathname();
 
   return (
-    <header>
+    <header className="h-max-20vh">
       <nav className="p-2 px-4 rounded-md shadow flex  md:flex-row justify-between items-center my-4">
         <div className="mb-2 md:mb-0">
           <Link

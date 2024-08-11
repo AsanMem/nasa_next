@@ -2,121 +2,110 @@
 import React from 'react';
 import ThreeScene from '@/app/ui/treejs/scene/ThreeScene';
 import BackgroundImage from '@/app/ui/shared/background-image';
+import Timeline from '@/app/ui/asteroids/timeline';
 
-interface Asteroid {
-  id: string;
-  name: string;
-  estimated_diameter: {
-    meters: {
-      estimated_diameter_min: number;
-      estimated_diameter_max: number;
-    };
-  };
-  close_approach_data: {
-    relative_velocity: {
-      kilometers_per_second: number;
-    };
-  }[];
-}
 
-async function getAsteroid(id: string): Promise<Asteroid> {
+
+async function getAsteroid(id: string): Promise<any> {
   const res = await fetch(`https://api.nasa.gov/neo/rest/v1/neo/${id}?api_key=${process.env.APP_NASA_API_KEY}`);
   const data = await res.json();
   return data;
 }
 
 export async function generateStaticParams() {
-  // Получите список всех возможных ID астероидов
-  const ids = ['some-id', 'another-id']; // Здесь вы должны получить ID из вашего источника данных
+  const ids = ['some-id', 'another-id'];
   return ids.map(id => ({ id }));
 }
 
 export default async function Page({ params }: { params: { id: string } }) {
+  // Получаем данные об астероиде
   const asteroid = await getAsteroid(params.id);
-  // console.log(asteroid, "asteroid") public\media\bg\earth_back.jpg
+  // console.log(asteroid, "asteroid");
 
-  const name = asteroid.name
+  // Название астероида
+  const name = asteroid.name;
+  const isDanger = asteroid.is_potentially_hazardous_asteroid
+
   const relative_velocity = asteroid.close_approach_data[0].relative_velocity
-  const estimated_diameterMin = asteroid.estimated_diameter.meters.estimated_diameter_min
-  const estimated_diameterMax = asteroid.estimated_diameter.meters.estimated_diameter_max
 
-  //   console.log(relative_velocity, "relative_velocity")
-  // {
-  //     links: {
-  //       self: 'http://api.nasa.gov/neo/rest/v1/neo/54434076?api_key=VauDsiHPdow83sG05SNp04z8eTKDnUACx9I5mCoa'
-  //     },
-  //     id: '54434076',
-  //     neo_reference_id: '54434076',
-  //     name: '(2024 GF5)',
-  //     nasa_jpl_url: 'https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=54434076',
-  //     absolute_magnitude_h: 27.29,
-  //     estimated_diameter: {
-  //       kilometers: {
-  //         estimated_diameter_min: 0.0092588058,
-  //         estimated_diameter_max: 0.0207033192
-  //       },
-  //       meters: {
-  //         estimated_diameter_min: 9.2588058337,
-  //         estimated_diameter_max: 20.7033192345
-  //       },
-  //       miles: {
-  //         estimated_diameter_min: 0.0057531534,
-  //         estimated_diameter_max: 0.0128644422
-  //       },
-  //       feet: {
-  //         estimated_diameter_min: 30.3766605313,
-  //         estimated_diameter_max: 67.9242778774
-  //       }
-  //     },
-  //     is_potentially_hazardous_asteroid: false,
-  //     close_approach_data: [
-  //       {
-  //         close_approach_date: '2024-04-17',
-  //         close_approach_date_full: '2024-Apr-17 14:47',
-  //         epoch_date_close_approach: 1713365220000,
-  //         relative_velocity: [Object],
-  //         miss_distance: [Object],
-  //         orbiting_body: 'Earth'
-  //       }
-  //     ],
-  //     is_sentry_object: false
-  //   } asteroid
-  // return (
-  //     <tbody >
-  //         <tr className="border-b border-b-neutral-700 dark:border-white text-base text-slate-200">
-  //             <td className="whitespace-nowrap px-6 py-2 font-medium">{i + 1}</td>
-  //             <td className="whitespace-nowrap px-6 py-2">{name}</td>
-  //             <td className="whitespace-nowrap px-6 py-2">{Math.round(relative_velocity.kilometers_per_second)}</td>
-  //             <td className="whitespace-nowrap px-6 py-2">{Math.round(estimated_diameterMin)} / {Math.round(estimated_diameterMax)}</td>
-  //             <td className="whitespace-nowrap px-6 py-2">
-  //                 <div className="mb-2 md:mb-0">
+  // Оценочный диаметр астероида в метрах
 
+  const estimated_diameterMin = asteroid.estimated_diameter.meters.estimated_diameter_min;
+  const estimated_diameterMax = asteroid.estimated_diameter.meters.estimated_diameter_max;
+
+
+  // console.log(asteroid.estimated_diameter, "asteroid.estimated_diameter")
+  // Десигнация астероида
+  const designation = asteroid?.designation;
+
+  // // URL на сайт JPL для дополнительной информации
+  const nasa_jpl_url = asteroid?.nasa_jpl_url;
+
+  // // Абсолютная величина яркости астероида
+  const absolute_magnitude_h = asteroid?.absolute_magnitude_h;
+
+  // Является ли астероид потенциально опасным
+  const is_potentially_hazardous_asteroid = asteroid.is_potentially_hazardous_asteroid;
+
+  // Данные о ближайших подходах
+  const closeApproachData = asteroid.close_approach_data;
+
+  // Пример: относительная скорость первого ближайшего подхода
+  const relative_velocity_first_approach = closeApproachData[0].relative_velocity.kilometers_per_second;
+
+  // Расстояние до Земли в момент первого ближайшего подхода
+  const miss_distance_first_approach = closeApproachData[0].miss_distance.kilometers;
+
+  // Дата первого ближайшего подхода
+  const close_approach_date_first_approach = closeApproachData[0].close_approach_date;
+
+  // Орбитальные данные
+  const orbital_data = asteroid.orbital_data;
+  // Пример: эксцентриситет орбиты
+  const eccentricity = orbital_data.eccentricity;
+  // Пример: полуось орбиты
+  const semi_major_axis = orbital_data.semi_major_axis;
+  // Пример: наклонение орбиты
+  const inclination = orbital_data.inclination;
+  // Пример: орбитальный период
+  const orbital_period = orbital_data.orbital_period;
+  // Является ли объект частью системы мониторинга Sentry
+  const is_sentry_object = asteroid?.is_sentry_object;
+
+  const averageDiameter = (estimated_diameterMin + estimated_diameterMax) / 2;
 
   return (
-    <div className="relative">
+    <div className="relative w-full h-[calc(h-screen - 15vh)]">
       <BackgroundImage src="/media/bg/earth_back.jpg" className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
-      <main className="relative z-10 grid grid-cols-5 gap-4 p-4">
-        <div className="col-span-2">
-          <h1 className="text-4xl font-bold mb-4">Asteroid : {name}</h1>
-          <section className="mb-4">
-            <div id="result-container" className="mb-4">
-              <article className="message is-dark">
-                <div className="message-header">
-                  <p>{name}</p>
-                  <button className="delete" aria-label="delete"></button>
-                </div>
-                <div id="content" className="message-body max-h-[35vh] min-h-[35vh] overflow-x-auto overflow-y-auto">
-                  {Math.round(relative_velocity.kilometers_per_second)} <strong>KM / sec</strong>
-                  {Math.round(estimated_diameterMin)} / {Math.round(estimated_diameterMax)}
-                </div>
-              </article>
-            </div>
-          </section>
-        </div>
-        <div className="col-span-3">
-          <ThreeScene asteroid={params.id} />
-        </div>
-      </main>
+
+      {/* Контейнер для сцены */}
+      <div className="absolute inset-0 z-10">
+        <ThreeScene asteroid={params.id}
+          diameterMin={estimated_diameterMin}
+          diameterMax={estimated_diameterMax}
+        />
+      </div>
+
+      {/* Контейнер для описания */}
+      <div className="absolute top-0 left-0 w-full md:w-1/3 max-h-[70hv] bg-white bg-opacity-70 z-20 p-4">
+        <h1 className="text-4xl font-bold mb-4">Asteroid : {name}</h1>
+        <h2>Average Diameter : {averageDiameter} meters</h2>
+        <section className="mb-4">
+          <div id="result-container" className="mb-4">
+            <article className="message is-dark">
+              <div className="message-header">
+                <p>{name}</p>
+                <button className="delete" aria-label="delete"></button>
+              </div>
+              <div id="content" className="message-body max-h-[35vh] min-h-[35vh] overflow-x-auto overflow-y-auto">
+                {Math.round(relative_velocity.kilometers_per_second)} <strong>KM / sec</strong>
+                {Math.round(estimated_diameterMin)} / {Math.round(estimated_diameterMax)}
+              </div>
+            </article>
+            <Timeline closeApproachData={closeApproachData} />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

@@ -3,12 +3,13 @@ import { fetchAsteroids } from "../lib/data/fetchAsteroids";
 import HelloTittle from "../ui/shared/hello-title";
 import { formatDate } from "../lib/utils";
 import ListAsteroids from "../ui/asteroids/list-asteroids";
+import { getAsteroidData } from "../lib/utils/getAsteroidsSpeedDiametr";
 
 export default async function Asteroids() {
   const asteroidsData = await fetchAsteroids()
   const asteroidsObjects = asteroidsData?.near_earth_objects[formatDate()] ?? []
 
-  // console.log(asteroidsObjects, "asteroidsObjects")
+  console.log(getAsteroidData(asteroidsObjects), "asteroidsObjects")
   return (
     <div className="">
       <HelloTittle mainText={<>

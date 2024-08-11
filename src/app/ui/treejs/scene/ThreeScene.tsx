@@ -6,9 +6,11 @@ import { fragmentShader, noiseFunctions, vertexShader } from '../PlanetShaders';
 
 interface ThreeSceneProps {
     asteroid: any;
+    diameterMin: number;
+    diameterMax: number;
 }
 
-const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
+const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameterMax }) => {
     const mountRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -139,15 +141,18 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
 
 
 
-            const planetTetrahedron = new THREE.TetrahedronGeometry(1.982, 2); // new THREE.TetrahedronGeometry(2.282, 2);
             const planetDedecahedron = new THREE.DodecahedronGeometry(3.2, 2)
 
 
 
-            const geometry = new THREE.SphereGeometry(2, 64, 64);
+
+            const averageDiameter = (diameterMin + diameterMax) / 2;
 
 
+            const geometry = new THREE.SphereGeometry(averageDiameter / 2, 64, 64);
+            const planetTetrahedron = new THREE.TetrahedronGeometry(9.999, 2);// 1.982 // new THREE.TetrahedronGeometry(2.282, 2);
 
+            // 1 min  9 max
             const planet = new THREE.Mesh(planetTetrahedron, shaderMaterial);
             scene.add(planet);
             console.log(planet);
@@ -235,7 +240,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid }) => {
         }
     }, [asteroid]);
 
-    return <div ref={mountRef} style={{ width: '100%', height: 'calc(70vh)' }} />;
+    return <div ref={mountRef} style={{ width: '100%', height: '80vh' }} />;
 };
 
 export default ThreeScene;
