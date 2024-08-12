@@ -17,11 +17,12 @@ export async function generateStaticParams() {
   return ids.map(id => ({ id }));
 }
 
-export default async function Page({ params }: { params: { id: string } }) {
-  // Получаем данные об астероиде
-  const asteroid = await getAsteroid(params.id);
+export default async function Page({ params }: { params: { id: string; scaleAsteroidSize: string } }) {
+  const { id, scaleAsteroidSize } = params;
+  const asteroid = await getAsteroid(id);
+  const diameterSphere = parseFloat(scaleAsteroidSize);
   // console.log(asteroid, "asteroid");
-
+  console.log(scaleAsteroidSize, "scaleAsteroidSize <<<<   ============")
   // Название астероида
   const name = asteroid.name;
   const isDanger = asteroid.is_potentially_hazardous_asteroid
@@ -75,7 +76,7 @@ export default async function Page({ params }: { params: { id: string } }) {
   const averageDiameter = (estimated_diameterMin + estimated_diameterMax) / 2;
 
   return (
-    <div className="relative w-full h-[calc(h-screen - 15vh)]">
+    <div className="relative w-full h-[calc(  h-screen - 15vh)]">
       <BackgroundImage src="/media/bg/earth_back.jpg" className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
 
       {/* Контейнер для сцены */}
@@ -83,11 +84,12 @@ export default async function Page({ params }: { params: { id: string } }) {
         <ThreeScene asteroid={params.id}
           diameterMin={estimated_diameterMin}
           diameterMax={estimated_diameterMax}
+          diameterSphere={diameterSphere}
         />
       </div>
 
       {/* Контейнер для описания */}
-      <div className="absolute top-0 left-0 w-full md:w-1/3 max-h-[70hv] bg-white bg-opacity-70 z-20 p-4">
+      <div className="absolute top-0 left-0 w-full md:w-1/3 max-h-[70hv] text-slate-100 bg-opacity-70 z-20 p-4">
         <h1 className="text-4xl font-bold mb-4">Asteroid : {name}</h1>
         <h2>Average Diameter : {averageDiameter} meters</h2>
         <section className="mb-4">

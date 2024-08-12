@@ -8,9 +8,10 @@ interface ThreeSceneProps {
     asteroid: any;
     diameterMin: number;
     diameterMax: number;
+    diameterSphere: number;
 }
 
-const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameterMax }) => {
+const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameterMax, diameterSphere }) => {
     const mountRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -150,7 +151,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameter
 
 
             const geometry = new THREE.SphereGeometry(averageDiameter / 2, 64, 64);
-            const planetTetrahedron = new THREE.TetrahedronGeometry(9.999, 2);// 1.982 // new THREE.TetrahedronGeometry(2.282, 2);
+            const planetTetrahedron = new THREE.TetrahedronGeometry(diameterSphere, 2);// 1.982 // new THREE.TetrahedronGeometry(2.282, 2);
 
             // 1 min  9 max
             const planet = new THREE.Mesh(planetTetrahedron, shaderMaterial);

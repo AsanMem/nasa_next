@@ -2,13 +2,12 @@ import React from 'react'
 import Pagination from '../shared/pagination'
 import CardAsteroid from './card-asteroid'
 import Link from 'next/link'
+import { getAsteroidData } from '@/app/lib/utils/getAsteroidsSpeedDiametr'
+import { calculateSize } from '@/app/lib/utils/calculateSize'
 
 export default function ListAsteroids({ asteroidsObjects }: any) {
-
-    // const linksSelf = asteroid.links.self
-    // const resultSelf = await fetch(linksSelf)
-    // const resultSelfJSON = resultSelf.json();
-    // console.log(resultSelfJSON, "resultSelfJSON")
+    const asteroidData = getAsteroidData(asteroidsObjects);
+    const asteroidSizes = asteroidData.map((obj) => obj.averageDiameter);
 
     return (
         <div>
@@ -39,7 +38,9 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                                             const relative_velocity = asteroid.close_approach_data[0].relative_velocity
                                             const estimated_diameterMin = asteroid.estimated_diameter.meters.estimated_diameter_min
                                             const estimated_diameterMax = asteroid.estimated_diameter.meters.estimated_diameter_max
-                                            const averageDiameter = (estimated_diameterMin + estimated_diameterMax) / 2
+                                            const averageDiameter = (Math.round(estimated_diameterMin) + Math.round(estimated_diameterMax)) / 2
+
+                                            const scaleAsteroidSize = calculateSize(asteroidSizes, averageDiameter)
 
                                             return (
                                                 <tbody >
@@ -47,12 +48,12 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                                                         <td className="whitespace-nowrap px-6 py-2 font-medium">{i + 1}</td>
                                                         <td className="whitespace-nowrap px-6 py-2">{name}</td>
                                                         <td className="whitespace-nowrap px-6 py-2">{Math.round(relative_velocity.kilometers_per_second)}</td>
-                                                        <td className="whitespace-nowrap px-6 py-2">{Math.round(averageDiameter)}</td>
+                                                        <td className="whitespace-nowrap px-6 py-2">{averageDiameter}</td>
                                                         <td className="whitespace-nowrap px-6 py-2">
                                                             <div className="mb-2 md:mb-0">
                                                                 <Link
                                                                     key={"asteroid_id"}
-                                                                    href={`/asteroids/${asteroid.id}`}
+                                                                    href={`/asteroids/${asteroid.id}/${scaleAsteroidSize}`}
                                                                     aria-current="page"
                                                                     className="inline-block"
                                                                 >
