@@ -5,7 +5,7 @@ export const getAsteroidData = (asteroids: any) => {
       const maxDiameterMeters = Math.round(asteroid.estimated_diameter.meters.estimated_diameter_max);
   
       // Получаем скорость в км/с
-      const velocity = asteroid.close_approach_data[0]?.relative_velocity.kilometers_per_second || 0;
+      const velocity = Math.round(asteroid.close_approach_data[0]?.relative_velocity.kilometers_per_second) || 0;
   
       return {
         id: asteroid.id,

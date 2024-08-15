@@ -10,7 +10,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
     const pathname = usePathname();
     const showImagePaths = ["/day"];
-    const showImagePattern = /^\/asteroids\/\d+\/\d+(\.\d+)?$/;// регулярное выражение для маршрута /asteroids/[id]
+    const showImagePattern = /^\/asteroids\/\d+\/\d+(\.\d+)?(-\d+(\.\d+)?)$/;
+
 
     useEffect(() => {
         setIsHydrated(true);

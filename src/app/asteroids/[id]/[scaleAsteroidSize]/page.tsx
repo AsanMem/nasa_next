@@ -20,22 +20,18 @@ export async function generateStaticParams() {
 export default async function Page({ params }: { params: { id: string; scaleAsteroidSize: string } }) {
   const { id, scaleAsteroidSize } = params;
   const asteroid = await getAsteroid(id);
-  const diameterSphere = parseFloat(scaleAsteroidSize);
-  // console.log(asteroid, "asteroid");
-  console.log(scaleAsteroidSize, "scaleAsteroidSize <<<<   ============")
+  const diameterSphere = parseFloat(scaleAsteroidSize.split("-")[0]);
+  const speedSphere = parseFloat(scaleAsteroidSize.split("-")[1]);
+
   // Название астероида
   const name = asteroid.name;
   const isDanger = asteroid.is_potentially_hazardous_asteroid
-
   const relative_velocity = asteroid.close_approach_data[0].relative_velocity
 
   // Оценочный диаметр астероида в метрах
-
   const estimated_diameterMin = asteroid.estimated_diameter.meters.estimated_diameter_min;
   const estimated_diameterMax = asteroid.estimated_diameter.meters.estimated_diameter_max;
 
-
-  // console.log(asteroid.estimated_diameter, "asteroid.estimated_diameter")
   // Десигнация астероида
   const designation = asteroid?.designation;
 
@@ -85,6 +81,7 @@ export default async function Page({ params }: { params: { id: string; scaleAste
           diameterMin={estimated_diameterMin}
           diameterMax={estimated_diameterMax}
           diameterSphere={diameterSphere}
+          speedSphere={speedSphere}
         />
       </div>
 

@@ -9,9 +9,10 @@ interface ThreeSceneProps {
     diameterMin: number;
     diameterMax: number;
     diameterSphere: number;
+    speedSphere: number
 }
 
-const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameterMax, diameterSphere }) => {
+const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameterMax, diameterSphere, speedSphere }) => {
     const mountRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -141,23 +142,15 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameter
 
 
 
-
+            // Логика создания cферы
             const planetDedecahedron = new THREE.DodecahedronGeometry(3.2, 2)
+            const planetTetrahedron = new THREE.TetrahedronGeometry(diameterSphere, 2);
 
 
-
-
-            const averageDiameter = (diameterMin + diameterMax) / 2;
-
-
-            const geometry = new THREE.SphereGeometry(averageDiameter / 2, 64, 64);
-            const planetTetrahedron = new THREE.TetrahedronGeometry(diameterSphere, 2);// 1.982 // new THREE.TetrahedronGeometry(2.282, 2);
-
-            // 1 min  9 max
             const planet = new THREE.Mesh(planetTetrahedron, shaderMaterial);
             scene.add(planet);
-            console.log(planet);
 
+            // Логика создания света
             const light = new THREE.DirectionalLight(0xffffff, 1);
             light.position.set(5, 5, 5);
             scene.add(light);
@@ -169,14 +162,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameter
 
             camera.position.z = 15 // 7 ;
 
-            // Логика создания планеты и атмосферы
-
-
-            // const planetGeometry = new THREE.SphereGeometry(1.5, 2, 32);
-            // const planetMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-            // const planet = new THREE.Mesh(planetGeometry, planetMaterial);
-            // scene.add(planet);
-
+            // Логика создания атмосферы
             // const atmosphereGeometry = new THREE.SphereGeometry(1.6, 32, 32);
             // const atmosphereMaterial = new THREE.MeshBasicMaterial({
             //     color: 0x00ff00,
@@ -187,7 +173,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameter
             // const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
             // scene.add(atmosphere);
 
-            //
 
 
 
@@ -197,27 +182,20 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameter
             // Функция animate анимирует вращение сферы и движение звезд, а также обновляет рендер сцены на каждом кадре.
             const animate = () => {
                 requestAnimationFrame(animate);
-                // rask
-                // sphere.rotation.x += 0.010  // медленно 0.001; // быстро 0.021;
-                // sphere.rotation.z += 0.007  // медленно 0.001; // быстро 0.031;
-                // rask
-                // planet.rotation.y += 0.002;
-                // renderer.render(scene, camera);
-                //  composer.render();
+
                 uniforms.time.value += 0.05;
+                planet.rotation.x += 0.01;
+                planet.rotation.z += 0.007
                 planet.rotation.y += 0.01;
                 renderer.render(scene, camera);
+
                 // Движение звезд
                 const positions = starGeometry.attributes.position.array as Float32Array;
-
-
                 for (let i = 0; i < positions.length; i += 3) {
-                    positions[i] += 0.7; // Движение по оси x
-                    //  positions[i + 1] += 0.1 // 0.01; // Движение по оси y
-                    positions[i + 2] += 0.5 // 0.01; // Движение по оси z
+                    positions[i] += speedSphere // 0.1 //  // Движение по оси x
+                    positions[i + 2] += speedSphere + 0.005  // 0.1 ; // Движение по оси z
                     // Возврат звезд на начальные позиции, чтобы они не исчезали
                     if (positions[i] > 1000) positions[i] = -1000;
-                    // if (positions[i + 1] < -1000) positions[i + 1] = 1000;
                     if (positions[i + 2] > 1000) positions[i + 2] = -1000;
                 }
                 starGeometry.attributes.position.needsUpdate = true;
