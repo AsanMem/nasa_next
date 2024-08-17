@@ -2,6 +2,7 @@ import { unstable_noStore } from "next/cache";
 import { formatDate } from "../utils";
 
 export async function fetchPictureOfTheDay() {
+   
     try {
         const results = await fetch(
             `https://api.nasa.gov/planetary/apod?api_key=${
