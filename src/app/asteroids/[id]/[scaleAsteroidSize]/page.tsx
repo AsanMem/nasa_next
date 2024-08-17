@@ -78,8 +78,8 @@ export default async function Page({ params }: { params: { id: string; scaleAste
       {/* Контейнер для сцены */}
       <div className="absolute inset-0 z-10">
         <ThreeScene asteroid={params.id}
-          diameterMin={estimated_diameterMin}
-          diameterMax={estimated_diameterMax}
+          diameterMin={Math.round(estimated_diameterMin)}
+          diameterMax={Math.round(estimated_diameterMax)}
           diameterSphere={diameterSphere}
           speedSphere={speedSphere}
         />
@@ -88,7 +88,7 @@ export default async function Page({ params }: { params: { id: string; scaleAste
       {/* Контейнер для описания */}
       <div className="absolute top-0 left-0 w-full md:w-1/3 max-h-[70hv] text-slate-100 bg-opacity-70 z-20 p-4">
         <h1 className="text-4xl font-bold mb-4">Asteroid : {name}</h1>
-        <h2>Average Diameter : {averageDiameter} meters</h2>
+        <h2>Average Diameter : {Math.round(averageDiameter)} meters</h2>
         <section className="mb-4">
           <div id="result-container" className="mb-4">
             <article className="message is-dark">

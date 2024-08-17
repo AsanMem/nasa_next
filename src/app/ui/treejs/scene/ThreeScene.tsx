@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { EffectComposer, OrbitControls, OutputPass, RenderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
 import { fragmentShader, noiseFunctions, vertexShader } from '../PlanetShaders';
@@ -15,6 +15,10 @@ interface ThreeSceneProps {
 const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameterMax, diameterSphere, speedSphere }) => {
     const mountRef = useRef<HTMLDivElement | null>(null);
 
+
+
+    const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
+    diameterSphere = isMobile && diameterSphere > 5.922 ? 5.922 : diameterSphere
     useEffect(() => {
         if (mountRef.current) {
             const width = mountRef.current.clientWidth;
