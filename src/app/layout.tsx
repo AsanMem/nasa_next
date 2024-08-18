@@ -35,11 +35,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${bungee.className}`}>
-        <Header />
         <ClientLayout>
           {children}
         </ClientLayout>
-        <footer className={`h-6`}></footer>
+        <footer className={``}></footer>
       </body>
     </html>
   );

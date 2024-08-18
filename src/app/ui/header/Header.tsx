@@ -22,7 +22,6 @@ export default function Header() {
 
   return (
     <header className="">
-      {/* h-max-10vh */}
       <nav className="p-2 px-4 rounded-md shadow flex md:flex-row justify-between items-center my-4">
         <div className="mb-2 md:mb-0">
           <Link
@@ -44,7 +43,7 @@ export default function Header() {
 
           {links.map((link) => (
             <li className="inline-block mb-2 md:mb-0" key={link.name}>
-              <Link href={link.href} className={`relative ${styles.navLink}  ${pathname === link.href ? "text-blue-600 text-blue-600" : ""} pl-4`}>
+              <Link href={link.href} className={`relative ${styles.navLink}  ${pathname === link.href ? " text-red-800" : ""} pl-4`}>
                 <p className={`text-sm sm:text-base md:text-base lg:text-lg xl:text-xl `}>
                   {link.name}
                 </p>

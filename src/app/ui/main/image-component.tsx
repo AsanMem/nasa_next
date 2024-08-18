@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import MainTittle from "../shared/main-tittle";
 
 export default function ImageSlideshow({ images }) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -16,17 +17,22 @@ export default function ImageSlideshow({ images }) {
     const [datePart] = currentImage.date.split(" ");
     const formattedDate = datePart.replaceAll("-", "/");
 
+    const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
+    console.log(isMobile, "isMobile")
     return (
-        <div className=" flex items-center justify-center  ">
-            <img
-                src={`https://epic.gsfc.nasa.gov/archive/natural/${formattedDate}/png/${currentImage.image}.png`}
-                alt={currentImage.caption}
-                className="max-w-full object-contain max-h-[80vh] relative"
-            />
-            <div className="absolute bottom-4 left-4 text-white">
-                <h2 className="text-lg font-semibold">{currentImage.caption}</h2>
-                <p className="text-sm text-gray-300">{currentImage.date}</p>
+        <>
+            <MainTittle title={`EPIC Natural Color Images`} description="" classes={`absolute z-10 inset-x-0 ${isMobile && "bottom-52"}`} />
+            <div className=" flex justify-center  ">
+                <img
+                    src={`https://epic.gsfc.nasa.gov/archive/natural/${formattedDate}/png/${currentImage.image}.png`}
+                    alt={currentImage.caption}
+                    className="relative max-w-full object-contain max-h-[79vh]"
+                />
+                <div className="absolute bottom-24 text-white text-center">
+                    <h2 className="text-lg font-semibold">{currentImage.caption}</h2>
+                    <p className="text-sm text-gray-300">{currentImage.date}</p>
+                </div>
             </div>
-        </div>
+        </>
     );
 }

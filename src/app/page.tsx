@@ -1,6 +1,7 @@
 // Пример использования компонента ImageSlideshow
 import { fetchNaturalImages } from "./lib/data/epic/fetchNaturalImages";
 import ImageSlideshow from "./ui/main/image-component";
+import MainTittle from "./ui/shared/main-tittle";
 
 
 export default async function Main() {
@@ -8,8 +9,8 @@ export default async function Main() {
 
     return (
 
-        <main className="bg-opacity-75 backdrop-blur-sm">
-            <h1 className="text-2xl font-bold ">EPIC Natural Color Images</h1>
+        <main className="bg-black ">
+
             {images.length > 0 ? (
                 <ImageSlideshow images={images} />
             ) : (

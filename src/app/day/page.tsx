@@ -10,15 +10,32 @@ export default async function Day() {
   return (
 
     <>
-      <BackgroundImage src={photoData.url} className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
+      <BackgroundImage src={photoData.media_type === "image" ? photoData.url : "/media/bg/earth_back.jpg"} className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
       <main className="mb-12">
 
         <div className="">
-          <img
-            className="rounded-2xl sm:pb-3  object-contain max-h-[85vh] mr-4 float-left"
-            src={photoData.url}
-            alt={photoData.title}
-          />
+          {photoData.media_type === "image" ? (
+            <img
+              className="rounded-2xl sm:pb-3 object-contain max-h-[85vh] mr-4 float-left"
+              src={photoData.url}
+              alt={photoData.title}
+            />
+          ) : (
+            <iframe
+              className="rounded-2xl sm:pb-3 object-contain min-h-[30vh] min-w-[35vw] max-h-[85vh] mr-4  float-left shadow-lg"
+              src={photoData.url}
+              title={photoData.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{
+                border: '2px solid #ffffff',
+                padding: '10px',
+                backgroundColor: '#000000'
+              }}
+            />
+
+          )}
           <MainTittle title={`Today is ${photoData.title}`} description="" />
           <p className="font-mono text-lg font-bold text-white">
             {photoData.explanation}
