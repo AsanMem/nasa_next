@@ -1,6 +1,4 @@
 
-
-
 'use client';
 
 
@@ -44,7 +42,7 @@ export default function Header() {
           {links.map((link) => (
             <li className="inline-block mb-2 md:mb-0" key={link.name}>
               <Link href={link.href} className={`relative ${styles.navLink}  ${pathname === link.href ? " text-red-800" : ""} pl-4`}>
-                <p className={`text-sm sm:text-base md:text-base lg:text-lg xl:text-xl `}>
+                <p className={`text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl `}>
                   {link.name}
                 </p>
               </Link>

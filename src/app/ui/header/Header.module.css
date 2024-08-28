@@ -6,7 +6,7 @@
     display: block;
     position: relative;
     line-height: 61px;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     color: #F73E24;
     transition: .3s linear;
   }

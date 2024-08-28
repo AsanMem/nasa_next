@@ -18,7 +18,7 @@ export default function ImageSlideshow({ images }) {
     const formattedDate = datePart.replaceAll("-", "/");
 
     const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
-    console.log(isMobile, "isMobile")
+
     return (
         <>
             <MainTittle title={`EPIC Natural Color Images`} description="" classes={`absolute z-10 inset-x-0 ${isMobile && "bottom-52"}`} />
