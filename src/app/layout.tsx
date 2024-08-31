@@ -15,7 +15,7 @@ const bungee = Bungee({
 
 export const metadata: Metadata = {
   title: "SPACE TRAVEL",
-  description: "Nassa , UFO , Austronaut , Nassa Galerey",
+  description: "NASA , UFO , Astronaut , Astronauts , NASA Gallery",
   manifest: "/manifest.json",
   icons: {
     icon: '/media/favicon.ico',

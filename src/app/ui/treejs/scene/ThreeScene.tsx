@@ -2,24 +2,23 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { EffectComposer, OrbitControls, OutputPass, RenderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
-import { fragmentShader, noiseFunctions, vertexShader } from '../PlanetShaders';
+
+
 
 interface ThreeSceneProps {
     asteroid: any;
-    diameterMin: number;
-    diameterMax: number;
+    asteroidIndex: number
     diameterSphere: number;
     speedSphere: number
 }
 
-const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameterMax, diameterSphere, speedSphere }) => {
+const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diameterSphere, speedSphere }) => {
     const mountRef = useRef<HTMLDivElement | null>(null);
-
-
-
     const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
     diameterSphere = isMobile && diameterSphere > 5.922 ? 5.922 : diameterSphere
     useEffect(() => {
+
+
         if (mountRef.current) {
             const width = mountRef.current.clientWidth;
             const height = mountRef.current.clientHeight;
@@ -33,57 +32,14 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameter
 
 
 
-            // const uniforms = {
-            //     type: { value: 2 },
-            //     radius: { value: 20.0 },
-            //     amplitude: { value: 1.19 },
-            //     sharpness: { value: 2.6 },
-            //     offset: { value: -0.016 },
-            //     period: { value: 0.6 },
-            //     persistence: { value: 0.484 },
-            //     lacunarity: { value: 1.8 },
-            //     octaves: { value: 10 }
-            // };
+            const texture = new THREE.TextureLoader().load(`/media/asteroid/textures/stone-${asteroidIndex}.jpg`);
+            // immediately use the texture for material creation 
 
-            // const shaderMaterial = new THREE.ShaderMaterial({
-            //     uniforms: uniforms,
-            //     vertexShader: noiseFunctions + vertexShader,
-            //     fragmentShader: fragmentShader,
-            //     lights: false,
-            //     clipping: false
-            // });
-
-            const uniforms = {
-                time: { value: 1.0 }
-            };
-
-            const vertexShader = `
-            uniform float time;
-            varying vec3 vNormal;
-            varying vec3 vPosition;
-            void main() {
-                vNormal = normal;
-                vPosition = position;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-        `;
-
-            const fragmentShader = `
-            varying vec3 vNormal;
-            varying vec3 vPosition;
-            void main() {
-                float intensity = dot(vNormal, vec3(0.0, 0.0, 1.0));
-                gl_FragColor = vec4(intensity, intensity, intensity, 1.0);
-            }
-        `;
-
-            const shaderMaterial = new THREE.ShaderMaterial({
-                uniforms: uniforms,
-                vertexShader: noiseFunctions + vertexShader,
-                fragmentShader: fragmentShader
-            });
-
-
+            const material = new THREE.MeshStandardMaterial({
+                map: texture,
+                roughness: 0.8,  // Чем выше значение, тем более матовый материал
+                metalness: 0.2,
+            })
 
 
 
@@ -111,6 +67,16 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameter
             const renderer = new THREE.WebGLRenderer();
             renderer.setSize(width, height);
             mountRef.current.appendChild(renderer.domElement);
+
+
+
+
+
+
+
+
+
+
 
 
             // Настройка смены камеры позиции
@@ -141,41 +107,42 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameter
 
 
             // Добавление осей для отладки
-            //    const axesHelper = new THREE.AxesHelper(5);
-            //    scene.add(axesHelper);
+            const axesHelper = new THREE.AxesHelper(5);
+            scene.add(axesHelper);
 
 
 
             // Логика создания cферы
-            const planetDedecahedron = new THREE.DodecahedronGeometry(3.2, 2)
+            const planetDedecahedron = new THREE.DodecahedronGeometry(diameterSphere, 2)
             const planetTetrahedron = new THREE.TetrahedronGeometry(diameterSphere, 2);
+            const planetGeometry = new THREE.IcosahedronGeometry(diameterSphere, 2);
 
 
-            const planet = new THREE.Mesh(planetTetrahedron, shaderMaterial);
+            const planet = new THREE.Mesh(planetGeometry, material); //
             scene.add(planet);
 
             // Логика создания света
+            // Включаем тени в рендерере
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // Настраиваем свет для отбрасывания теней
             const light = new THREE.DirectionalLight(0xffffff, 1);
             light.position.set(5, 5, 5);
+            light.castShadow = true; // Этот свет будет отбрасывать тени
+
+            // Настраиваем тени для света
+            light.shadow.mapSize.width = 1024;
+            light.shadow.mapSize.height = 1024;
+            light.shadow.camera.near = 0.5;
+            light.shadow.camera.far = 500;
             scene.add(light);
 
+            // Добавляем окружающий свет
             const ambientLight = new THREE.AmbientLight(0x404040);
             scene.add(ambientLight);
 
-
-
             camera.position.z = 15 // 7 ;
-
-            // Логика создания атмосферы
-            // const atmosphereGeometry = new THREE.SphereGeometry(1.6, 32, 32);
-            // const atmosphereMaterial = new THREE.MeshBasicMaterial({
-            //     color: 0x00ff00,
-            //     side: THREE.BackSide,
-            //     opacity: 0.4,
-            //     transparent: true,
-            // });
-            // const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-            // scene.add(atmosphere);
 
 
 
@@ -187,7 +154,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, diameterMin, diameter
             const animate = () => {
                 requestAnimationFrame(animate);
 
-                uniforms.time.value += 0.05;
+                //    uniforms.time.value += 0.05;
                 planet.rotation.x += 0.01;
                 planet.rotation.z += 0.007
                 planet.rotation.y += 0.01;

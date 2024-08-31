@@ -19,9 +19,13 @@ export async function generateStaticParams() {
 
 export default async function Page({ params }: { params: { id: string; scaleAsteroidSize: string } }) {
   const { id, scaleAsteroidSize } = params;
+
   const asteroid = await getAsteroid(id);
   const diameterSphere = parseFloat(scaleAsteroidSize.split("-")[0]);
   const speedSphere = parseFloat(scaleAsteroidSize.split("-")[1]);
+  const asteroidIndex = scaleAsteroidSize.split("-")[2]
+
+
 
   // Название астероида
   const name = asteroid.name;
@@ -77,11 +81,12 @@ export default async function Page({ params }: { params: { id: string; scaleAste
 
       {/* Контейнер для сцены */}
       <div className="absolute inset-0 z-10">
-        <ThreeScene asteroid={params.id}
-          diameterMin={Math.round(estimated_diameterMin)}
-          diameterMax={Math.round(estimated_diameterMax)}
+        <ThreeScene
+          asteroidIndex={asteroidIndex}
+          asteroid={params.id}
           diameterSphere={diameterSphere}
           speedSphere={speedSphere}
+
         />
       </div>
 

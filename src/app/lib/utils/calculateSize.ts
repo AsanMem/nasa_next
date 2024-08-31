@@ -12,7 +12,7 @@ export const calculateSize = (numbers : number[], value:number) : number => {
     }
 
     // Нормализация значения на шкале от 1 до 9.999
-    const normalizedValue = ((value - min) / (max - min)) * 8.998 + 1;
+    const normalizedValue = ((value - min) / (max - min)) * 8.998 // + 1;
     return parseFloat(normalizedValue.toFixed(3));
 }
 

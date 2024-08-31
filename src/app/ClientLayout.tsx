@@ -11,7 +11,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
     const pathname = usePathname();
     const showImagePaths = ["/day", "/"];
-    const showImagePattern = /^\/asteroids\/\d+\/\d+(\.\d+)?(-\d+(\.\d+)?)$/;
+    const showImagePattern = /^\/asteroids\/\d+\/\d+(\.\d+)?(-\d+(\.\d+)?){2}$/;
+
 
 
     useEffect(() => {

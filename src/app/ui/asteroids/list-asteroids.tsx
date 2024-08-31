@@ -9,6 +9,9 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
     const asteroidData = getAsteroidData(asteroidsObjects);
     const asteroidSizes = asteroidData.map((obj) => obj.averageDiameter);
     const asteroidSpeeds = asteroidData.map((obj) => Number(obj.velocityKmph));
+    console.log({ asteroidSizes, asteroidSpeeds })
+
+
 
     return (
         <div>
@@ -16,7 +19,7 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                 <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch"}>
 
 
-                    <div className="flex flex-col w-full">
+                    <div className="flex flex-col w-[calc(80vw)]">
                         <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
                             <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
                                 <div className="overflow-hidden">
@@ -52,12 +55,19 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                                             const scaleAsteroidSize = calculateSize(asteroidSizes, averageDiameter)
                                             const scaleAsteroidSpeed = calculateSpeed(asteroidSpeeds, currentSpeed)
 
+                                            const numberOfImages = 21
+                                            const asteroidIndex = i + 1;
+
+                                            const textureIndex = asteroidIndex % numberOfImages;
+
+
+
                                             return (
                                                 <tbody >
                                                     <tr className="border-b border-b-neutral-700 dark:border-white text-base text-slate-200">
                                                         <td className="whitespace-nowrap px-6 py-2 font-medium">
                                                             <span className="inline-flex items-center justify-center w-10 h-10 ms-2 text-xs sm:text-xs md:text-sm lg:text-base xl:text-base font-semibold text-blue-800 bg-blue-200 rounded-full shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80">
-                                                                {i + 1}
+                                                                {asteroidIndex}
                                                             </span>
 
 
@@ -86,7 +96,8 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                                                             <div className="mb-2 md:mb-0">
                                                                 <Link
                                                                     key={"asteroid_id"}
-                                                                    href={`/asteroids/${asteroid.id}/${scaleAsteroidSize}-${scaleAsteroidSpeed}`}
+
+                                                                    href={`/asteroids/${asteroid.id}/${scaleAsteroidSize}-${scaleAsteroidSpeed}-${textureIndex}`}
                                                                     aria-current="page"
                                                                     className="inline-block"
                                                                 >
