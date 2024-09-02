@@ -107,8 +107,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diamet
 
 
             // Добавление осей для отладки
-            const axesHelper = new THREE.AxesHelper(5);
-            scene.add(axesHelper);
+            // const axesHelper = new THREE.AxesHelper(5);
+            // scene.add(axesHelper);
 
 
 

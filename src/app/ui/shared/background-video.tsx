@@ -11,7 +11,7 @@ export default function BackgroundVideo() {
 
             style={{ "zIndex": -1 }}
         >
-            <source src="/media/videos/planet_earth.mp4" type="video/mp4" />
+            <source src="/media/videos/ISS071-E-167095-168712-20240602-Night.mp4" type="video/mp4" />
             Your browser does not support the video tag.
         </video>
     )

@@ -23,7 +23,7 @@ export default async function ListImages({
     {gallery && gallery.length > 0 ?
       <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch"}>
         {gallery.map((img, i) => {
-          // console.log(img.data[0]?.keywords, "img")
+
           return (
             <CardImage
               key={img.data[0].title + i}

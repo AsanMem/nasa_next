@@ -9,7 +9,7 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
     const asteroidData = getAsteroidData(asteroidsObjects);
     const asteroidSizes = asteroidData.map((obj) => obj.averageDiameter);
     const asteroidSpeeds = asteroidData.map((obj) => Number(obj.velocityKmph));
-    console.log({ asteroidSizes, asteroidSpeeds })
+
 
 
 
