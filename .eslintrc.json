@@ -1,4 +1,5 @@
 {
+  "ignores": ["**/functions/src/index.ts"],
   "extends": "next/core-web-vitals",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "source.fixAll"
