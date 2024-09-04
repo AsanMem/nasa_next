@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-export const getAsteroidTexture = (index) => {
+export const getAsteroidTexture = (index : number) => {
   const texturesPath = path.join(process.cwd(), 'public/media/asteroid/textures');
   const textureFiles = fs.readdirSync(texturesPath);
 

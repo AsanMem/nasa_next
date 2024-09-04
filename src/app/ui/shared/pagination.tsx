@@ -11,7 +11,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
   const currentPage = Number(searchParams.get('page')) || 1;
 
   const createPageURL = (pageNumber: number | string) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams as any);
     params.set('page', pageNumber.toString());
     return `${pathname}?${params.toString()}`;
   };
@@ -80,7 +80,7 @@ function PaginationNumber({
   //     'text-gray-300': position === 'middle',
   //   },
   // );
-  const className = `flex h-10 w-10 items-center justify-center text-sm border text-white ${position === 'first' || position === 'single' ? 'rounded-l-md' : position === 'last' || position === 'single' ? 'rounded-r-md' : position === 'middle' ? 'text-gray-300' : ""}  ${isActive ? ' bg-blue-600 border-blue-600 text-white' : !isActive && position !== 'middle' ? 'hover:bg-gray-100 hover:text-black' : ""} `;
+  const className = `flex h-10 w-10 items-center justify-center text-sm border text-white ${position === 'first' || position === 'single' ? 'rounded-l-md' : position === 'last' || position === 'single' as string ? 'rounded-r-md' : position === 'middle' ? 'text-gray-300' : ""}  ${isActive ? ' bg-blue-600 border-blue-600 text-white' : !isActive && position !== 'middle' ? 'hover:bg-gray-100 hover:text-black' : ""} `;
 
   return isActive || position === 'middle' ? (
     <div className={className}>{page}</div>

@@ -22,7 +22,7 @@ export default function CardVideo({ videoPreview, videoPlay, title, description 
         setShowModal(false);
     };
 
-    const truncateText = (text, maxLength) => {
+    const truncateText = (text:string, maxLength:number) => {
         if (text.length <= maxLength) {
             return text;
         }

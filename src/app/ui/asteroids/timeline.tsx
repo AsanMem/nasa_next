@@ -4,7 +4,7 @@ import React from 'react';
 export default function Timeline({ closeApproachData }: any) {
 
     return (<div className="timeline">
-        {closeApproachData.map((approach, index) => {
+        {closeApproachData.map((approach: any, index: number) => {
             return (
                 <div key={index} className="timeline-item">
                     <div className="timeline-date">{approach.close_approach_date}</div>

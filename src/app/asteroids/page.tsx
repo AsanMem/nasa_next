@@ -5,6 +5,9 @@ import { formatDate } from "../lib/utils";
 import ListAsteroids from "../ui/asteroids/list-asteroids";
 
 export default async function Asteroids() {
+  // export default async function Page({ params }: { params: { id: string; scaleAsteroidSize: string } }) {
+  //   const { id, scaleAsteroidSize } = params;
+
   const asteroidsData = await fetchAsteroids()
   const asteroidsObjects = asteroidsData?.near_earth_objects[formatDate()] ?? []
 

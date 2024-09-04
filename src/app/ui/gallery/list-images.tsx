@@ -12,7 +12,7 @@ export default async function ListImages({
   currentPage: number;
 }) {
 
-  let { gallery, totalPages } = await fetchFilteredImages(query, currentPage)
+  let { gallery, totalPages }: any = await fetchFilteredImages(query, currentPage)
 
   if (query === "") {
     return <></>
@@ -22,7 +22,7 @@ export default async function ListImages({
 
     {gallery && gallery.length > 0 ?
       <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch"}>
-        {gallery.map((img, i) => {
+        {gallery.map((img: any, i: number) => {
 
           return (
             <CardImage

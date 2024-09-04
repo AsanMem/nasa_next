@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import MainTittle from "../shared/main-tittle";
 
-export default function ImageSlideshow({ images }) {
+export default function ImageSlideshow({ images }: any) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     useEffect(() => {

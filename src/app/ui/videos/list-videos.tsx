@@ -15,7 +15,7 @@ export default async function ListVideos({
     currentPage: number;
 }) {
 
-    let { videos, totalPages } = await fetchFilteredVideos(query, currentPage)
+    let { videos, totalPages }: any = await fetchFilteredVideos(query, currentPage)
 
     if (query === "") {
         return <></>
@@ -25,7 +25,7 @@ export default async function ListVideos({
         <>
             {videos && videos.length > 0 ?
                 <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch px-2"}>
-                    {videos.map((videoElem, i) => {
+                    {videos.map((videoElem: any, i: number) => {
                         // console.log(videoElem.data[0]?.keywords, "videoElem")
                         return (
                             <CardVideo

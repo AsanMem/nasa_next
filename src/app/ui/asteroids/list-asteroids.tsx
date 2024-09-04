@@ -7,8 +7,8 @@ import { calculateSpeed } from '@/app/lib/utils/calculateSpeed'
 
 export default function ListAsteroids({ asteroidsObjects }: any) {
     const asteroidData = getAsteroidData(asteroidsObjects);
-    const asteroidSizes = asteroidData.map((obj) => obj.averageDiameter);
-    const asteroidSpeeds = asteroidData.map((obj) => Number(obj.velocityKmph));
+    const asteroidSizes = asteroidData.map((obj: any) => obj.averageDiameter);
+    const asteroidSpeeds = asteroidData.map((obj: any) => Number(obj.velocityKmph));
 
 
 
@@ -44,7 +44,7 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                                         </thead>
 
 
-                                        {asteroidsObjects.map(async (asteroid, i) => {
+                                        {asteroidsObjects.map(async (asteroid: any, i: number) => {
                                             const name = asteroid.name
                                             const relative_velocity = asteroid.close_approach_data[0].relative_velocity
                                             const estimated_diameterMin = asteroid.estimated_diameter.meters.estimated_diameter_min
@@ -120,9 +120,9 @@ export default function ListAsteroids({ asteroidsObjects }: any) {
                         </div>
                     </div>
 
-                    <div className="mt-5 flex w-full justify-center">
+                    {/* <div className="mt-5 flex w-full justify-center">
                         <Pagination totalPages={4} />
-                    </div>
+                    </div> */}
                 </div>
 
                 : null

@@ -1,4 +1,6 @@
+/* @ts-ignore */
 "use client"
+
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { EffectComposer, OrbitControls, OutputPass, RenderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
@@ -7,7 +9,7 @@ import { EffectComposer, OrbitControls, OutputPass, RenderPass, UnrealBloomPass 
 
 interface ThreeSceneProps {
     asteroid: any;
-    asteroidIndex: number
+    asteroidIndex: string
     diameterSphere: number;
     speedSphere: number
 }
@@ -94,7 +96,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diamet
             const renderPass = new RenderPass(scene, camera);
             composer.addPass(renderPass);
 
-            const bloomPass = new UnrealBloomPass();
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
             bloomPass.threshold = 0;
             bloomPass.strength = 0.2;
             bloomPass.radius = 0.5;

@@ -36,7 +36,7 @@ export default async function Day() {
             />
 
           )}
-          <MainTittle title={`Today is ${photoData.title}`} description="" />
+          <MainTittle title={`Today is ${photoData.title}`} description="" classes="" />
           <p className="font-mono text-lg font-bold text-white">
             {photoData.explanation}
           </p>
