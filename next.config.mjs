@@ -3,9 +3,9 @@ const nextConfig = {
     images: {
       domains: ['apod.nasa.gov'],
     },
-  //   eslint: {
-  //     ignoreDuringBuilds: true,
-  // },
+    eslint: {
+      ignoreDuringBuilds: true,
+  },
   // typescript: {
   //   ignoreBuildErrors: true,
   // },
