@@ -1,8 +1,9 @@
 // src/app/asteroids/[id]/page.tsx
-import React from 'react';
-import ThreeScene from '@/app/ui/treejs/scene/ThreeScene';
-import BackgroundImage from '@/app/ui/shared/background-image';
 import Timeline from '@/app/ui/asteroids/timeline';
+import BackgroundImage from '@/app/ui/shared/background-image';
+import ThreeScene from '@/app/ui/treejs/scene/ThreeScene';
+import React from 'react';
+
 
 
 

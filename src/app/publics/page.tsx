@@ -1,4 +1,3 @@
-import Header from "@/app/ui/header/Header";
 
 export default function Publics() {
 

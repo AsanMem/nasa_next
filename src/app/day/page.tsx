@@ -1,4 +1,4 @@
-import Header from "@/app/ui/header/Header";
+
 import { fetchPictureOfTheDay } from "../lib/data/fetchPictureOfTheDay";
 import HelloTittle from "../ui/shared/hello-title";
 import MainTittle from "../ui/shared/main-tittle";
