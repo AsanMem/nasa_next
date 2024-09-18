@@ -6,6 +6,7 @@ import ImageSlideshow from "./ui/main/image-component";
 
 export default async function Main() {
     const images = await fetchNaturalImages();
+
     return (
         <main className="bg-black ">
             {images.length > 0 ? (

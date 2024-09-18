@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Pagination from '../shared/pagination';
 import CardVideo from './card-video';
-import { fetchFilteredVideos } from '@/app/lib/data/fetchFilteredVideos';
+import { fetchFilteredVideos } from '../../lib/data/fetchFilteredVideos';
 
 
 
