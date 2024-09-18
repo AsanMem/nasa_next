@@ -1,7 +1,8 @@
 
-import ListVideos from "@/app/ui/videos/list-videos";
-import SearchVideos from "@/app/ui/videos/search-videos";
+
 import HelloTitle from "../ui/shared/hello-title";
+import ListVideos from "../ui/videos/list-videos";
+import SearchVideos from "../ui/videos/search-videos";
 
 interface IProps {
     searchParams?: {

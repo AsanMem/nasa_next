@@ -11,7 +11,7 @@ const links = [
   { name: 'Gallery', href: '/gallery', icon: "" },
   { name: 'Photo of the day', href: '/day', icon: "", },
   { name: 'Videos', href: '/video', icon: "" },
-  { name: 'About', href: '/publics', icon: "" },
+  //  { name: 'About', href: '/publics', icon: "" },
   { name: 'Asteroids', href: '/asteroids', icon: "" },
 ];
 
