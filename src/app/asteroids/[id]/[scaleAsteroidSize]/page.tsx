@@ -77,7 +77,8 @@ export default async function Page({ params }: { params: { id: string; scaleAste
 
   return (
     <div className="relative w-full h-[calc(  h-screen - 15vh)]">
-      <BackgroundImage src="https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2Fearth_back.jpg?alt=media&token=be33b27e-78ef-492e-8c2a-b0cd504c8fa6s" className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
+      <BackgroundImage src={`https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2Fearth_back.jpg?alt=media&token=be33b27e-78ef-492e-8c2a-b0cd504c8fa6`} className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
+
 
       {/* Контейнер для сцены */}
       <div className="absolute inset-0 z-10">

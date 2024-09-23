@@ -21,7 +21,7 @@ export default function ImageSlideshow({ images }: any) {
 
     return (
         <>
-            <MainTittle title={`EPIC Natural Color Images`} description="" classes={`absolute z-10 inset-x-0 ${isMobile && "bottom-52"}`} />
+            <MainTittle title={`EPIC Natural Color Images In Real Time`} description="" classes={`absolute z-10 inset-x-0 ${isMobile && "bottom-52"}`} />
             <div className=" flex justify-center  ">
                 <img
                     src={`https://epic.gsfc.nasa.gov/archive/natural/${formattedDate}/png/${currentImage.image}.png`}
