@@ -1,6 +1,4 @@
 export default function BackgroundVideo() {
-
-
     return (
         <video
             className="fixed w-full left-1/2 top-1/2 h-full object-cover transform -translate-x-1/2 -translate-y-1/2 z-0"
@@ -8,7 +6,6 @@ export default function BackgroundVideo() {
             loop
             muted
             playsInline
-
             style={{ "zIndex": -1 }}
         >
             <source

@@ -15,7 +15,6 @@ export default async function Day() {
 
       } className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
       <main className="mb-12">
-
         <div className="">
           {photoData.media_type === "image" ? (
             <img
@@ -40,7 +39,7 @@ export default async function Day() {
 
           )}
           <MainTittle title={`Today is ${photoData.title}`} description="" classes="" />
-          <p className="font-mono text-lg font-bold text-white">
+          <p className=" text-lg font-thin text-gray-100 px-2 text-justify">
             {photoData.explanation}
           </p>
         </div>
