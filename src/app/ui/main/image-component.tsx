@@ -4,14 +4,36 @@ import MainTittle from "../shared/main-tittle";
 
 export default function ImageSlideshow({ images }: any) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [nextImageIndex, setNextImageIndex] = useState(1);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const preloadImage = (src: string) => {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => setIsLoading(false);
+        };
+
+        const nextIndex = (currentImageIndex + 1) % images.length;
+        const nextImage = images[nextIndex];
+        const [datePart] = nextImage.date.split(" ");
+        const formattedDate = datePart.replaceAll("-", "/");
+        const nextImageUrl = `https://epic.gsfc.nasa.gov/archive/natural/${formattedDate}/png/${nextImage.image}.png`;
+
+        preloadImage(nextImageUrl);
+        setNextImageIndex(nextIndex);
+    }, [currentImageIndex, images]);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-        }, 1000);
+            if (!isLoading) {
+                setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+                setIsLoading(true);
+            }
+        }, 3500);
 
         return () => clearInterval(interval);
-    }, [images.length]);
+    }, [images.length, isLoading]);
 
     const currentImage = images[currentImageIndex];
     const [datePart] = currentImage.date.split(" ");
@@ -22,15 +44,22 @@ export default function ImageSlideshow({ images }: any) {
     return (
         <>
             <MainTittle title={`EPIC Natural Color Images In Real Time`} description="" classes={`absolute z-10 inset-x-0 ${isMobile && "bottom-52"}`} />
-            <div className=" flex justify-center  ">
-                <img
-                    src={`https://epic.gsfc.nasa.gov/archive/natural/${formattedDate}/png/${currentImage.image}.png`}
-                    alt={currentImage.caption}
-                    className="relative max-w-full object-contain max-h-[79vh]"
-                />
-                <div className="absolute bottom-24 text-white text-center">
-                    <h2 className="text-lg font-semibold">{currentImage.caption}</h2>
-                    <p className="text-sm text-gray-300">{currentImage.date}</p>
+            <div className="flex justify-center">
+                <div className="relative">
+                    <img
+                        src={`https://epic.gsfc.nasa.gov/archive/natural/${formattedDate}/png/${currentImage.image}.png`}
+                        alt={currentImage.caption}
+                        className={`max-w-full object-contain max-h-[79vh] transition-opacity duration-1000 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+                    />
+                    {isLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <p>Loading...</p>
+                        </div>
+                    )}
+                    <div className="absolute bottom-24 text-white text-center">
+                        <h2 className="text-lg font-semibold">{currentImage.caption}</h2>
+                        <p className="text-sm text-gray-300">{currentImage.date}</p>
+                    </div>
                 </div>
             </div>
         </>

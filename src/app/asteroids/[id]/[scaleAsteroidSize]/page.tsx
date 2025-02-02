@@ -1,4 +1,4 @@
-// src/app/asteroids/[id]/page.tsx
+
 import React from 'react';
 import ThreeScene from '@/app/ui/treejs/scene/ThreeScene';
 import BackgroundImage from '@/app/ui/shared/background-image';
@@ -21,6 +21,7 @@ export default async function Page({ params }: { params: { id: string; scaleAste
   const { id, scaleAsteroidSize } = params;
 
   const asteroid = await getAsteroid(id);
+  // console.log(asteroid, 'asteroid');
   const diameterSphere = parseFloat(scaleAsteroidSize.split("-")[0]);
   const speedSphere = parseFloat(scaleAsteroidSize.split("-")[1]);
   const asteroidIndex = scaleAsteroidSize.split("-")[2]
@@ -74,10 +75,11 @@ export default async function Page({ params }: { params: { id: string; scaleAste
   const is_sentry_object = asteroid?.is_sentry_object;
 
   const averageDiameter = (estimated_diameterMin + estimated_diameterMax) / 2;
-
+  // `https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2Fearth_back.jpg?alt=media&token=be33b27e-78ef-492e-8c2a-b0cd504c8fa6`
   return (
     <div className="relative w-full h-[calc(  h-screen - 15vh)]">
-      <BackgroundImage src={`https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2Fearth_back.jpg?alt=media&token=be33b27e-78ef-492e-8c2a-b0cd504c8fa6`} className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
+
+      <BackgroundImage src={'/media/img/5.jpg'} className="fixed w-full h-full left-0 top-0 z-0 blur-0" />
 
 
       {/* Контейнер для сцены */}

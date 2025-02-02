@@ -15,7 +15,7 @@ export default async function ListVideos({
     currentPage: number;
 }) {
 
-    let { videos, totalPages }: any = await fetchFilteredVideos(query, currentPage)
+    let { videos, totalPages }: any = await fetchFilteredVideos(query, currentPage) || { videos: [], totalPages: 0 }
 
     if (query === "") {
         return <></>

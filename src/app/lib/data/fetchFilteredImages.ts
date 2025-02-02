@@ -5,16 +5,21 @@ export async function fetchFilteredImages(query: string, currentPage: number) {
     const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
     try {
-        const results = await fetch(
+        const response =  await fetch(
             `https://images-api.nasa.gov/search?media_type=image&q=${query}`
         );
-        const previews = await results.json();
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+
+        const previews = await response.json();
+        
         const gallery = previews.collection.items;
 
         const totalPages = Math.ceil(Number(gallery.length) / ITEMS_PER_PAGE);
         const result = {
-            gallery: gallery.slice(offset, offset + ITEMS_PER_PAGE) ?? [],
-            totalPages: totalPages,
+            gallery: gallery.slice(offset, offset + ITEMS_PER_PAGE)  || [],
+            totalPages: totalPages  || 0 ,
         };
 
         return result;

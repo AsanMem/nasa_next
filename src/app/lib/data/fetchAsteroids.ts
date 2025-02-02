@@ -8,6 +8,11 @@ export async function fetchAsteroids({
         const results = await fetch(
             `https://api.nasa.gov/neo/rest/v1/feed?start_date=${START_DATE}&end_date=${END_DATE}&api_key=${process.env.APP_NASA_API_KEY}`
         );
+
+
+        if (!results.ok) {
+            throw new Error('Network response was not ok');
+          }
         const asteroidsJSON = await results.json();
 
         return asteroidsJSON;

@@ -16,6 +16,7 @@ const BackgroundImage: React.FC<BackgroundImageProps> = ({ src, className = "" }
                 layout="fill"
                 objectFit="cover" // покрывает контейнер, сохраняя пропорции
                 quality={75} // уменьшает качество для оптимизации
+
             />
         </div>
     );

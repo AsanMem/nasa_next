@@ -1,47 +1,54 @@
-/* @ts-ignore */
 "use client"
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { EffectComposer, OrbitControls, OutputPass, RenderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
-
-
+import { Noise } from 'noisejs'; // Библиотека для генерации шума
 
 interface ThreeSceneProps {
     asteroid: any;
-    asteroidIndex: string
+    asteroidIndex: string;
     diameterSphere: number;
-    speedSphere: number
+    speedSphere: number;
 }
 
 const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diameterSphere, speedSphere }) => {
     const mountRef = useRef<HTMLDivElement | null>(null);
     const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
-    diameterSphere = isMobile && diameterSphere > 5.922 ? 5.922 : diameterSphere
+    diameterSphere = isMobile && diameterSphere > 5.922 ? 5.922 : diameterSphere;
+
     useEffect(() => {
-
-
         if (mountRef.current) {
             const width = mountRef.current.clientWidth;
             const height = mountRef.current.clientHeight;
 
             // Создание сцены, камеры и рендерера
             const scene = new THREE.Scene();
-
             scene.background = new THREE.CubeTextureLoader()
                 .load([]);
 
+            const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            mountRef.current.appendChild(renderer.domElement);
 
+            // Настройка освещения
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(5, 5, 5);
+            light.castShadow = true;
+            scene.add(light);
 
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
 
+            // Загрузка текстуры
             const texture = new THREE.TextureLoader().load(`/media/asteroid/textures/stone-${asteroidIndex}.jpg`);
-            // immediately use the texture for material creation 
-
             const material = new THREE.MeshStandardMaterial({
                 map: texture,
-                roughness: 0.8,  // Чем выше значение, тем более матовый материал
+                roughness: 0.8,
                 metalness: 0.2,
-            })
+            });
+
 
 
 
@@ -64,11 +71,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diamet
 
 
 
-            const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-
-            const renderer = new THREE.WebGLRenderer();
-            renderer.setSize(width, height);
-            mountRef.current.appendChild(renderer.domElement);
 
 
 
@@ -79,89 +81,45 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diamet
 
 
 
+            // Создание геометрии астероида с использованием шума
+            const geometry = new THREE.IcosahedronGeometry(diameterSphere, 4);
+            const noise = new Noise(Math.random());
 
+            const vertices = geometry.attributes.position.array as Float32Array;
+            for (let i = 0; i < vertices.length; i += 3) {
+                const x = vertices[i];
+                const y = vertices[i + 1];
+                const z = vertices[i + 2];
 
-            // Настройка смены камеры позиции
-            // Добавление элементов управления камерой, позволяющие автоматически вращать камеру вокруг сцены.
+                // Применение шума для создания рельефа
+                const scale = 0.1; // Масштаб шума
+                const amplitude = diameterSphere * 1.2 > 3.8 ? diameterSphere * 0.2 : diameterSphere * 1.2;  // Амплитуда рельефа
+                //     console.log(amplitude, "amplitude")
+                const noiseValue = noise.simplex3(x * scale, y * scale, z * scale) * amplitude;
+
+                vertices[i] += noiseValue;
+                vertices[i + 1] += noiseValue;
+                vertices[i + 2] += noiseValue;
+            }
+            geometry.computeVertexNormals(); // Пересчет нормалей для корректного освещения
+
+            const asteroidMesh = new THREE.Mesh(geometry, material);
+            scene.add(asteroidMesh);
+
+            // Настройка камеры и элементов управления
+            camera.position.z = 15;
             const controls = new OrbitControls(camera, renderer.domElement);
             controls.enableZoom = false;
             controls.enablePan = false;
             controls.autoRotate = true;
             controls.autoRotateSpeed = 0.2;
-            camera.position.z = 50;
-
-
-            // Создаем систему пост-обработки с использованием эффектов Bloom для улучшения визуального качества.
-            const composer = new EffectComposer(renderer);
-            const renderPass = new RenderPass(scene, camera);
-            composer.addPass(renderPass);
-
-            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-            bloomPass.threshold = 0;
-            bloomPass.strength = 0.2;
-            bloomPass.radius = 0.5;
-            composer.addPass(bloomPass);
-
-            const outputPass = new OutputPass();
-            composer.addPass(outputPass);
-
-
-
-
-            // Добавление осей для отладки
-            // const axesHelper = new THREE.AxesHelper(5);
-            // scene.add(axesHelper);
-
-
-
-            // Логика создания cферы
-            const planetDedecahedron = new THREE.DodecahedronGeometry(diameterSphere, 2)
-            const planetTetrahedron = new THREE.TetrahedronGeometry(diameterSphere, 2);
-            const planetGeometry = new THREE.IcosahedronGeometry(diameterSphere, 2);
-
-
-            const planet = new THREE.Mesh(planetGeometry, material); //
-            scene.add(planet);
-
-            // Логика создания света
-            // Включаем тени в рендерере
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-            // Настраиваем свет для отбрасывания теней
-            const light = new THREE.DirectionalLight(0xffffff, 1);
-            light.position.set(5, 5, 5);
-            light.castShadow = true; // Этот свет будет отбрасывать тени
-
-            // Настраиваем тени для света
-            light.shadow.mapSize.width = 1024;
-            light.shadow.mapSize.height = 1024;
-            light.shadow.camera.near = 0.5;
-            light.shadow.camera.far = 500;
-            scene.add(light);
-
-            // Добавляем окружающий свет
-            const ambientLight = new THREE.AmbientLight(0x404040);
-            scene.add(ambientLight);
-
-            camera.position.z = 15 // 7 ;
-
-
-
-
-
 
             // Анимация
-            // Функция animate анимирует вращение сферы и движение звезд, а также обновляет рендер сцены на каждом кадре.
             const animate = () => {
                 requestAnimationFrame(animate);
-
-                //    uniforms.time.value += 0.05;
-                planet.rotation.x += 0.01;
-                planet.rotation.z += 0.007
-                planet.rotation.y += 0.01;
+                asteroidMesh.rotation.x += 0.01;
+                asteroidMesh.rotation.y += 0.01;
                 renderer.render(scene, camera);
-
                 // Движение звезд
                 const positions = starGeometry.attributes.position.array as Float32Array;
                 for (let i = 0; i < positions.length; i += 3) {
@@ -173,9 +131,11 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diamet
                 }
                 starGeometry.attributes.position.needsUpdate = true;
                 renderer.render(scene, camera);
+
             };
             animate();
 
+            // Обработка изменения размера окна
             const handleResize = () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
@@ -183,14 +143,13 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diamet
             };
             window.addEventListener('resize', handleResize);
 
-
-            // Очистка при размонтировании компонента
+            // Очистка
             return () => {
                 mountRef.current?.removeChild(renderer.domElement);
                 window.removeEventListener('resize', handleResize);
             };
         }
-    }, [asteroid]);
+    }, [asteroid, diameterSphere, speedSphere, asteroidIndex]);
 
     return <div ref={mountRef} style={{ width: '100%', height: '80vh' }} />;
 };

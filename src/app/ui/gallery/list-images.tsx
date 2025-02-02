@@ -12,19 +12,17 @@ export default async function ListImages({
   currentPage: number;
 }) {
 
-  let { gallery, totalPages }: any = await fetchFilteredImages(query, currentPage)
+  let { gallery, totalPages } = await fetchFilteredImages(query, currentPage) || { gallery: [], totalPages: 0 };
 
   if (query === "") {
-    return <></>
+    return <></>;
   }
 
-  return (<>
-
-    {gallery && gallery.length > 0 ?
-      <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch"}>
-        {gallery.map((img: any, i: number) => {
-
-          return (
+  return (
+    <>
+      {gallery && gallery.length > 0 ? (
+        <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch"}>
+          {gallery.map((img: any, i: number) => (
             <CardImage
               key={img.data[0].title + i}
               nasaPicture={img.links[0].href}
@@ -32,17 +30,18 @@ export default async function ListImages({
               description={img.data[0].description}
               keywords={img.data[0]?.keywords}
             />
-          )
-        })}
-        <div className="mt-5 flex w-full justify-center">
-          <Pagination totalPages={totalPages} />
+          ))}
+          <div className="mt-5 flex w-full justify-center">
+            <Pagination totalPages={totalPages} />
+          </div>
         </div>
-      </div>
-
-      : <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch"}><div className="text-2xl text-slate-300 flex items-center justify-between  pb-4 my-8"> 'This is not found :('</div></div>
-    }
-  </>
-
-
+      ) : (
+        <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch"}>
+          <div className="text-2xl text-slate-300 flex items-center justify-between pb-4 my-8">
+            'This is not found :('
+          </div>
+        </div>
+      )}
+    </>
   );
 }
