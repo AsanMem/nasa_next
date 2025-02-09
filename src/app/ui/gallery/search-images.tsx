@@ -3,8 +3,7 @@
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import { useDebouncedCallback } from 'use-debounce';
 
-// { customers }: { customers: CustomerField[] }
-export default function SearchImages() {
+export default function SearchData() {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
@@ -20,8 +19,21 @@ export default function SearchImages() {
         replace(`${pathname}?${params.toString()}`);
 
     }, 300);
+
+    const handleKeyDown = (e: any) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSearch(e.target.value);
+        }
+    };
+
+    const handleSubmit = (e: any) => {
+        e.preventDefault();
+        handleSearch(e.target.query.value);
+    };
+
     return (<div className="flex flex-wrap justify-center">
-        <form className="pt-5 w-full md:w-96 text-center flex items-center justify-center">
+        <form onSubmit={handleSubmit} className="pt-5 w-full md:w-96 text-center flex items-center justify-center">
             <input
                 placeholder="Enter the title"
 
@@ -29,11 +41,12 @@ export default function SearchImages() {
                 onChange={(e) => {
                     handleSearch(e.target.value);
                 }}
+                onKeyDown={handleKeyDown}
                 defaultValue={searchParams.get('query')?.toString()}
             />
             <button
                 className="py-2 px-4 bg-slate-900 text-gray-300 rounded-r-lg hover:bg-slate-500 focus:outline-none focus:bg-slate-300 align-middle h-full"
-                type='button'
+                type='submit'
             >
                 SEARCH
             </button>

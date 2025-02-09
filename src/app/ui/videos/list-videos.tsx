@@ -4,9 +4,6 @@ import CardVideo from './card-video';
 import { fetchFilteredVideos } from '@/app/lib/data/fetchFilteredVideos';
 
 
-
-
-
 export default async function ListVideos({
     query,
     currentPage,
@@ -16,7 +13,6 @@ export default async function ListVideos({
 }) {
 
     let { videos, totalPages }: any = await fetchFilteredVideos(query, currentPage) || { videos: [], totalPages: 0 }
-
     if (query === "") {
         return <></>
     }
@@ -25,20 +21,20 @@ export default async function ListVideos({
         <>
             {videos && videos.length > 0 ?
                 <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch px-2"}>
-                    {videos.map((videoElem: any, i: number) => {
-                        // console.log(videoElem.data[0]?.keywords, "videoElem")
+                    {videos.map((video: any, i: number) => {
+                        const data = video?.data?.[0]
+                        const dataLinks = video?.links
                         return (
                             <CardVideo
-                                key={(videoElem.data[0].title + i)}
-                                videoPreview={videoElem.links[0].href}
-                                videoPlay={videoElem?.links[1]?.href}
-                                title={videoElem.data[0].title}
-                                description={videoElem.data[0].description}
-                                keywords={videoElem.data[0]?.keywords}
+                                key={(data?.title + i)}
+                                videoPreview={dataLinks?.[0]?.href}
+                                videoPlay={video?.videoUrl}
+                                title={data?.title}
+                                description={data?.description}
+                                keywords={data?.keywords}
                             />
-
-
                         )
+
                     })}
                     <div className="mt-5 flex w-full justify-center">
                         <Pagination totalPages={totalPages} />

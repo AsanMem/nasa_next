@@ -1,8 +1,8 @@
 
 
+import SearchData from "../ui/gallery/search-images";
 import HelloTitle from "../ui/shared/hello-title";
 import ListVideos from "../ui/videos/list-videos";
-import SearchVideos from "../ui/videos/search-videos";
 
 interface IProps {
     searchParams?: {
@@ -16,7 +16,7 @@ export default function PageVideos({ searchParams }: IProps) {
     return (
         <main className="">
             <HelloTitle mainText="Hello Earthlings!" supportiveText="Here you can find videos of our planet, other planets, stars and galaxies!" />
-            <SearchVideos />
+            <SearchData />
             <ListVideos query={query} currentPage={currentPage} />
         </main>)
 }

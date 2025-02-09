@@ -1,5 +1,5 @@
 
-import { fetchAsteroids } from "../lib/data/fetchAsteroids";
+import { fetchAsteroids } from "../lib/data/asteroids/fetchAsteroids";
 import HelloTittle from "../ui/shared/hello-title";
 import { formatDate } from "../lib/utils";
 import ListAsteroids from "../ui/asteroids/list-asteroids";

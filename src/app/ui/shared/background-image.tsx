@@ -5,7 +5,6 @@ interface BackgroundImageProps {
     src: string;
     className?: string;
 }
-
 const BackgroundImage: React.FC<BackgroundImageProps> = ({ src, className = "" }) => {
     return (
         <div className={`background-photo ${className} -z-10`} style={{ zIndex: -10 }}>

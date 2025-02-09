@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { EffectComposer, OrbitControls, OutputPass, RenderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
-import { Noise } from 'noisejs'; // Библиотека для генерации шума
+import Noise from 'noisejs';
 
 interface ThreeSceneProps {
     asteroid: any;
@@ -82,9 +82,9 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diamet
 
 
             // Создание геометрии астероида с использованием шума
-            const geometry = new THREE.IcosahedronGeometry(diameterSphere, 4);
+            const geometry = new THREE.IcosahedronGeometry(diameterSphere, 6);
             const noise = new Noise(Math.random());
-
+            console.log(noise, "noise")
             const vertices = geometry.attributes.position.array as Float32Array;
             for (let i = 0; i < vertices.length; i += 3) {
                 const x = vertices[i];

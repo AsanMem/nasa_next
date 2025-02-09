@@ -25,6 +25,7 @@ export default function SearchVideos() {
                 onChange={(e) => {
                     handleSearch(e.target.value);
                 }}
+
                 defaultValue={searchParams.get('query')?.toString()}
                 placeholder="Enter the title"
 

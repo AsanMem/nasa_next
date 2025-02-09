@@ -1,4 +1,4 @@
-import { formatDate } from "../utils";
+import { formatDate } from "../../utils";
 
 export async function fetchAsteroids({
     START_DATE = formatDate(),
