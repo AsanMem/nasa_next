@@ -11,7 +11,6 @@ export default async function Page({ params }: { params: { id: string; scaleAste
   const { id, scaleAsteroidSize } = params;
 
   const asteroid = await getAsteroid(id);
-  console.log(asteroid, "asteroid")
   const diameterSphere = parseFloat(scaleAsteroidSize.split("-")[0]);
   const speedSphere = parseFloat(scaleAsteroidSize.split("-")[1]);
   const asteroidIndex = scaleAsteroidSize.split("-")[2]
@@ -29,20 +28,14 @@ export default async function Page({ params }: { params: { id: string; scaleAste
 
   // Десигнация астероида
   const designation = asteroid?.designation;
-
   // // URL на сайт JPL для дополнительной информации
   const nasa_jpl_url = asteroid?.nasa_jpl_url;
-
   // // Абсолютная величина яркости астероида
   const absolute_magnitude_h = asteroid?.absolute_magnitude_h;
-
   // Является ли астероид потенциально опасным
   const is_potentially_hazardous_asteroid = asteroid.is_potentially_hazardous_asteroid;
-
   // Данные о ближайших подходах
   const closeApproachData = asteroid.close_approach_data;
-
-
   // Орбитальные данные
   const orbital_data = asteroid.orbital_data;
   // Пример: эксцентриситет орбиты
@@ -57,13 +50,9 @@ export default async function Page({ params }: { params: { id: string; scaleAste
   const is_sentry_object = asteroid?.is_sentry_object;
 
   const averageDiameter = (estimated_diameterMin + estimated_diameterMax) / 2;
-  // `https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2Fearth_back.jpg?alt=media&token=be33b27e-78ef-492e-8c2a-b0cd504c8fa6`
   return (
-    <div className="relative w-full h-[calc(  h-screen - 15vh)]">
-
+    <div className="relative w-full h-[calc(h-screen - 15vh)]">
       <BackgroundImage src={"https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2F5.jpg?alt=media&token=41e8c6f8-4527-4215-adf0-0258a76924a6"} className="fixed w-full h-full left-0 top-0 z-0 blur-0" />
-
-
       {/* Контейнер для сцены */}
       <div className="absolute inset-0 z-10">
         <ThreeScene
@@ -71,7 +60,6 @@ export default async function Page({ params }: { params: { id: string; scaleAste
           asteroid={params.id}
           diameterSphere={diameterSphere}
           speedSphere={speedSphere}
-
         />
       </div>
 
@@ -95,7 +83,7 @@ export default async function Page({ params }: { params: { id: string; scaleAste
         {closeApproachData && closeApproachData.length > 0 &&
           <div>
             <p className='sm:text-xs md:text-xs lg:text-xl xl:text-1xl mb-4'>Timeline across our solar system</p>
-            <div className="h-[calc(100%-48rem)] overflow-y-auto  text-sm " style={{
+            <div className="h-[calc(100%-48rem)] overflow-y-auto text-sm " style={{
               scrollbarWidth: "none",  // Firefox
               msOverflowStyle: "none"  // Edge
             }}>

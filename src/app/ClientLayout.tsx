@@ -26,7 +26,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     return (
         <main className={`p-2 ${isHomePage ? 'bg-black' : ''} min-h-[100vh]`}>
             <Header />
-            {isHydrated && !shouldShowImage && <BackgroundVideo />}
+            {/* {isHydrated && !shouldShowImage && <BackgroundVideo />} */}
             {children}
         </main>
     );

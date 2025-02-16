@@ -51,11 +51,7 @@ export default function ImageSlideshow({ images }: any) {
                         alt={currentImage.caption}
                         className={`max-w-full object-contain max-h-[79vh] transition-opacity duration-1000 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
                     />
-                    {isLoading && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <p>Loading...</p>
-                        </div>
-                    )}
+
                     <div className="absolute bottom-24 text-white text-center">
                         <h2 className="text-lg font-semibold">{currentImage.caption}</h2>
                         <p className="text-sm text-gray-300">{currentImage.date}</p>

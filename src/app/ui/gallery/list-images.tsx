@@ -3,6 +3,7 @@ import CardImage from './card-image';
 
 import { fetchFilteredImages } from '@/app/lib/data/fetchFilteredImages';
 import Pagination from '../shared/pagination';
+import CardTopic from './card-topic';
 
 export default async function ListImages({
   query,
@@ -23,12 +24,8 @@ export default async function ListImages({
       {gallery && gallery.length > 0 ? (
         <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch"}>
           {gallery.map((img: any, i: number) => (
-            <CardImage
-              key={img.data[0].title + i}
-              nasaPicture={img.links[0].href}
-              title={img.data[0].title}
-              description={img.data[0].description}
-              keywords={img.data[0]?.keywords}
+            <CardTopic topic={img} key={img.data[0].title + i}
+
             />
           ))}
           <div className="mt-5 flex w-full justify-center">
