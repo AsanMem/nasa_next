@@ -11,7 +11,7 @@ export default async function Page({ params }: { params: { id: string; scaleAste
   const { id, scaleAsteroidSize } = params;
 
   const asteroid = await getAsteroid(id);
-  // console.log(asteroid, 'asteroid');
+  console.log(asteroid, "asteroid")
   const diameterSphere = parseFloat(scaleAsteroidSize.split("-")[0]);
   const speedSphere = parseFloat(scaleAsteroidSize.split("-")[1]);
   const asteroidIndex = scaleAsteroidSize.split("-")[2]
@@ -19,9 +19,9 @@ export default async function Page({ params }: { params: { id: string; scaleAste
 
 
   // Название астероида
-  const name = asteroid.name;
-  const isDanger = asteroid.is_potentially_hazardous_asteroid
-  const relative_velocity = asteroid.close_approach_data[0].relative_velocity
+  const name = asteroid?.name ?? 'Not named';
+  const isDanger = asteroid?.is_potentially_hazardous_asteroid
+  const relative_velocity = asteroid?.close_approach_data?.[0]?.relative_velocity
 
   // Оценочный диаметр астероида в метрах
   const estimated_diameterMin = asteroid.estimated_diameter.meters.estimated_diameter_min;
@@ -42,14 +42,6 @@ export default async function Page({ params }: { params: { id: string; scaleAste
   // Данные о ближайших подходах
   const closeApproachData = asteroid.close_approach_data;
 
-  // Пример: относительная скорость первого ближайшего подхода
-  const relative_velocity_first_approach = closeApproachData[0].relative_velocity.kilometers_per_second;
-
-  // Расстояние до Земли в момент первого ближайшего подхода
-  const miss_distance_first_approach = closeApproachData[0].miss_distance.kilometers;
-
-  // Дата первого ближайшего подхода
-  const close_approach_date_first_approach = closeApproachData[0].close_approach_date;
 
   // Орбитальные данные
   const orbital_data = asteroid.orbital_data;
@@ -69,7 +61,7 @@ export default async function Page({ params }: { params: { id: string; scaleAste
   return (
     <div className="relative w-full h-[calc(  h-screen - 15vh)]">
 
-      <BackgroundImage src={'/media/img/5.jpg'} className="fixed w-full h-full left-0 top-0 z-0 blur-0" />
+      <BackgroundImage src={"https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2F5.jpg?alt=media&token=41e8c6f8-4527-4215-adf0-0258a76924a6"} className="fixed w-full h-full left-0 top-0 z-0 blur-0" />
 
 
       {/* Контейнер для сцены */}
@@ -95,20 +87,24 @@ export default async function Page({ params }: { params: { id: string; scaleAste
           <h2 className="text-xs sm:text-xs md:text-xl lg:text-1xl xl:text-2xl">
             Average Diameter : {Math.round(averageDiameter)} meters
           </h2>
-          <h2 className="text-xs sm:text-xs md:text-xl lg:text-1xl xl:text-2xl">
-            {Math.round(relative_velocity.kilometers_per_second)} <strong>KM / sec</strong>
-          </h2>
+          {relative_velocity?.kilometers_per_second &&
+            <h2 className="text-xs sm:text-xs md:text-xl lg:text-1xl xl:text-2xl">
+              {Math.round(relative_velocity?.kilometers_per_second)} <strong>KM / sec</strong>
+            </h2>}
         </div>
-
-        <p className='sm:text-xs md:text-xs lg:text-xl xl:text-1xl mb-4'>Timeline across our solar system</p>
-        <div className="h-[calc(100%-48rem)] overflow-y-auto  text-sm " style={{
-          scrollbarWidth: "none",  // Firefox
-          msOverflowStyle: "none"  // Edge
-        }}>
-          <section className="my-4">
-            <Timeline closeApproachData={closeApproachData} />
-          </section>
-        </div>
+        {closeApproachData && closeApproachData.length > 0 &&
+          <div>
+            <p className='sm:text-xs md:text-xs lg:text-xl xl:text-1xl mb-4'>Timeline across our solar system</p>
+            <div className="h-[calc(100%-48rem)] overflow-y-auto  text-sm " style={{
+              scrollbarWidth: "none",  // Firefox
+              msOverflowStyle: "none"  // Edge
+            }}>
+              <section className="my-4">
+                <Timeline closeApproachData={closeApproachData} />
+              </section>
+            </div>
+          </div>
+        }
       </div>
     </div>
   );

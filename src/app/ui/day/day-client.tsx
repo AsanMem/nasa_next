@@ -25,7 +25,7 @@ export default function DayClient({ photoData, fallbackImage }: DayClientProps) 
     return (
         <>
             <BackgroundImage src={imageUrl} className="fixed w-full h-full left-0 top-0 z-0 blur-sm" />
-            <main className="mb-12">
+            <main className="mb-12 px-8">
                 <div className="">
                     {photoData?.media_type === "image" ? (
                         <img

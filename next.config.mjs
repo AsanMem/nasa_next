@@ -9,6 +9,7 @@ const nextConfig = {
            // typescript: {
               //   ignoreBuildErrors: true,
                  // },
+                 transpilePackages: ['noisejs'],
     webpack(config, { isServer }) {
       // Добавляем загрузчик для файлов .glsl
       config.module.rules.push({
@@ -19,7 +20,8 @@ const nextConfig = {
   
       // Расширение для разрешения файлов
       config.resolve.extensions.push('.glsl', '.vs', '.fs');
-  
+
+
       return config;
     },
   };

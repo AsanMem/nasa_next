@@ -11,7 +11,6 @@ export default async function Asteroids() {
   const asteroidsData = await fetchAsteroids()
   const asteroidsObjects = asteroidsData?.near_earth_objects[formatDate()] ?? []
 
-
   return (
     <div className="">
       <HelloTittle mainText={<>

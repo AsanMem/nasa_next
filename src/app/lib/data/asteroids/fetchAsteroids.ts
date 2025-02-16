@@ -1,3 +1,6 @@
+"use server";
+
+
 import { formatDate } from "../../utils";
 
 export async function fetchAsteroids({

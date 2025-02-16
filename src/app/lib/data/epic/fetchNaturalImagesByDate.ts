@@ -1,4 +1,4 @@
-
+"use server";
 export async function fetchNaturalImagesByDate(date: string) {
     try {
         const response = await fetch(

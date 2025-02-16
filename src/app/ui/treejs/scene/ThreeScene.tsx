@@ -1,9 +1,9 @@
 "use client"
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { EffectComposer, OrbitControls, OutputPass, RenderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
-import Noise from 'noisejs';
+import { OrbitControls } from 'three/examples/jsm/Addons.js';
+
 
 interface ThreeSceneProps {
     asteroid: any;
@@ -14,11 +14,22 @@ interface ThreeSceneProps {
 
 const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diameterSphere, speedSphere }) => {
     const mountRef = useRef<HTMLDivElement | null>(null);
+    const noiseRef = useRef(null);
     const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
     diameterSphere = isMobile && diameterSphere > 5.922 ? 5.922 : diameterSphere;
+    let noiseInstance: any;
+    useEffect(() => {
+        // Проверяем, только ли на клиенте мы создаем инстанс noise
+        if (typeof window !== "undefined") {
+            const { Noise } = require("noisejs"); // Используем require для клиентского импорта
+            noiseInstance = noiseRef.current = new Noise(Math.random());
+        }
+    }, []);
+
 
     useEffect(() => {
-        if (mountRef.current) {
+
+        if (mountRef.current && noiseRef.current) {
             const width = mountRef.current.clientWidth;
             const height = mountRef.current.clientHeight;
 
@@ -82,9 +93,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diamet
 
 
             // Создание геометрии астероида с использованием шума
-            const geometry = new THREE.IcosahedronGeometry(diameterSphere, 6);
-            const noise = new Noise(Math.random());
-            console.log(noise, "noise")
+            const geometry = new THREE.IcosahedronGeometry(diameterSphere, 48);
+
             const vertices = geometry.attributes.position.array as Float32Array;
             for (let i = 0; i < vertices.length; i += 3) {
                 const x = vertices[i];
@@ -93,13 +103,18 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diamet
 
                 // Применение шума для создания рельефа
                 const scale = 0.1; // Масштаб шума
-                const amplitude = diameterSphere * 1.2 > 3.8 ? diameterSphere * 0.2 : diameterSphere * 1.2;  // Амплитуда рельефа
-                //     console.log(amplitude, "amplitude")
-                const noiseValue = noise.simplex3(x * scale, y * scale, z * scale) * amplitude;
+                const amplitude = 2 // diameterSphere / 4 * 1.7
 
-                vertices[i] += noiseValue;
-                vertices[i + 1] += noiseValue;
-                vertices[i + 2] += noiseValue;
+
+                // Применяем noise для изменения свойств сцены
+                if (noiseInstance) {
+                    const noiseValue = noiseInstance.simplex3(x * scale, y * scale, z * scale) * amplitude;
+
+                    vertices[i] += noiseValue;
+                    vertices[i + 1] += noiseValue;
+                    vertices[i + 2] += noiseValue;
+                }
+
             }
             geometry.computeVertexNormals(); // Пересчет нормалей для корректного освещения
 
