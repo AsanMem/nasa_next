@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import BackgroundImage from "../shared/background-image";
 import MainTittle from "../shared/main-tittle";
-import useValidImageUrl from "@/app/hooks/useValidImageUrl";
+import { useValidImageUrl } from "@/app/hooks/useValidImageUrl";
 
 
 interface PhotoData {
@@ -16,11 +16,14 @@ interface PhotoData {
 
 interface DayClientProps {
     photoData: PhotoData;
-    fallbackImage: string;
 }
 
-export default function DayClient({ photoData, fallbackImage }: DayClientProps) {
-    const imageUrl = useValidImageUrl(photoData?.url, photoData?.hdurl || fallbackImage);
+export default function DayClient({ photoData }: DayClientProps) {
+    let imageUrl = "https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2F4.jpg?alt=media&token=95f397e8-b32c-46f1-aa44-beabb28dc15c"
+
+    if (photoData?.media_type === "image") {
+        imageUrl = useValidImageUrl(photoData?.url, photoData?.hdurl);
+    }
 
     return (
         <>

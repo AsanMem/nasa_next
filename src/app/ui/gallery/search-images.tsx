@@ -23,13 +23,13 @@ export default function SearchData() {
     const handleKeyDown = (e: any) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            handleSearch(e.target.value);
+            handleSearch(e?.target?.value);
         }
     };
 
     const handleSubmit = (e: any) => {
         e.preventDefault();
-        handleSearch(e.target.query.value);
+        handleSearch(e?.target?.query?.value);
     };
 
     return (<div className="flex flex-wrap justify-center">

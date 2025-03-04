@@ -7,7 +7,7 @@ export async function fetchNaturalImages() {
         const response = await fetch(
             `https://api.nasa.gov/EPIC/api/natural/images?api_key=${process.env.APP_NASA_API_KEY}`
         );
-
+       
         if (!response.ok) {
             throw new Error('Network response was not ok');
           }

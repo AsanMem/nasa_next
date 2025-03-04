@@ -1,27 +1,43 @@
 import { useState, useEffect } from "react";
 
-function useValidImageUrl(url?: string, fallbackUrl?: string): string {
-    const [validUrl, setValidUrl] = useState(fallbackUrl);
+export function useValidImageUrl(primaryUrl?: string, secondaryUrl?: string): string {
+    const [validUrl, setValidUrl] = useState('');
 
     useEffect(() => {
-        if (!url) {
-            setValidUrl(fallbackUrl);
+        const tryLoadImage = (url: string, onSuccess: () => void, onError: () => void) => {
+            const img = new Image();
+            img.src = url;
+
+            img.onload = () => {
+                onSuccess();
+            };
+
+            img.onerror = () => {
+                onError();
+            };
+        };
+
+        if (!primaryUrl && !secondaryUrl) {
             return;
         }
 
-        const img = new Image();
-        img.src = url;
+        tryLoadImage(
+            primaryUrl!,
+            () => setValidUrl(primaryUrl!),
+            () => {
 
-        img.onload = () => {
-            setValidUrl(url);
-        };
-
-        img.onerror = () => {
-            setValidUrl(fallbackUrl);
-        };
-    }, [url, fallbackUrl]);
+                if (secondaryUrl) {
+                    tryLoadImage(
+                        secondaryUrl,
+                        () => setValidUrl(secondaryUrl),
+                        () => setValidUrl("")
+                    );
+                } else {
+                    setValidUrl("");
+                }
+            }
+        );
+    }, [primaryUrl, secondaryUrl]);
 
     return validUrl as string;
 }
-
-export default useValidImageUrl;
