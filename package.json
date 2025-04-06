@@ -9,11 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "firebase": "^11.4.0",
     "next": "^14.2.23",
     "noisejs": "^2.1.0",
     "raw-loader": "^4.0.2",
     "react": "^18",
     "react-dom": "^18",
+    "sharp": "^0.33.5",
     "simplex-noise": "^4.0.3",
     "three": "^0.167.0",
     "use-debounce": "^10.0.0"

@@ -1,5 +1,4 @@
 "use client"
-import Image from "next/image";
 import { useState } from "react";
 
 
@@ -21,10 +20,10 @@ export default function CardTopic({ topic }: IProps) {
     };
 
 
-    const nasaPicture = topic.links[0].href
-    const title = topic.data[0].title
-    const description = topic.data[0].description
-    const keywords = topic.data[0]?.keywords
+    const nasaPicture = topic?.links?.[0]?.href
+    const title = topic?.data?.[0]?.title
+    const description = topic?.data?.[0]?.description
+    const keywords = topic?.data?.[0]?.keywords
 
 
     const [isDownloading, setIsDownloading] = useState(false);
@@ -32,13 +31,13 @@ export default function CardTopic({ topic }: IProps) {
     const handleDownload = async () => {
         setIsDownloading(true);
         try {
-            const nasaId = topic.data[0].nasa_id; // Получаем NASA ID изображения
-            const apiUrl = `https://images-api.nasa.gov/asset/${nasaId}?api_key=${process.env.APP_NASA_API_KEY}`;
+            const nasaId = topic?.data?.[0]?.nasa_id;
+            const apiUrl = `https://images-api.nasa.gov/asset/${nasaId}?api_key=${process.env.NEXT_PUBLIC_NASA_API_KEY}`;
 
             const response = await fetch(apiUrl);
             const data = await response.json();
             console.log(data, "data")
-            const imageUrl = data.collection.items.find(item => item.href.includes("~orig.jpg"))?.href;
+            const imageUrl = data.collection.items.find((item: any) => item?.href?.includes("~orig.jpg"))?.href;
 
             if (!imageUrl) throw new Error("Original image URL not found");
 
@@ -143,7 +142,7 @@ export default function CardTopic({ topic }: IProps) {
                                     <p className="mb-2 text-base text-slate-700" style={{ wordWrap: 'break-word' }}>{description}</p>
                                     {keywords && keywords.length > 0 ?
                                         <div className="flex flex-wrap mb-1">
-                                            {keywords.map((keyword, index) => <span key={index} className="font-sans mr-2 mb-1 inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">{keyword}</span>)}
+                                            {keywords.map((keyword: string, index: number) => <span key={index} className="font-sans mr-2 mb-1 inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">{keyword}</span>)}
                                         </div>
                                         : null}
                                 </div>

@@ -4,6 +4,7 @@ import ThreeScene from '@/app/ui/treejs/scene/ThreeScene';
 import BackgroundImage from '@/app/ui/shared/background-image';
 import Timeline from '@/app/ui/asteroids/timeline';
 import { getAsteroid } from '@/app/lib/data/asteroids/getAsteroid';
+import { getTextureUrls } from '@/app/lib/utils/getTextureUrls';
 
 
 
@@ -11,10 +12,11 @@ export default async function Page({ params }: { params: { id: string; scaleAste
   const { id, scaleAsteroidSize } = params;
 
   const asteroid = await getAsteroid(id);
+
+
   const diameterSphere = parseFloat(scaleAsteroidSize.split("-")[0]);
   const speedSphere = parseFloat(scaleAsteroidSize.split("-")[1]);
-  const asteroidIndex = scaleAsteroidSize.split("-")[2]
-
+  const textureIndex = parseInt(scaleAsteroidSize.split("-")[2]);
 
 
   // Название астероида
@@ -23,8 +25,8 @@ export default async function Page({ params }: { params: { id: string; scaleAste
   const relative_velocity = asteroid?.close_approach_data?.[0]?.relative_velocity
 
   // Оценочный диаметр астероида в метрах
-  const estimated_diameterMin = asteroid.estimated_diameter.meters.estimated_diameter_min;
-  const estimated_diameterMax = asteroid.estimated_diameter.meters.estimated_diameter_max;
+  const estimated_diameterMin = asteroid?.estimated_diameter?.meters?.estimated_diameter_min;
+  const estimated_diameterMax = asteroid?.estimated_diameter?.meters?.estimated_diameter_max;
 
   // Десигнация астероида
   const designation = asteroid?.designation;
@@ -33,21 +35,25 @@ export default async function Page({ params }: { params: { id: string; scaleAste
   // // Абсолютная величина яркости астероида
   const absolute_magnitude_h = asteroid?.absolute_magnitude_h;
   // Является ли астероид потенциально опасным
-  const is_potentially_hazardous_asteroid = asteroid.is_potentially_hazardous_asteroid;
+  const is_potentially_hazardous_asteroid = asteroid?.is_potentially_hazardous_asteroid;
   // Данные о ближайших подходах
-  const closeApproachData = asteroid.close_approach_data;
+  const closeApproachData = asteroid?.close_approach_data;
   // Орбитальные данные
-  const orbital_data = asteroid.orbital_data;
+  const orbital_data = asteroid?.orbital_data;
   // Пример: эксцентриситет орбиты
-  const eccentricity = orbital_data.eccentricity;
+  const eccentricity = orbital_data?.eccentricity;
   // Пример: полуось орбиты
-  const semi_major_axis = orbital_data.semi_major_axis;
+  const semi_major_axis = orbital_data?.semi_major_axis;
   // Пример: наклонение орбиты
-  const inclination = orbital_data.inclination;
+  const inclination = orbital_data?.inclination;
   // Пример: орбитальный период
-  const orbital_period = orbital_data.orbital_period;
+  const orbital_period = orbital_data?.orbital_period;
   // Является ли объект частью системы мониторинга Sentry
   const is_sentry_object = asteroid?.is_sentry_object;
+
+  const textures = await getTextureUrls();
+  const textureUrl = textures[textureIndex];
+
 
   const averageDiameter = (estimated_diameterMin + estimated_diameterMax) / 2;
   return (
@@ -56,10 +62,11 @@ export default async function Page({ params }: { params: { id: string; scaleAste
       {/* Контейнер для сцены */}
       <div className="absolute inset-0 z-10">
         <ThreeScene
-          asteroidIndex={asteroidIndex}
+          asteroidIndex={textureIndex}
           asteroid={params.id}
           diameterSphere={diameterSphere}
           speedSphere={speedSphere}
+          urlTexture={textureUrl}
         />
       </div>
 

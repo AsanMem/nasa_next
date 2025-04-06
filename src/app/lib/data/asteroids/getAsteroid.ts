@@ -1,10 +1,10 @@
-"use server";
+
 export async function getAsteroid(id: string): Promise<any> {
 
 
   
   try {
-    const response = await fetch(`https://api.nasa.gov/neo/rest/v1/neo/${id}?api_key=${process.env.APP_NASA_API_KEY}`);
+    const response = await fetch(`https://api.nasa.gov/neo/rest/v1/neo/${id}?api_key=${process.env.NEXT_PUBLIC_NASA_API_KEY}`);
 
     if (!response.ok) {
       throw new Error('Network response was not ok');
