@@ -1,13 +1,17 @@
-async function fetchWithRetry(url: string, options = {}, retries = 3, delay = 1000): Promise<any> {
-    for (let i = 0; i < retries; i++) {
-      try {
-        const response = await fetch(url, options);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return await response.json();
-      } catch (error) {
-        if (i === retries - 1) throw error;
-        await new Promise(resolve => setTimeout(resolve, delay * (i + 1))); // Увеличивающаяся задержка
+export async function retryFetch(url: string, retries = 3, delay = 1000): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      return response;
+    } catch (error: any) {
+      if (i < retries - 1) {
+        console.warn(`Retrying fetch... (${retries - i - 1} left)`, error);
+        await new Promise((res) => setTimeout(res, delay));
+      } else {
+        throw error;
       }
     }
-    throw new Error("Max retries reached");
   }
+  throw new Error("All retries failed");
+}

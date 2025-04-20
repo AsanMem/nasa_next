@@ -1,4 +1,5 @@
-import { fetchPictureOfTheDay } from "../lib/data/fetchPictureOfTheDay";
+
+import { fetchPictureOfTheDay } from "../lib/data/day/fetchPictureOfTheDay";
 import DayClient from "../ui/day/day-client";
 
 
