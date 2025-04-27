@@ -1,10 +1,11 @@
-
+'use server'
 import React from 'react';
 import ThreeScene from '@/app/ui/treejs/scene/ThreeScene';
 import BackgroundImage from '@/app/ui/shared/background-image';
 import Timeline from '@/app/ui/asteroids/timeline';
 import { getAsteroid } from '@/app/lib/data/asteroids/getAsteroid';
 import { getTextureUrls } from '@/app/lib/utils/getTextureUrls';
+import Header from '@/app/ui/header/Header';
 
 
 
@@ -57,50 +58,53 @@ export default async function Page({ params }: { params: { id: string; scaleAste
 
   const averageDiameter = (estimated_diameterMin + estimated_diameterMax) / 2;
   return (
-    <div className="relative w-full h-[calc(h-screen - 15vh)]">
-      <BackgroundImage src={"https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2F5.jpg?alt=media&token=41e8c6f8-4527-4215-adf0-0258a76924a6"} className="fixed w-full h-full left-0 top-0 z-0 blur-0" />
-      {/* Контейнер для сцены */}
-      <div className="absolute inset-0 z-10">
-        <ThreeScene
-          asteroidIndex={textureIndex}
-          asteroid={params.id}
-          diameterSphere={diameterSphere}
-          speedSphere={speedSphere}
-          urlTexture={textureUrl}
-        />
-      </div>
+    <>
+      <Header />
 
-      {/* Контейнер для описания */}
-      <div className="absolute top-0 left-0 w-full md:w-1/3 h-[calc(80vh-2rem)] text-slate-100 bg-opacity-70 z-20 p-4">
-        <h1 className="text-xl sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl font-bold mb-4">
-          Asteroid : {name}
-        </h1>
-        <div
-          id="content"
-          className="message-body max-h-[35vh] min-h-[35vh] overflow-x-auto overflow-y-auto"
-        >
-          <h2 className="text-xs sm:text-xs md:text-xl lg:text-1xl xl:text-2xl">
-            Average Diameter : {Math.round(averageDiameter)} meters
-          </h2>
-          {relative_velocity?.kilometers_per_second &&
-            <h2 className="text-xs sm:text-xs md:text-xl lg:text-1xl xl:text-2xl">
-              {Math.round(relative_velocity?.kilometers_per_second)} <strong>KM / sec</strong>
-            </h2>}
+      <div className="relative w-full h-[calc(h-screen - 15vh)]">
+        <BackgroundImage src={"https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2F5.jpg?alt=media&token=41e8c6f8-4527-4215-adf0-0258a76924a6"} className="fixed w-full h-full left-0 top-0 z-0 blur-0" />
+        {/* Контейнер для сцены */}
+        <div className="absolute inset-0 z-10">
+          <ThreeScene
+            asteroidIndex={textureIndex}
+            asteroid={params.id}
+            diameterSphere={diameterSphere}
+            speedSphere={speedSphere}
+            urlTexture={textureUrl}
+          />
         </div>
-        {closeApproachData && closeApproachData.length > 0 &&
-          <div>
-            <p className='sm:text-xs md:text-xs lg:text-xl xl:text-1xl mb-4'>Timeline across our solar system</p>
-            <div className="h-[calc(100%-48rem)] overflow-y-auto text-sm " style={{
-              scrollbarWidth: "none",  // Firefox
-              msOverflowStyle: "none"  // Edge
-            }}>
-              <section className="my-4">
-                <Timeline closeApproachData={closeApproachData} />
-              </section>
-            </div>
+
+        {/* Контейнер для описания */}
+        <div className="absolute top-0 left-0 w-full md:w-1/3 h-[calc(80vh-2rem)] text-slate-100 bg-opacity-70 z-20 p-4">
+          <h1 className="text-xl sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl font-bold mb-4">
+            Asteroid : {name}
+          </h1>
+          <div
+            id="content"
+            className="message-body max-h-[35vh] min-h-[35vh] overflow-x-auto overflow-y-auto"
+          >
+            <h2 className="text-xs sm:text-xs md:text-xl lg:text-1xl xl:text-2xl">
+              Average Diameter : {Math.round(averageDiameter)} meters
+            </h2>
+            {relative_velocity?.kilometers_per_second &&
+              <h2 className="text-xs sm:text-xs md:text-xl lg:text-1xl xl:text-2xl">
+                {Math.round(relative_velocity?.kilometers_per_second)} <strong>KM / sec</strong>
+              </h2>}
           </div>
-        }
-      </div>
-    </div>
+          {closeApproachData && closeApproachData.length > 0 &&
+            <div>
+              <p className='sm:text-xs md:text-xs lg:text-xl xl:text-1xl mb-4'>Timeline across our solar system</p>
+              <div className="h-[calc(100%-48rem)] overflow-y-auto text-sm " style={{
+                scrollbarWidth: "none",  // Firefox
+                msOverflowStyle: "none"  // Edge
+              }}>
+                <section className="my-4">
+                  <Timeline closeApproachData={closeApproachData} />
+                </section>
+              </div>
+            </div>
+          }
+        </div>
+      </div></>
   );
 }

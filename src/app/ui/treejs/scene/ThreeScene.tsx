@@ -18,8 +18,10 @@ interface ThreeSceneProps {
 const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diameterSphere, speedSphere, urlTexture }) => {
     const mountRef = useRef<HTMLDivElement | null>(null);
     const noiseRef = useRef(null);
+    console.log(diameterSphere, "diameterSphere before")
     const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
     diameterSphere = isMobile && diameterSphere > 5.922 ? 5.922 : diameterSphere;
+    console.log(diameterSphere, "diameterSphere after")
     let noiseInstance: any;
     useEffect(() => {
 
@@ -129,8 +131,13 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diamet
                     const stars = new THREE.Points(starGeometry, starMaterial);
                     scene.add(stars);
 
+
+
                     // Создание геометрии астероида с использованием шума
                     const geometry = new THREE.IcosahedronGeometry(diameterSphere, 48);
+
+                    console.log(geometry, "geometry")
+
 
                     const vertices = geometry.attributes.position.array as Float32Array;
                     for (let i = 0; i < vertices.length; i += 3) {

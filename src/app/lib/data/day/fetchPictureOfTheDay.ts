@@ -1,3 +1,4 @@
+'use server'
 import { retryFetch } from "../fetchWithRetry";
 // import { unstable_noStore } from "next/cache";
  import { formatDate } from "../../utils";
@@ -31,12 +32,12 @@ import { retryFetch } from "../fetchWithRetry";
 export async function fetchPictureOfTheDay() {
   try {
     const response = await retryFetch(
-      `https://api.nasa.gov/planetary/apod?api_key=${process.env.NEXT_PUBLIC_NASA_API_KEY}&date=${formatDate()}`,
-      {
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      }
+      `https://api.nasa.gov/planetary/apod?api_key=${process.env.APP_NASA_API_KEY}&date=${formatDate()}`,
+    //   {
+    //     headers: {
+    //       "Cache-Control": "no-store",
+    //     },
+    //   }
     );
     return await response.json();
   } catch (error) {

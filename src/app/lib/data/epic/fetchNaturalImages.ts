@@ -1,3 +1,4 @@
+'use server'
 import { retryFetch } from "../fetchWithRetry";
 
 
@@ -29,7 +30,7 @@ import { retryFetch } from "../fetchWithRetry";
 export async function fetchNaturalImages() {
   try {
     const response = await retryFetch(
-      `https://api.nasa.gov/EPIC/api/natural/images?api_key=${process.env.NEXT_PUBLIC_NASA_API_KEY}`
+      `https://api.nasa.gov/EPIC/api/natural/images?api_key=${process.env.APP_NASA_API_KEY}`
     );
     return await response.json();
   } catch (error) {

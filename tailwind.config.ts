@@ -11,6 +11,9 @@ const config: Config = {
       padding: {
         'safe-top': 'env(safe-area-inset-top)',
         'safe-bottom': 'env(safe-area-inset-bottom)',
+      }, 
+      dropShadow: {
+        glow: "0 0 8px #ffffff",
       },
     },
   },

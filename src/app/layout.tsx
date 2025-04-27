@@ -35,10 +35,13 @@ export function generateViewport(): Viewport {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${bungee.variable} font-sans} w-full h-full`}>
-        <ClientLayout>
+      <body className={`${bungee.variable} font-sans} w-full h-full min-h-[100vh] p-2`}>
+
+
+        {children}
+        {/* <ClientLayout>
           {children}
-        </ClientLayout>
+        </ClientLayout> */}
         <footer className={``}></footer>
       </body>
     </html >

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "firebase": "^11.4.0",
+    "gsap": "^3.12.7",
     "next": "^14.2.23",
     "noisejs": "^2.1.0",
     "raw-loader": "^4.0.2",
