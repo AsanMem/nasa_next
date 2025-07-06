@@ -14,7 +14,7 @@ export default async function Main() {
                 <TransitionImage src="/media/nebula.png" /> 
             </section> */}
             <Welcome />
-            <Menu />
+
 
         </main>
 

@@ -1,7 +1,9 @@
 "use client";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import RocketScene from "./ui/treejs/scene/RocketScene";
+import Menu from "./menu";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -27,16 +29,17 @@ const SECTIONS = [
         desc: "Let your journey into the unknown begin."
     }
 ];
+
 export default function Welcome() {
     const imgRefs = useRef([]);
     const sectionRefs = useRef([]);
     const contentRefs = useRef([]);
+    const markerRefs = useRef([]);
+    const [activeStage, setActiveStage] = useState(0);
 
     useEffect(() => {
-
         sectionRefs.current.forEach((section, i) => {
             if (!section) return;
-
             gsap.fromTo(
                 imgRefs.current[i],
                 { y: "-8%" },
@@ -51,7 +54,6 @@ export default function Welcome() {
                     },
                 }
             );
-
             gsap.fromTo(
                 contentRefs.current[i],
                 { opacity: 0, y: 60 },
@@ -68,16 +70,18 @@ export default function Welcome() {
                     },
                 }
             );
+            ScrollTrigger.create({
+                trigger: section,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => setActiveStage(i),
+                onEnterBack: () => setActiveStage(i),
+            });
         });
 
-
         imgRefs.current.forEach((img, i) => {
-            if (i === 0) return; // skip first
-
-            const prevSection = sectionRefs.current[i - 1];
+            if (i === 0) return;
             const currSection = sectionRefs.current[i];
-
-
             gsap.fromTo(
                 img,
                 { opacity: 0 },
@@ -87,7 +91,7 @@ export default function Welcome() {
                     scrollTrigger: {
                         trigger: currSection,
                         start: "top bottom",
-                        end: "top 85%", // adjust for sharper/softer blend
+                        end: "top 85%",
                         scrub: true,
                     },
                 }
@@ -108,16 +112,34 @@ export default function Welcome() {
             );
         });
 
+        markerRefs.current.forEach((marker, i) => {
+            gsap.fromTo(
+                marker,
+                { scale: 1, filter: "brightness(0.7)" },
+                {
+                    scale: 1.25,
+                    filter: "brightness(1.5)",
+                    scrollTrigger: {
+                        trigger: sectionRefs.current[i],
+                        start: "top center",
+                        end: "bottom center",
+                        scrub: true,
+
+                    }
+                }
+            );
+        });
+
         return () => ScrollTrigger.getAll().forEach((t) => t.kill());
     }, []);
 
     const handleStart = () => {
-        console.log('navigate')
-        // TO DO BY EACH SIDE
+        alert("Let's go! (replace with real navigation)");
     };
 
     return (
         <div className="relative w-full min-h-screen bg-black">
+
             <div className="fixed inset-0 pointer-events-none z-0">
                 {SECTIONS.map((section, i) => (
                     <img
@@ -130,15 +152,35 @@ export default function Welcome() {
                         draggable={false}
                     />
                 ))}
-
                 <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
-                <div className="absolute bottom-0 left-0 w-full h-8 pointer-events-none z-50"
+                <div
+                    className="absolute bottom-0 left-0 w-full h-8 pointer-events-none z-50"
                     style={{
-                        background: "linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0))"
+                        background: "linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0))",
                     }}
                 />
             </div>
 
+            {/* --- VERTICAL PIPELINE RIGHT --- */}
+            <div className="fixed right-8 top-1/2 z-50 flex flex-col items-center -translate-y-1/2 gap-24">
+                <div className="w-2 bg-gradient-to-b from-slate-700 to-slate-900 rounded-full h-[70vh] absolute left-1/2 -translate-x-1/2 z-0 opacity-60 "></div>
+
+                {SECTIONS.map((s, i) => (
+                    <div
+                        key={i}
+                        ref={el => (markerRefs.current[i] = el)}
+                        className="relative z-10"
+                        style={{
+                            transition: "filter 0.3s, scale 0.3s"
+                        }}
+                    >
+                        <div className={`w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-400/70 to-indigo-700/80 shadow-lg
+                            ${activeStage === i ? "ring-4 ring-blue-400 scale-110" : ""}`}>{i}
+                        </div>
+                    </div>
+                ))}
+                <RocketSceneMarker activeStage={activeStage} count={SECTIONS.length} />
+            </div>
 
             <div>
                 {SECTIONS.map((section, i) => (
@@ -152,8 +194,13 @@ export default function Welcome() {
                             className="relative text-white text-center px-8"
                             style={{ maxWidth: 700 }}
                         >
-                            <h1 className="text-4xl md:text-5xl font-bold drop-shadow-lg">{section.title}</h1>
-                            <p className="text-lg md:text-2xl mt-4 drop-shadow">{section.desc}</p>
+                            <h1 className="text-4xl md:text-5xl font-bold drop-shadow-lg">
+                                {section.title}
+                            </h1>
+                            <p className="text-lg md:text-2xl mt-4 drop-shadow">
+                                {section.desc}
+                            </p>
+
                             {i === SECTIONS.length - 1 && (
                                 <button
                                     onClick={handleStart}
@@ -166,6 +213,28 @@ export default function Welcome() {
                     </section>
                 ))}
             </div>
+            <Menu />
         </div>
     );
 }
+
+
+
+const RocketSceneMarker = ({ activeStage, count }) => {
+
+    const top = count === 1 ? "0%" : `${(activeStage / (count - 1)) * 100}%`;
+    return (
+        <div
+            style={{
+                position: "absolute",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                top,
+                zIndex: 20,
+                pointerEvents: "none"
+            }}
+        >
+            <RocketScene activeStage={activeStage} />
+        </div>
+    );
+};

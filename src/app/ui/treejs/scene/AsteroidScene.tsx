@@ -15,7 +15,7 @@ interface ThreeSceneProps {
 }
 
 
-const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diameterSphere, speedSphere, urlTexture }) => {
+const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diameterSphere, speedSphere, urlTexture }) => {
     const mountRef = useRef<HTMLDivElement | null>(null);
     const noiseRef = useRef(null);
     console.log(diameterSphere, "diameterSphere before")
@@ -216,4 +216,4 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diamet
     return <div ref={mountRef} style={{ width: '100%', height: '80vh' }} />;
 };
 
-export default ThreeScene;
+export default AsteroidScene;
