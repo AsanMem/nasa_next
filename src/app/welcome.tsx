@@ -5,8 +5,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import RocketScene from "./ui/treejs/scene/RocketScene";
 import Menu from "./menu";
 
-gsap.registerPlugin(ScrollTrigger);
-
 const SECTIONS = [
     {
         img: "/media/4.jpg",
@@ -29,13 +27,14 @@ const SECTIONS = [
         desc: "Let your journey into the unknown begin."
     }
 ];
-
 export default function Welcome() {
     const imgRefs = useRef([]);
     const sectionRefs = useRef([]);
     const contentRefs = useRef([]);
     const markerRefs = useRef([]);
+    const [rocketProgress, setRocketProgress] = useState(0);
     const [activeStage, setActiveStage] = useState(0);
+
 
     useEffect(() => {
         sectionRefs.current.forEach((section, i) => {
@@ -124,7 +123,6 @@ export default function Welcome() {
                         start: "top center",
                         end: "bottom center",
                         scrub: true,
-
                     }
                 }
             );
@@ -133,13 +131,43 @@ export default function Welcome() {
         return () => ScrollTrigger.getAll().forEach((t) => t.kill());
     }, []);
 
+
+    useEffect(() => {
+        function onScroll() {
+            const firstSection = sectionRefs.current[0];
+            const lastSection = sectionRefs.current[sectionRefs.current.length - 1];
+            if (!firstSection || !lastSection) return;
+
+            const firstRect = firstSection.getBoundingClientRect();
+            const lastRect = lastSection.getBoundingClientRect();
+
+            const firstTop = firstRect.top + window.scrollY;
+            const lastTop = lastRect.top + window.scrollY + lastRect.height;
+
+            const centerScreen = window.scrollY + window.innerHeight / 2;
+            let progress = (centerScreen - firstTop) / (lastTop - firstTop);
+            progress = Math.max(0, Math.min(1, progress));
+            setRocketProgress(progress);
+
+            // console.log('SCROLL progress', progress);
+        }
+        window.addEventListener('scroll', onScroll);
+        window.addEventListener('resize', onScroll);
+        setTimeout(onScroll, 120);
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('resize', onScroll);
+        };
+    }, []);
+
     const handleStart = () => {
-        alert("Let's go! (replace with real navigation)");
+        // TO DO each
     };
 
     return (
         <div className="relative w-full min-h-screen bg-black">
 
+            {/* BG Images */}
             <div className="fixed inset-0 pointer-events-none z-0">
                 {SECTIONS.map((section, i) => (
                     <img
@@ -161,10 +189,9 @@ export default function Welcome() {
                 />
             </div>
 
-            {/* --- VERTICAL PIPELINE RIGHT --- */}
-            <div className="fixed right-8 top-1/2 z-50 flex flex-col items-center -translate-y-1/2 gap-24">
+            {/* PIPELINE */}
+            <div className="fixed right-8 top-1/2 z-50 flex flex-col items-center -translate-y-1/2 gap-24" style={{ height: "70vh" }}>
                 <div className="w-2 bg-gradient-to-b from-slate-700 to-slate-900 rounded-full h-[70vh] absolute left-1/2 -translate-x-1/2 z-0 opacity-60 "></div>
-
                 {SECTIONS.map((s, i) => (
                     <div
                         key={i}
@@ -179,9 +206,10 @@ export default function Welcome() {
                         </div>
                     </div>
                 ))}
-                <RocketSceneMarker activeStage={activeStage} count={SECTIONS.length} />
+                <RocketSceneMarker progress={rocketProgress} />
             </div>
 
+            {/* Sections */}
             <div>
                 {SECTIONS.map((section, i) => (
                     <section
@@ -219,22 +247,19 @@ export default function Welcome() {
 }
 
 
-
-const RocketSceneMarker = ({ activeStage, count }) => {
-
-    const top = count === 1 ? "0%" : `${(activeStage / (count - 1)) * 100}%`;
+const RocketSceneMarker = ({ progress }) => {
     return (
         <div
             style={{
                 position: "absolute",
                 left: "50%",
+                top: `${progress * 100}%`,
                 transform: "translate(-50%, -50%)",
-                top,
                 zIndex: 20,
                 pointerEvents: "none"
             }}
         >
-            <RocketScene activeStage={activeStage} />
+            <RocketScene />
         </div>
     );
 };
