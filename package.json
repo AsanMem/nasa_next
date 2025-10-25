@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "firebase": "^11.4.0",
-    "gsap": "^3.12.7",
+    "gsap": "^3.13.0",
     "next": "^14.2.23",
     "noisejs": "^2.1.0",
     "raw-loader": "^4.0.2",
@@ -18,7 +18,7 @@
     "react-dom": "^18",
     "sharp": "^0.33.5",
     "simplex-noise": "^4.0.3",
-    "three": "^0.167.0",
+    "three": "^0.167.1",
     "use-debounce": "^10.0.0"
   },
   "devDependencies": {

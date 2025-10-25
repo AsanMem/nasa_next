@@ -1,6 +1,6 @@
 'use server'
 import React from 'react';
-import ThreeScene from '@/app/ui/treejs/scene/ThreeScene';
+import ThreeScene from '@/app/ui/treejs/scene/AsteroidScene';
 import BackgroundImage from '@/app/ui/shared/background-image';
 import Timeline from '@/app/ui/asteroids/timeline';
 import { getAsteroid } from '@/app/lib/data/asteroids/getAsteroid';

@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Bungee } from "next/font/google";
 import "./globals.css";
-import Header from "@/app/ui/header/Header";
-import ClientLayout from "./ClientLayout";
 import type { Viewport } from 'next'
 
 
@@ -17,11 +15,9 @@ export const metadata: Metadata = {
   title: "SPACE TRAVEL",
   description: "NASA , UFO , Astronaut , Astronauts , NASA Gallery",
   manifest: "/manifest.json",
-
   icons: {
     icon: '/media/favicon.ico',
-  },
-
+  }
 };
 
 export function generateViewport(): Viewport {
@@ -36,13 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${bungee.variable} font-sans} w-full h-full min-h-[100vh] p-2`}>
-
-
         {children}
-        {/* <ClientLayout>
-          {children}
-        </ClientLayout> */}
-        <footer className={``}></footer>
       </body>
     </html >
   );
