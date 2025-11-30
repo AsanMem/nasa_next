@@ -5,6 +5,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { usePrefersReducedMotion } from "@/app/hooks/usePrefersReducedMotion";
+import { ROUTES } from "@/app/lib/constants/routes";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -334,7 +335,7 @@ export default function HeroParallax(): JSX.Element {
                     landmark missions through immersive visuals and interactive data.
                 </p>
                 <Link
-                    href="/gallery"
+                    href={ROUTES.library}
                     className="rounded-full border border-blue-400/60 bg-blue-500/20 px-8 py-3 text-sm font-semibold uppercase tracking-[0.35em] text-blue-200 transition hover:border-blue-300 hover:bg-blue-500/30"
                 >
                     Start Exploring

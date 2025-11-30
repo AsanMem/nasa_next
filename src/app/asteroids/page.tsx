@@ -26,6 +26,26 @@ export default async function Asteroids() {
         <span className="text-3xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl px-2 text-red-800">{asteroidsData?.element_count}</span> objects
       </>}
         supportiveText={"Attention Earthlings!"} />
+
+
+      <HelloTittle
+        mainText={
+          <>
+            <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight drop-shadow">
+              Today is {formatDate()}
+            </span>
+            <span className="mt-2 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm sm:text-base backdrop-blur border border-white/20">
+              Noticed near Earth
+              <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-red-400 tabular-nums">
+                {new Intl.NumberFormat('en-US').format(asteroidsData?.element_count ?? 0)}
+              </span>
+              objects
+            </span>
+          </>
+        }
+        supportiveText="Attention Earthlings!"
+      />
+
       <div className=" my-8 ">
         <ListAsteroids asteroidsObjects={asteroidsObjects} />
       </div>
