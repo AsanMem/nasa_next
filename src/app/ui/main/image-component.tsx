@@ -43,7 +43,7 @@ export default function ImageSlideshow({ images }: any) {
 
     return (
         <>
-            <MainTittle title={`EPIC Natural Color Images In Real Time`} description="" classes={`absolute z-10 inset-x-0 ${isMobile && "bottom-52"}`} />
+            {/* <MainTittle title={`EPIC Natural Color Images In Real Time`} description="" classes={`absolute z-10 inset-x-0 ${isMobile && "bottom-52"}`} /> */}
             <div className="flex justify-center">
                 <div className="relative">
                     <img

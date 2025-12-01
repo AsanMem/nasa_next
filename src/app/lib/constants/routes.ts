@@ -1,9 +1,9 @@
 export const ROUTES = {
-  apod: "/apod",
-  images: "/images",
-  videos: "/videos",
+  apod: "/day",
+  images: "/gallery",
+  videos: "/video",
   epic: "/epic",
-  neos: "/neos",
+  neos: "/asteroids",
   techport: "/techport",
   techtransfer: "/techtransfer",
   spaceWeather: "/space-weather",
@@ -12,4 +12,3 @@ export const ROUTES = {
 } as const;
 
 export type RouteKey = keyof typeof ROUTES;
-

@@ -11,7 +11,7 @@ const SECTIONS = [
     {
         title: "Galaxies",
         description: "Chart luminous clusters, swirling nebulae, and the stories written across distant light-years.",
-        href: "/gallery?topic=galaxies",
+        href: "/gallery?page=1&query=galaxies",
         background: "/media/main/4.jpg"
     },
     {
