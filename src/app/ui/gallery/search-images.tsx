@@ -37,7 +37,7 @@ export default function SearchData() {
             <input
                 placeholder="Enter the title"
 
-                className="w-full py-2 pl-4 rounded-l-lg border border-gray-300 focus:outline-none focus:border-slate-900"
+                className="w-full py-2 pl-4 text-black rounded-l-lg border border-gray-300 focus:outline-none focus:border-slate-900"
                 onChange={(e) => {
                     handleSearch(e.target.value);
                 }}

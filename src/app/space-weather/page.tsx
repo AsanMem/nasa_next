@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ROUTES } from "@/app/lib/constants/routes";
 import { fetchDonkiNotifications } from "@/app/lib/nasa/donki";
+import { extractImageUrlsFromText } from "../library/page";
 
 const CARD_CLASS =
   "rounded-3xl bg-white/5 p-6 ring-1 ring-white/10 backdrop-blur hover:bg-white/10 hover:ring-white/20 transition";
@@ -35,36 +36,67 @@ export default async function SpaceWeatherPage() {
 
         <section className="flex flex-col gap-6">
           {notifications.length > 0 ? (
-            notifications.map((notification) => (
-              <article key={notification.messageID ?? notification.messageTitle} className={CARD_CLASS}>
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs uppercase tracking-[0.4em] text-white/40">
-                    {notification.messageType ?? "Notification"}
-                  </p>
-                  <h2 className="text-2xl font-semibold tracking-tight">
-                    {notification.messageTitle ?? "Space weather alert"}
-                  </h2>
-                  {notification.formattedTime ? (
-                    <p className="text-xs uppercase tracking-[0.4em] text-white/50">
-                      Issued {notification.formattedTime}
+            notifications.map((notification) => {
+              const imageUrls = extractImageUrlsFromText(notification.messageBody);
+
+              return (
+                <article
+                  key={notification.messageID ?? notification.messageTitle}
+                  className={CARD_CLASS}
+                >
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs uppercase tracking-[0.4em] text-white/40">
+                      {notification.messageType ?? "Notification"}
                     </p>
+                    <h2 className="text-2xl font-semibold tracking-tight">
+                      {notification.messageTitle ?? "Space weather alert"}
+                    </h2>
+                    {notification.formattedTime ? (
+                      <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+                        Issued {notification.formattedTime}
+                      </p>
+                    ) : null}
+                  </div>
+
+                  {/* ВСЕ найденные гифки / картинки */}
+                  {imageUrls.length > 0 && (
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {imageUrls.map((url) => (
+                        <div
+                          key={url}
+                          className="overflow-hidden rounded-xl border border-white/10 bg-white/5"
+                        >
+                          <img
+                            src={url}
+                            alt={
+                              notification.messageTitle ??
+                              notification.messageType ??
+                              "Space weather visualization"
+                            }
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="mt-4 whitespace-pre-line text-sm text-white/70">
+                    {notification.messageBody ?? "Details are not available for this notification."}
+                  </p>
+
+                  {notification.messageURL ? (
+                    <a
+                      href={notification.messageURL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-6 inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
+                    >
+                      View full bulletin
+                    </a>
                   ) : null}
-                </div>
-                <p className="mt-4 whitespace-pre-line text-sm text-white/70">
-                  {notification.messageBody ?? "Details are not available for this notification."}
-                </p>
-                {notification.messageURL ? (
-                  <a
-                    href={notification.messageURL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-6 inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
-                  >
-                    View full bulletin
-                  </a>
-                ) : null}
-              </article>
-            ))
+                </article>
+              );
+            })
           ) : (
             <div className={CARD_CLASS}>
               <p className="text-sm text-white/60">
@@ -74,6 +106,7 @@ export default async function SpaceWeatherPage() {
             </div>
           )}
         </section>
+
       </div>
     </div>
   );

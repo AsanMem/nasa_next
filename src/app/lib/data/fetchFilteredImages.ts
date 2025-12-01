@@ -1,6 +1,6 @@
 import { unstable_noStore } from "next/cache";
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 9;
 export async function fetchFilteredImages(query: string, currentPage: number) {
     const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 

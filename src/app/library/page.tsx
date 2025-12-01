@@ -20,7 +20,6 @@ import type { EpicImage } from "@/app/lib/nasa/epic";
 import type { TechportProjectSummary } from "@/app/lib/nasa/techport";
 import type { TechTransferItem } from "@/app/lib/nasa/techtransfer";
 import Header from "../ui/header/Header";
-
 type NewsItem =
   | {
     id: string;
@@ -29,6 +28,7 @@ type NewsItem =
     title: string;
     summary?: string;
     timestamp?: string;
+    imageUrls?: string[];
   }
   | {
     id: string;
@@ -37,6 +37,7 @@ type NewsItem =
     title: string;
     summary?: string;
     timestamp?: string;
+    imageUrls?: string[];
   }
   | {
     id: string;
@@ -45,6 +46,7 @@ type NewsItem =
     title: string;
     summary?: string;
     timestamp?: string;
+    imageUrls?: string[];
   };
 
 const PREVIEW_SECTIONS: Array<{
@@ -96,14 +98,21 @@ async function buildNewsFeed(
   eonet: EonetEvent[],
   neos: NeoFeedItem[],
 ): Promise<NewsItem[]> {
-  const donkiItems: NewsItem[] = donki.map((item, index) => ({
-    id: item.messageID ?? `donki-${index}`,
-    type: "Space Weather",
-    source: "DONKI",
-    title: item.messageTitle ?? item.messageType ?? "Space weather alert",
-    summary: item.messageBody?.slice(0, 200),
-    timestamp: item.formattedTime,
-  }));
+
+
+
+  const donkiItems: NewsItem[] = donki.map((item, index) => {
+    const imageUrls = extractImageUrlsFromText(item.messageBody);
+    return {
+      id: item.messageID ?? `donki-${index}`,
+      type: "Space Weather",
+      source: "DONKI",
+      title: item.messageTitle ?? item.messageType ?? "Space weather alert",
+      summary: item.messageBody?.slice(0, 200),
+      timestamp: item.formattedTime,
+      imageUrls,
+    };
+  });
 
   const eonetItems: NewsItem[] = eonet.map((event) => ({
     id: event.id,
@@ -113,7 +122,7 @@ async function buildNewsFeed(
     summary: event.categories?.map((category) => category.title).join(", "),
     timestamp: event.formattedDate,
   }));
-
+  // console.log(eonetItems, "eonetItems")
   const neoItems: NewsItem[] = neos.map((neo) => ({
     id: neo.id,
     type: "Hazardous NEO",
@@ -319,6 +328,13 @@ function mapTechTransferItemToRubricItem(item: TechTransferItem): RubricCardItem
   };
 }
 
+export function extractImageUrlsFromText(text?: string): string[] {
+  if (!text) return [];
+  const regex = /(https?:\/\/[^\s'"]+\.(?:png|jpe?g|gif|webp))/gi;
+  const matches = text.match(regex);
+  if (!matches) return [];
+  return Array.from(new Set(matches));
+}
 
 function extractImageUrlFromRaw(raw: string[]): string | undefined {
   const text = raw.join(" ");
@@ -341,6 +357,9 @@ type RubricCardProps = {
   href: string;
   items: RubricCardItem[];
 };
+
+
+
 
 function RubricCard({ title, description, href, items }: RubricCardProps) {
   return (
@@ -451,10 +470,9 @@ export default async function LibraryPage() {
     softwareResult.status === "fulfilled" ? softwareResult.value : [];
 
   const newsFeed = await buildNewsFeed(donki, eonet, neos);
+  //  console.log(newsFeed, "newsFeed")
 
 
-  console.log(software, "software")
-  console.log(patents, "patents")
   const techTransferRubricItems: RubricCardItem[] = [
     ...patents.slice(0, 2),
     ...software.slice(0, 2),
@@ -583,6 +601,22 @@ export default async function LibraryPage() {
                     <span className="text-white/40">{item.source}</span>
                   </div>
                   <h3 className="text-lg font-semibold tracking-tight text-white">{item.title}</h3>
+                  {item.imageUrls && item.imageUrls.length > 0 && (
+                    <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+                      {item.imageUrls.slice(0, 2).map((url) => (
+                        <div
+                          key={url}
+                          className="relative h-24 w-32 flex-shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/5"
+                        >
+                          <img
+                            src={url}
+                            alt={item.title}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {item.summary ? <p className="text-sm text-white/70">{item.summary}</p> : null}
                   <div className="mt-auto flex items-center justify-between text-xs uppercase tracking-[0.4em] text-white/40">
                     <span>{item.timestamp ?? "Recent"}</span>

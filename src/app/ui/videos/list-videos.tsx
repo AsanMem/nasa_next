@@ -1,47 +1,64 @@
-import Image from 'next/image';
 import Pagination from '../shared/pagination';
 import CardVideo from './card-video';
-import { fetchFilteredVideos } from '@/app/lib/data/fetchFilteredVideos';
 
+type VideoItem = {
+  data: Array<{
+    title?: string;
+    description?: string;
+    keywords?: string[];
+  }>;
+  links?: Array<{
+    href?: string;
+  }>;
+  videoUrl?: string | null;
+};
 
-export default async function ListVideos({
-    query,
-    currentPage,
-}: {
-    query: string;
-    currentPage: number;
-}) {
+interface ListVideosProps {
+  videos: VideoItem[];
+  totalPages: number;
+  query: string;
+}
 
-    let { videos, totalPages }: any = await fetchFilteredVideos(query, currentPage) || { videos: [], totalPages: 0 }
-    if (query === "") {
-        return <></>
-    }
-
+export default function ListVideos({ videos, totalPages, query }: ListVideosProps) {
+  if (!query.trim()) {
     return (
-        <>
-            {videos && videos.length > 0 ?
-                <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch px-2"}>
-                    {videos.map((video: any, i: number) => {
-                        const data = video?.data?.[0]
-                        const dataLinks = video?.links
-                        return (
-                            <CardVideo
-                                key={(data?.title + i)}
-                                videoPreview={dataLinks?.[0]?.href}
-                                videoPlay={video?.videoUrl}
-                                title={data?.title}
-                                description={data?.description}
-                                keywords={data?.keywords}
-                            />
-                        )
+      <div className="rounded-3xl bg-white/5 p-6 text-sm text-white/60 ring-1 ring-white/10">
+        Enter a query above to explore NASA video highlights, or jump into another section.
+      </div>
+    );
+  }
 
-                    })}
-                    <div className="mt-5 flex w-full justify-center">
-                        <Pagination totalPages={totalPages} />
-                    </div>
-                </div>
+  if (!videos || videos.length === 0) {
+    return (
+      <div className="rounded-3xl bg-white/5 p-6 text-center text-white/60 ring-1 ring-white/10">
+        No NASA videos match this search yet. Try refining your keywords.
+      </div>
+    );
+  }
 
-                : <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch"}><div className="text-2xl text-slate-300 flex items-center justify-between  pb-4 my-8"> 'This is not found :('</div></div>
-            }
-        </>)
+  return (
+    <div className="space-y-8">
+      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        {videos.map((video, i) => {
+          const data = video?.data?.[0];
+          const preview = video?.links?.[0]?.href;
+          return (
+            <CardVideo
+              key={(data?.title ?? "nasa-video") + i}
+              videoPreview={preview ?? ""}
+              videoPlay={video?.videoUrl ?? ""}
+              title={data?.title ?? "NASA video"}
+              description={data?.description ?? ""}
+              keywords={data?.keywords}
+            />
+          );
+        })}
+      </div>
+      {totalPages > 1 ? (
+        <div className="mt-5 flex w-full justify-center">
+          <Pagination totalPages={totalPages} />
+        </div>
+      ) : null}
+    </div>
+  );
 }

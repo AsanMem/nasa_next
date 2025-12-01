@@ -1,114 +1,136 @@
 "use client";
-import Image from "next/image";
+
 import { useState } from "react";
+import { freezeBodyScroll, unfreezeBodyScroll } from "@/app/lib/utils/scrollUtils";
 
 interface IProps {
-    videoPreview: string;
-    videoPlay: string;
-    title: string;
-    description: string;
-    keywords: string[] | undefined;
+  videoPreview: string;
+  videoPlay: string;
+  title: string;
+  description: string;
+  keywords: string[] | undefined;
 }
 
 export default function CardVideo({
-    videoPreview,
-    videoPlay,
-    title,
-    description,
-    keywords,
+  videoPreview,
+  videoPlay,
+  title,
+  description,
+  keywords,
 }: IProps) {
-    const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
-    const toggleModal = () => {
-        setShowModal(!showModal);
-    };
+  const openModal = () => {
+    freezeBodyScroll();
+    setShowModal(true);
+  };
 
-    const handleCloseModal = () => {
-        setShowModal(false);
-    };
+  const handleCloseModal = () => {
+    unfreezeBodyScroll();
+    setShowModal(false);
+  };
 
-
-    const truncateText = (text: string, maxLength: number) => {
-        if (text.length <= maxLength) {
-            return text;
-        }
-        return text.slice(0, maxLength) + "...";
-    };
-
-    return (
-        <>
-            <div
-                onClick={toggleModal}
-                className="cursor-pointer w-[300px] max-w-[300px] mt-12 rounded overflow-hidden shadow-lg contener bg-black"
-            >
-                <img
-                    className="w-full h-[180px] rounded object-cover"
-                    src={videoPreview}
-                    alt={title}
-                />
-                <div className="p-4 font-light text-base text-neutral-100 flex align-middle h-max ">
-                    {truncateText(title, 38)}
-                </div>
+  return (
+    <>
+      <div
+        onClick={openModal}
+        className="cardVideo flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur transition hover:bg-white/10 hover:ring-white/20"
+      >
+        <div className="relative h-56 w-full overflow-hidden bg-black/40">
+          {videoPreview ? (
+            <img className="h-full w-full object-cover" src={videoPreview} alt={title} />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-white/60">
+              Preview unavailable
             </div>
-            {showModal && (
-                <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4 pt-14 bg-gray-900 bg-opacity-75">
-                    <div
-                        className="block rounded-lg bg-white shadow-secondary-1 dark:bg-surface-dark dark:text-white text-surface max-w-full sm:max-w-[95vw]  max-h-full"
-                        style={{ maxHeight: "100vh", overflowY: "auto" }}
-                    >
-                        <div className="flex flex-col sm:flex-row h-full">
-                            <div className="flex-1">
-                                <video
-                                    controls
-                                    width="100%"
-                                    height="auto"
-                                    autoPlay
-                                >
-                                    <source
-                                        src={videoPlay}
-                                        type="video/mp4"
-                                    />
-                                    Your browser does not support MP4 video.
-                                </video>
-                            </div>
-                            <div
-                                className="flex-1 p-6 overflow-y-auto"
-                                style={{ overflowX: "hidden" }}
-                            >
-                                <div className="flex justify-between items-center pr-4 py-2 mb-2">
-                                    <h3 className="text-xl font-medium leading-tight">
-                                        {title}
-                                    </h3>
-                                    <button
-                                        className=""
-                                        onClick={handleCloseModal}
-                                    >
-                                        x
-                                    </button>
-                                </div>
-                                <p
-                                    className="mb-2 text-base text-slate-700"
-                                    style={{ wordWrap: "break-word" }}
-                                >
-                                    {description}
-                                </p>
-                                {keywords && keywords.length > 0 ? (
-                                    <div className="flex flex-wrap mb-1">
-                                        {keywords.map((keyword, index) => (
-                                            <span
-                                                key={index}
-                                                className="font-sans mr-2 mb-1 inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10"
-                                            >
-                                                {keyword}
-                                            </span>
-                                        ))}
-                                    </div>
-                                ) : null}
-                            </div>
-                        </div>
-                    </div>
+          )}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white">
+            <svg
+              className="h-12 w-12 text-white drop-shadow"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+        <div className="flex flex-1 flex-col gap-3 p-5">
+          <h3
+            className="text-lg font-semibold text-white"
+            style={{
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {title}
+          </h3>
+          {description ? (
+            <p
+              className="text-sm text-white/70"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {description}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 pt-14">
+          <div
+            className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white text-gray-900 shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="relative bg-black">
+              {videoPlay ? (
+                <video controls className="h-full w-full">
+                  <source src={videoPlay} type="video/mp4" />
+                  Your browser does not support MP4 video.
+                </video>
+              ) : (
+                <div className="flex h-64 items-center justify-center text-white">
+                  Video unavailable
                 </div>
-            )}
-        </>
-    );
+              )}
+              <button
+                className="absolute right-4 top-4 rounded-full bg-white/80 p-2 text-gray-800 transition hover:bg-white"
+                onClick={handleCloseModal}
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" stroke="currentColor" fill="none">
+                  <path d="M6 6l12 12M6 18L18 6" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+            <div className="space-y-4 p-6">
+              <h3 className="text-xl font-semibold">{title}</h3>
+              {description ? (
+                <p className="text-sm leading-relaxed text-gray-700">{description}</p>
+              ) : null}
+              {keywords && keywords.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {keywords.map((keyword, index) => (
+                    <span
+                      key={`${keyword}-${index}`}
+                      className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
