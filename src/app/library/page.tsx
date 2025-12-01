@@ -19,32 +19,33 @@ import type { ApodItem } from "@/app/lib/nasa/apod";
 import type { EpicImage } from "@/app/lib/nasa/epic";
 import type { TechportProjectSummary } from "@/app/lib/nasa/techport";
 import type { TechTransferItem } from "@/app/lib/nasa/techtransfer";
+import Header from "../ui/header/Header";
 
 type NewsItem =
   | {
-      id: string;
-      type: "Space Weather";
-      source: "DONKI";
-      title: string;
-      summary?: string;
-      timestamp?: string;
-    }
+    id: string;
+    type: "Space Weather";
+    source: "DONKI";
+    title: string;
+    summary?: string;
+    timestamp?: string;
+  }
   | {
-      id: string;
-      type: "Earth Events";
-      source: "EONET";
-      title: string;
-      summary?: string;
-      timestamp?: string;
-    }
+    id: string;
+    type: "Earth Events";
+    source: "EONET";
+    title: string;
+    summary?: string;
+    timestamp?: string;
+  }
   | {
-      id: string;
-      type: "Hazardous NEO";
-      source: "NeoWS";
-      title: string;
-      summary?: string;
-      timestamp?: string;
-    };
+    id: string;
+    type: "Hazardous NEO";
+    source: "NeoWS";
+    title: string;
+    summary?: string;
+    timestamp?: string;
+  };
 
 const PREVIEW_SECTIONS: Array<{
   key: keyof typeof ROUTES;
@@ -52,37 +53,37 @@ const PREVIEW_SECTIONS: Array<{
   description: string;
   href: string;
 }> = [
-  {
-    key: "apod",
-    title: "Astronomy Picture of the Day",
-    description: "Daily highlights from the cosmos with NASA’s featured imagery.",
-    href: ROUTES.apod,
-  },
-  {
-    key: "images",
-    title: "NASA Images",
-    description: "Curated imagery spanning missions, nebulae, launches, and Earth.",
-    href: ROUTES.images,
-  },
-  {
-    key: "videos",
-    title: "NASA Videos",
-    description: "Mission briefings, launches, and archival footage in motion.",
-    href: ROUTES.videos,
-  },
-  {
-    key: "epic",
-    title: "EPIC Earth",
-    description: "Daily views of Earth captured by the DSCOVR spacecraft.",
-    href: ROUTES.epic,
-  },
-  {
-    key: "neos",
-    title: "Hazardous NEOs",
-    description: "Track near-Earth objects and their approach to our planet.",
-    href: ROUTES.neos,
-  },
-];
+    {
+      key: "apod",
+      title: "Astronomy Picture of the Day",
+      description: "Daily highlights from the cosmos with NASA’s featured imagery.",
+      href: ROUTES.apod,
+    },
+    {
+      key: "images",
+      title: "NASA Images",
+      description: "Curated imagery spanning missions, nebulae, launches, and Earth.",
+      href: ROUTES.images,
+    },
+    {
+      key: "videos",
+      title: "NASA Videos",
+      description: "Mission briefings, launches, and archival footage in motion.",
+      href: ROUTES.videos,
+    },
+    {
+      key: "epic",
+      title: "EPIC Earth",
+      description: "Daily views of Earth captured by the DSCOVR spacecraft.",
+      href: ROUTES.epic,
+    },
+    {
+      key: "neos",
+      title: "Hazardous NEOs",
+      description: "Track near-Earth objects and their approach to our planet.",
+      href: ROUTES.neos,
+    },
+  ];
 
 const SECTION_CARD_CLASS =
   "flex flex-col gap-4 rounded-3xl bg-white/5 p-6 ring-1 ring-white/10 backdrop-blur-lg transition hover:bg-white/10 hover:ring-white/20";
@@ -149,9 +150,9 @@ function getApodPreview(apod: ApodItem | null): PreviewContent | null {
   return {
     media: mediaUrl
       ? {
-          url: mediaUrl,
-          alt: apod.title ?? "Astronomy Picture of the Day",
-        }
+        url: mediaUrl,
+        alt: apod.title ?? "Astronomy Picture of the Day",
+      }
       : undefined,
     title: apod.title ?? "Astronomy Picture of the Day",
     description: apod.explanation?.slice(0, 140),
@@ -172,9 +173,9 @@ function getFirstAssetPreview(
   return {
     media: link?.href
       ? {
-          url: link.href,
-          alt: data?.title ?? fallbackTitle,
-        }
+        url: link.href,
+        alt: data?.title ?? fallbackTitle,
+      }
       : undefined,
     title: data?.title ?? fallbackTitle,
     description: data?.description?.slice(0, 140),
@@ -190,9 +191,9 @@ function getEpicPreview(images: EpicImage[]): PreviewContent | null {
   return {
     media: image.imageUrl
       ? {
-          url: image.imageUrl,
-          alt: image.caption ?? "EPIC Earth image",
-        }
+        url: image.imageUrl,
+        alt: image.caption ?? "EPIC Earth image",
+      }
       : undefined,
     title: image.caption ?? "EPIC Earth capture",
     description: image.identifier,
@@ -223,6 +224,7 @@ function renderMedia(media?: PreviewContent["media"]) {
 
   return (
     <div className="relative h-40 w-full overflow-hidden rounded-2xl bg-white/5">
+      <Header />
       <Image
         src={media.url}
         alt={media.alt}
@@ -318,17 +320,17 @@ function RubricCard({ title, description, href, items }: RubricCardProps) {
 
 export default async function LibraryPage() {
   const [
-    donki,
-    eonet,
-    neos,
-    apod,
-    images,
-    videos,
-    epic,
-    techport,
-    patents,
-    software,
-  ] = await Promise.all([
+    donkiResult,
+    eonetResult,
+    neosResult,
+    apodResult,
+    imagesResult,
+    videosResult,
+    epicResult,
+    // techportResult,
+    patentsResult,
+    softwareResult,
+  ] = await Promise.allSettled([
     fetchDonkiNotifications(),
     fetchOngoingEonetEvents(6),
     fetchTodayNeoFeed(),
@@ -336,12 +338,32 @@ export default async function LibraryPage() {
     fetchNasaImages("cosmos showcase", 6),
     fetchNasaVideos("nasa mission", 6),
     fetchEpicImages(6),
-    fetchTechportProjects(6),
+    //  fetchTechportProjects(6),
     fetchTechTransferPatents(6),
     fetchTechTransferSoftware(6),
-  ]);
+  ] as const);
+
+  const donki: DonkiNotificationItem[] =
+    donkiResult.status === "fulfilled" ? donkiResult.value : [];
+  const eonet: EonetEvent[] = eonetResult.status === "fulfilled" ? eonetResult.value : [];
+  const neos: NeoFeedItem[] = neosResult.status === "fulfilled" ? neosResult.value : [];
+  const apod: ApodItem | null = apodResult.status === "fulfilled" ? apodResult.value : null;
+  const images = imagesResult.status === "fulfilled" ? imagesResult.value : [];
+  const videos = videosResult.status === "fulfilled" ? videosResult.value : [];
+  const epic: EpicImage[] = epicResult.status === "fulfilled" ? epicResult.value : [];
+  // const techport: TechportProjectSummary[] =
+  //   techportResult.status === "fulfilled" ? techportResult.value : [];
+  const patents: TechTransferItem[] =
+    patentsResult.status === "fulfilled" ? patentsResult.value : [];
+  const software: TechTransferItem[] =
+    softwareResult.status === "fulfilled" ? softwareResult.value : [];
 
   const newsFeed = await buildNewsFeed(donki, eonet, neos);
+
+
+  console.log(software, "software")
+  console.log(patents, "patents")
+
 
   const previewContentBySection: Record<string, PreviewContent | null> = {
     apod: getApodPreview(apod),
@@ -364,6 +386,90 @@ export default async function LibraryPage() {
             collected server-side with gentle caching so you can explore without disruption.
           </p>
         </header>
+
+
+
+        <section className="flex flex-col gap-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-white/50">Explore</p>
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              Featured destinations from your library
+            </h2>
+            <p className="mt-2 text-sm text-white/60">
+              Quick snapshots from the sections you already unlocked. Server-rendered previews keep
+              things snappy without CORS surprises.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {PREVIEW_SECTIONS.map((section) => (
+              <PreviewCard
+                key={section.key}
+                section={section}
+                content={previewContentBySection[section.key] ?? null}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-white/50">Deep Dives</p>
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              New NASA rubrics, ready to explore
+            </h2>
+            <p className="mt-2 text-sm text-white/60">
+              Technology programs, transfer-ready patents, and real-time alerts—each section cached
+              individually with ISR so fresh intel is only ever a revalidate away.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* <RubricCard
+              title="Techport Projects"
+              description="NASA’s technology portfolio, from early concepts to flight-ready initiatives."
+              href={ROUTES.techport}
+              items={techport.map((project: TechportProjectSummary) => ({
+                title: project.title ?? `Project ${project.projectId}`,
+                detail: project.formattedLastUpdated
+                  ? `Last updated ${project.formattedLastUpdated}`
+                  : undefined,
+                meta: project.projectId,
+              }))}
+            /> */}
+            <RubricCard
+              title="Space Weather Monitor"
+              description="DONKI notifications curated for quick situational awareness."
+              href={ROUTES.spaceWeather}
+              items={donki.map((item) => ({
+                title: item.messageTitle ?? item.messageType ?? "Space weather alert",
+                detail: item.messageBody?.slice(0, 120),
+                meta: item.formattedTime,
+              }))}
+            />
+            <RubricCard
+              title="TechTransfer Patents & Software"
+              description="Flight heritage tools and innovations available for industry adoption."
+              href={ROUTES.techtransfer}
+              items={[
+                ...patents.slice(0, 2),
+                ...software.slice(0, 2),
+              ].map((item: TechTransferItem) => ({
+                title: item.description ?? "TechTransfer asset",
+                detail: item.application ?? undefined,
+                meta: item.center ?? item.releaseDateFormatted ?? undefined,
+              }))}
+            />
+            <RubricCard
+              title="EONET Earth Events"
+              description="Live geophysical events from NASA and international partners."
+              href={ROUTES.eonet}
+              items={eonet.map((event) => ({
+                title: event.title ?? "Earth event",
+                detail: event.categories?.map((c) => c.title).join(", "),
+                meta: event.formattedDate,
+              }))}
+            />
+          </div>
+        </section>
 
         <section className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
@@ -407,90 +513,7 @@ export default async function LibraryPage() {
             )}
           </div>
         </section>
-
-        <section className="flex flex-col gap-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-white/50">Explore</p>
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Featured destinations from your library
-            </h2>
-            <p className="mt-2 text-sm text-white/60">
-              Quick snapshots from the sections you already unlocked. Server-rendered previews keep
-              things snappy without CORS surprises.
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {PREVIEW_SECTIONS.map((section) => (
-              <PreviewCard
-                key={section.key}
-                section={section}
-                content={previewContentBySection[section.key] ?? null}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section className="flex flex-col gap-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-white/50">Deep Dives</p>
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              New NASA rubrics, ready to explore
-            </h2>
-            <p className="mt-2 text-sm text-white/60">
-              Technology programs, transfer-ready patents, and real-time alerts—each section cached
-              individually with ISR so fresh intel is only ever a revalidate away.
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            <RubricCard
-              title="Techport Projects"
-              description="NASA’s technology portfolio, from early concepts to flight-ready initiatives."
-              href={ROUTES.techport}
-              items={techport.map((project: TechportProjectSummary) => ({
-                title: project.title ?? `Project ${project.projectId}`,
-                detail: project.formattedLastUpdated
-                  ? `Last updated ${project.formattedLastUpdated}`
-                  : undefined,
-                meta: project.projectId,
-              }))}
-            />
-            <RubricCard
-              title="Space Weather Monitor"
-              description="DONKI notifications curated for quick situational awareness."
-              href={ROUTES.spaceWeather}
-              items={donki.map((item) => ({
-                title: item.messageTitle ?? item.messageType ?? "Space weather alert",
-                detail: item.messageBody?.slice(0, 120),
-                meta: item.formattedTime,
-              }))}
-            />
-            <RubricCard
-              title="TechTransfer Patents & Software"
-              description="Flight heritage tools and innovations available for industry adoption."
-              href={ROUTES.techtransfer}
-              items={[
-                ...patents.slice(0, 2),
-                ...software.slice(0, 2),
-              ].map((item: TechTransferItem) => ({
-                title: item.title ?? "TechTransfer asset",
-                detail: item.description ?? item.application ?? undefined,
-                meta: item.center ?? item.releaseDateFormatted ?? undefined,
-              }))}
-            />
-            <RubricCard
-              title="EONET Earth Events"
-              description="Live geophysical events from NASA and international partners."
-              href={ROUTES.eonet}
-              items={eonet.map((event) => ({
-                title: event.title ?? "Earth event",
-                detail: event.categories?.map((c) => c.title).join(", "),
-                meta: event.formattedDate,
-              }))}
-            />
-          </div>
-        </section>
       </div>
     </div>
   );
 }
-

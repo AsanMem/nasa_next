@@ -38,6 +38,48 @@ export function buildNasaUrl(
   return url.toString();
 }
 
+export async function fetchJsonSafe<T>(
+  url: string,
+  revalidateSeconds = DEFAULT_REVALIDATE_SECONDS,
+  init?: RequestInit,
+): Promise<T | null> {
+  try {
+    const response = await fetch(url, {
+      ...(init ?? {}),
+      headers: {
+        Accept: "application/json",
+        ...(init?.headers ?? {}),
+      },
+      next: {
+        revalidate: revalidateSeconds,
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`JSON fetch failed (${response.status}): ${url}`);
+      return null;
+    }
+
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.toLowerCase().includes("application/json")) {
+      console.error(`Unexpected content-type "${contentType}" for ${url}`);
+      return null;
+    }
+
+    try {
+      const json =  (await response.json()) as T;
+  //    console.log(url , json,"json")
+      return json
+    } catch (parseError) {
+      console.error(`Failed to parse JSON from ${url}`, parseError);
+      return null;
+    }
+  } catch (error) {
+    console.error(`Request failed for ${url}`, error);
+    return null;
+  }
+}
+
 type FetchNasaOptions = {
   revalidate?: number;
   init?: RequestInit;
@@ -50,29 +92,7 @@ export async function fetchNasaJson<T>(
   { revalidate, init, includeApiKey = true, query }: FetchNasaOptions = {},
 ): Promise<T | null> {
   const url = buildNasaUrl(baseUrl, query, { includeApiKey });
-
-  try {
-    const response = await fetch(url, {
-      ...(init ?? {}),
-      headers: {
-        Accept: "application/json",
-        ...(init?.headers ?? {}),
-      },
-      next: {
-        revalidate: revalidate ?? DEFAULT_REVALIDATE_SECONDS,
-      },
-    });
-
-    if (!response.ok) {
-      console.error(`NASA API error (${response.status}): ${url}`);
-      return null;
-    }
-
-    return (await response.json()) as T;
-  } catch (error) {
-    console.error(`NASA API request failed for ${url}`, error);
-    return null;
-  }
+  return fetchJsonSafe<T>(url, revalidate ?? DEFAULT_REVALIDATE_SECONDS, init);
 }
 
 export function formatDubaiDateTime(
@@ -125,4 +145,3 @@ export function formatDubaiTime(
 
   return formatter.format(date);
 }
-

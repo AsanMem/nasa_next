@@ -1,3 +1,5 @@
+import { fetchJsonSafe } from "./api";
+
 const MEDIA_ENDPOINT = "https://images-api.nasa.gov/search";
 const MEDIA_REVALIDATE_SECONDS = 60 * 60 * 6; // 6 hours
 
@@ -39,28 +41,9 @@ async function fetchMedia(
 
   const url = `${MEDIA_ENDPOINT}?${searchParams.toString()}`;
 
-  try {
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-      },
-      next: {
-        revalidate: MEDIA_REVALIDATE_SECONDS,
-      },
-    });
-
-    if (!response.ok) {
-      console.error(`NASA media error (${response.status}): ${url}`);
-      return [];
-    }
-
-    const json = (await response.json()) as NasaMediaResponse;
-    const items = json.collection?.items ?? [];
-    return items.slice(0, limit);
-  } catch (error) {
-    console.error(`NASA media request failed for ${url}`, error);
-    return [];
-  }
+  const response = await fetchJsonSafe<NasaMediaResponse>(url, MEDIA_REVALIDATE_SECONDS);
+  const items = response?.collection?.items ?? [];
+  return items.slice(0, limit);
 }
 
 export async function fetchNasaImages(query = "nebula", limit = 6) {
@@ -70,4 +53,3 @@ export async function fetchNasaImages(query = "nebula", limit = 6) {
 export async function fetchNasaVideos(query = "space", limit = 6) {
   return fetchMedia(query, ["video"], limit);
 }
-

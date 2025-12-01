@@ -1,6 +1,8 @@
-import { fetchNasaJson, formatDubaiDate } from "./api";
+import { fetchJsonSafe, formatDubaiDate } from "./api";
 
-const TECHTRANSFER_BASE = "https://api.nasa.gov/techtransfer";
+const TECHTRANSFER_PATENT_ENDPOINT = "https://technology.nasa.gov/api/api/patent/rocket";
+const TECHTRANSFER_SOFTWARE_ENDPOINT =
+  "https://technology.nasa.gov/api/api/software/visualization";
 const TECHTRANSFER_REVALIDATE_SECONDS = 60 * 60 * 24; // 24 hours
 
 export type TechTransferRawItem = Array<string | null>;
@@ -53,24 +55,27 @@ function mapTechTransferItem(item: TechTransferRawItem): TechTransferItem {
   };
 }
 
-async function fetchTechTransferCollection(path: string, limit: number) {
-  const response = await fetchNasaJson<TechTransferResponse>(`${TECHTRANSFER_BASE}/${path}`, {
-    revalidate: TECHTRANSFER_REVALIDATE_SECONDS,
-    query: {
-      engine: "",
-    },
-  });
+async function fetchTechTransferCollection(endpoint: string, limit: number) {
+  const response = await fetchJsonSafe<TechTransferResponse>(
+    endpoint,
+    TECHTRANSFER_REVALIDATE_SECONDS,
+  );
 
-  const items = response?.results ?? [];
+  const items = Array.isArray(response?.results) ? response.results : [];
 
   return items.slice(0, limit).map(mapTechTransferItem);
 }
 
 export async function fetchTechTransferPatents(limit = 6) {
-  return fetchTechTransferCollection("patent/", limit);
+  if (limit <= 0) {
+    return [];
+  }
+  return fetchTechTransferCollection(TECHTRANSFER_PATENT_ENDPOINT, limit);
 }
 
 export async function fetchTechTransferSoftware(limit = 6) {
-  return fetchTechTransferCollection("software/", limit);
+  if (limit <= 0) {
+    return [];
+  }
+  return fetchTechTransferCollection(TECHTRANSFER_SOFTWARE_ENDPOINT, limit);
 }
-

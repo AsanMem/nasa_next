@@ -325,7 +325,7 @@ export default function HeroParallax(): JSX.Element {
                 className="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-6 text-center"
             >
                 <p className="text-sm uppercase tracking-[0.6em] text-blue-300/80">
-                    NASA NEXT
+                    NASA LIBRARY
                 </p>
                 <h1 className="text-4xl font-semibold tracking-[0.2em] sm:text-5xl md:text-6xl">
                     DIVE INTO THE UNIVERSE
