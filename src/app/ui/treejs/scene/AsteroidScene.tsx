@@ -1,6 +1,5 @@
 "use client"
 
-import { getDownloadURL, getStorage, ref } from 'firebase/storage';
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
@@ -26,7 +25,7 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
     useEffect(() => {
 
         if (typeof window !== "undefined") {
-            const { Noise } = require("noisejs"); //  require для клиентского импорта
+            const { Noise } = require("noisejs");
             noiseInstance = noiseRef.current = new Noise(Math.random());
         }
     }, []);
@@ -59,8 +58,6 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
             // Загрузка текстуры
             const loadAndSetupScene = async () => {
                 try {
-                    // const texture = new THREE.TextureLoader().load(urlTexture);
-
                     const loadAsteroidTexture = async () => {
                         try {
                             console.log("Loading texture from:", urlTexture);
@@ -76,7 +73,7 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
                                     (err) => {
                                         console.error('Texture loading error:', err);
 
-                                        // Fallback: пробуем через прокси если прямая загрузка не работает
+                                        // Fallback:через прокси если прямая загрузка не работает
                                         console.log("Trying proxy fallback...");
                                         const proxyUrl = `/api/texture?url=${encodeURIComponent(urlTexture)}`;
 
@@ -135,30 +132,86 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
 
                     // Создание геометрии астероида с использованием шума
                     const geometry = new THREE.IcosahedronGeometry(diameterSphere, 48);
-
-                    console.log(geometry, "geometry")
-
-
                     const vertices = geometry.attributes.position.array as Float32Array;
-                    for (let i = 0; i < vertices.length; i += 3) {
-                        const x = vertices[i];
-                        const y = vertices[i + 1];
-                        const z = vertices[i + 2];
 
-                        // Применение шума для создания рельефа
-                        const scale = 0.1; // Масштаб шума
-                        const amplitude = 2 // diameterSphere / 4 * 1.7
+                    if (noiseInstance) {
+                        // Порог, после которого астероид "крупным"
+                        const LARGE_THRESHOLD = 4;
 
-                        // Применяем noise для изменения свойств сцены
-                        if (noiseInstance) {
-                            const noiseValue = noiseInstance.simplex3(x * scale, y * scale, z * scale) * amplitude;
+                        if (diameterSphere >= LARGE_THRESHOLD) {
+                            // --- КРУПНЫЕ АСТЕРОИДЫ: 
+                            const scale = 0.1;        // Масштаб шума
+                            const amplitude = 2;      // Сила рельефа
 
-                            vertices[i] += noiseValue;
-                            vertices[i + 1] += noiseValue;
-                            vertices[i + 2] += noiseValue;
+                            for (let i = 0; i < vertices.length; i += 3) {
+                                const x = vertices[i];
+                                const y = vertices[i + 1];
+                                const z = vertices[i + 2];
+
+                                const noiseValue =
+                                    noiseInstance.simplex3(x * scale, y * scale, z * scale) * amplitude;
+
+                                vertices[i] += noiseValue;
+                                vertices[i + 1] += noiseValue;
+                                vertices[i + 2] += noiseValue;
+                            }
+                        } else {
+
+                            // чуть разная "шероховатость" для каждого астероида
+                            const roughness = 0.5 + Math.random() * 0.5; // 0.5–1
+
+                            // небольшое неравномерное растяжение по осям, чтобы силуэт был не шар
+                            const stretchX = 1 + (Math.random() - 0.5) * 0.5; // 0.75–1.25
+                            const stretchY = 1 + (Math.random() - 0.5) * 0.5;
+                            const stretchZ = 1 + (Math.random() - 0.5) * 0.5;
+
+                            for (let i = 0; i < vertices.length; i += 3) {
+                                const x = vertices[i];
+                                const y = vertices[i + 1];
+                                const z = vertices[i + 2];
+
+                                const len = Math.sqrt(x * x + y * y + z * z) || 1;
+                                const nx = x / len;
+                                const ny = y / len;
+                                const nz = z / len;
+
+                                // крупный шум — основные "сколы"
+                                const scale1 = 0.25;
+                                const amplitude1 = diameterSphere * 0.18 * roughness;
+                                const n1 = noiseInstance.simplex3(
+                                    x * scale1,
+                                    y * scale1,
+                                    z * scale1
+                                );
+
+                                // мелкий шум — небольшие неровности
+                                const scale2 = 0.9;
+                                const amplitude2 = diameterSphere * 0.05 * roughness;
+                                const n2 = noiseInstance.simplex3(
+                                    x * scale2,
+                                    y * scale2,
+                                    z * scale2
+                                );
+
+                                const displacement = n1 * amplitude1 + n2 * amplitude2;
+
+                                const baseRadius = len;
+                                const newRadius = baseRadius + displacement;
+
+                                //  неравномерный scale → форма уже не идеальный шар
+                                const finalX = nx * newRadius * stretchX;
+                                const finalY = ny * newRadius * stretchY;
+                                const finalZ = nz * newRadius * stretchZ;
+
+                                vertices[i] = finalX;
+                                vertices[i + 1] = finalY;
+                                vertices[i + 2] = finalZ;
+                            }
                         }
                     }
-                    geometry.computeVertexNormals(); // Пересчет нормалей для корректного освещения
+
+                    geometry.attributes.position.needsUpdate = true;
+                    geometry.computeVertexNormals();// Пересчет нормалей 
 
                     const asteroidMesh = new THREE.Mesh(geometry, material);
                     scene.add(asteroidMesh);
@@ -199,13 +252,18 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
 
             // Обработка изменения размера окна
             const handleResize = () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
+                if (!mountRef.current) return;
+
+                const newWidth = mountRef.current.clientWidth;
+                const newHeight = mountRef.current.clientHeight;
+
+                camera.aspect = newWidth / newHeight;
                 camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setSize(newWidth, newHeight);
             };
             window.addEventListener('resize', handleResize);
 
-            // Очистка
+
             return () => {
                 mountRef.current?.removeChild(renderer.domElement);
                 window.removeEventListener('resize', handleResize);
@@ -213,7 +271,7 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
         }
     }, [asteroid, diameterSphere, speedSphere, asteroidIndex]);
 
-    return <div ref={mountRef} style={{ width: '100%', height: '80vh' }} />;
+    return <div ref={mountRef} className="w-full h-full" />;
 };
 
 export default AsteroidScene;

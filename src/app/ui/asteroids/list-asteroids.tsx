@@ -1,144 +1,127 @@
-import React from 'react'
-import Pagination from '../shared/pagination'
-import Link from 'next/link'
-import { getAsteroidData } from '@/app/lib/utils/getAsteroidsSpeedDiametr'
-import { calculateSize } from '@/app/lib/utils/calculateSize'
-import { calculateSpeed } from '@/app/lib/utils/calculateSpeed'
-import ThreeScene from '../treejs/scene/ThreeScene'
-
-
-import { getStorage, ref, listAll, getDownloadURL } from "firebase/storage";
-import { getTextureUrls } from '@/app/lib/utils/getTextureUrls'
-
-
-
+import React from "react";
+import Link from "next/link";
+import { getAsteroidData } from "@/app/lib/utils/getAsteroidsSpeedDiametr";
+import { calculateSize } from "@/app/lib/utils/calculateSize";
+import { calculateSpeed } from "@/app/lib/utils/calculateSpeed";
+import { getTextureUrls } from "@/app/lib/utils/getTextureUrls";
 
 export default async function ListAsteroids({ asteroidsObjects }: any) {
     const asteroidData = getAsteroidData(asteroidsObjects);
     const asteroidSizes = asteroidData.map((obj: any) => obj.averageDiameter);
-    const asteroidSpeeds = asteroidData.map((obj: any) => Number(obj.velocityKmph));
+    const asteroidSpeeds = asteroidData.map((obj: any) =>
+        Number(obj.velocityKmph),
+    );
 
     const textures = await getTextureUrls();
     const numberOfImages = textures.length;
 
+    if (!asteroidsObjects || asteroidsObjects.length === 0) {
+        return null;
+    }
 
     return (
-        <div>
-            {asteroidsObjects && asteroidsObjects.length > 0 ?
-                <div className={"mt-35 flex flex-wrap content-around justify-evenly items-stretch"}>
+        <div className="mt-6">
+            <div className="rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur-lg">
 
-
-                    <div className="flex flex-col w-[calc(80vw)]">
-                        <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
-                            <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
-                                <div className="overflow-hidden">
-                                    <table
-                                        className="min-w-full text-center text-sm font-light text-surface dark:text-white">
-                                        <thead
-                                            className="border-b border-b-neutral-700  font-bold  text-blue-600 dark:border-white/10 text-xs sm:text-xs md:text-xl lg:text-2xl xl:text-3xl">
-                                            <tr>
-                                                <th scope="col" className="px-6 py-2">#</th>
-                                                <th scope="col" className="px-6 py-2">Name</th>
-                                                <th scope="col" className="px-6 py-3">
-                                                    <span className="relative">
-                                                        Speed  <div className=" text-sm   absolute -right-10 -top-3">KM / sec</div>
-                                                    </span>
-                                                </th>
-                                                <th scope="col" className="px-6 py-3">
-                                                    <span className="relative">
-                                                        Diameter  <div className="text-sm absolute -right-10 -top-3">Meters</div>
-                                                    </span>
-                                                </th>
-                                            </tr>
-                                        </thead>
-
-
-                                        {asteroidsObjects.map((asteroid: any, i: number) => {
-                                            const name = asteroid.name
-                                            const relative_velocity = asteroid.close_approach_data[0].relative_velocity
-                                            const estimated_diameterMin = asteroid.estimated_diameter.meters.estimated_diameter_min
-                                            const estimated_diameterMax = asteroid.estimated_diameter.meters.estimated_diameter_max
-                                            const currentSpeed = Math.round(relative_velocity.kilometers_per_second)
-                                            const averageDiameter = (Math.round(estimated_diameterMin) + Math.round(estimated_diameterMax)) / 2
-
-                                            const scaleAsteroidSize = calculateSize(asteroidSizes, averageDiameter)
-                                            const scaleAsteroidSpeed = calculateSpeed(asteroidSpeeds, currentSpeed)
-
-
-                                            const asteroidIndex = i + 1;
-                                            const textureIndex = asteroidIndex % numberOfImages;
-                                            console.log({ textureIndex, name, asteroidIndex })
-
-
-
-                                            return (
-                                                <tbody key={asteroidIndex + name}>
-                                                    <tr className="border-b border-b-neutral-700 dark:border-white text-base text-slate-200">
-
-
-
-
-                                                        <td className="whitespace-nowrap px-6 py-2 font-medium">
-                                                            <span className="inline-flex items-center justify-center w-10 h-10 ms-2 text-xs sm:text-xs md:text-sm lg:text-base xl:text-base font-semibold text-blue-800 bg-blue-200 rounded-full shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80">
-                                                                {asteroidIndex}
-                                                            </span>
-
-
-
-                                                        </td>
-
-                                                        <td className="whitespace-nowrap px-6 py-2">
-                                                            <span className=" items-center justify-center h-10 w-full py-2 px-4  ms-2 text-xs sm:text-xs md:text-sm lg:text-base xl:text-base font-semibold text-blue-800 bg-blue-200 rounded-full shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80">
-                                                                {name}
-                                                            </span>
-
-                                                        </td>
-                                                        <td className="whitespace-nowrap px-6 py-2">
-                                                            <span className="inline-flex items-center justify-center w-10 h-10 ms-2 text-xs sm:text-xs md:text-sm lg:text-base xl:text-base font-semibold text-blue-800 bg-blue-200 rounded-full shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80">
-                                                                {currentSpeed}
-                                                            </span>
-
-                                                        </td>
-                                                        <td className="whitespace-nowrap px-6 py-2">
-                                                            <span className="inline-flex items-center justify-center w-14 h-10 ms-2 text-xs sm:text-xs md:text-sm lg:text-base xl:text-base font-semibold text-blue-800 bg-blue-200 rounded-full
-                                                            shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80
-                                                            ">
-                                                                {averageDiameter}
-                                                            </span>
-                                                        </td>
-                                                        <td className="whitespace-nowrap px-6 py-2">
-                                                            <div className="mb-2 md:mb-0">
-                                                                <Link
-                                                                    key={"asteroid_id"}
-
-                                                                    href={`/asteroids/${asteroid.id}/${scaleAsteroidSize}-${scaleAsteroidSpeed}-${textureIndex}`}
-                                                                    aria-current="page"
-                                                                    className="inline-block"
-                                                                >
-                                                                    <button type="button" className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 ">
-                                                                        OPEN
-                                                                    </button>
-
-                                                                </Link>
-                                                            </div>
-
-                                                        </td>
-                                                    </tr>
-                                                </tbody>)
-                                        })}
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* <div className="mt-5 flex w-full justify-center">
-                        <Pagination totalPages={4} />
-                    </div> */}
+                <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-xs uppercase tracking-[0.25em] text-white/50">
+                    <span>Today&apos;s near-Earth objects</span>
+                    <span className="text-white/60">
+                        {asteroidsObjects.length} items
+                    </span>
                 </div>
 
-                : null
-            }
+                <ul className="divide-y divide-white/10">
+                    {asteroidsObjects.map((asteroid: any, i: number) => {
+                        const name = asteroid.name;
+                        const relative_velocity = asteroid.close_approach_data[0]
+                            ?.relative_velocity;
+                        const estimated_diameterMin =
+                            asteroid.estimated_diameter.meters.estimated_diameter_min;
+                        const estimated_diameterMax =
+                            asteroid.estimated_diameter.meters.estimated_diameter_max;
+
+                        const currentSpeed = Math.round(
+                            relative_velocity.kilometers_per_second,
+                        );
+                        const averageDiameter =
+                            (Math.round(estimated_diameterMin) +
+                                Math.round(estimated_diameterMax)) /
+                            2;
+
+                        const scaleAsteroidSize = calculateSize(
+                            asteroidSizes,
+                            averageDiameter,
+                        );
+                        const scaleAsteroidSpeed = calculateSpeed(
+                            asteroidSpeeds,
+                            currentSpeed,
+                        );
+
+                        const asteroidIndex = i + 1;
+                        const textureIndex = asteroidIndex % numberOfImages;
+                        const isHazardous = asteroid.is_potentially_hazardous_asteroid;
+
+                        console.log({ textureIndex, name, asteroidIndex });
+
+                        const displaySpeed = `${currentSpeed} km/s`;
+                        const displayDiameter = `${Math.round(averageDiameter)} m`;
+
+                        return (
+                            <li
+                                key={asteroidIndex + name}
+                                className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                            >
+
+                                <div className="flex flex-1 items-start gap-3">
+                                    <div className="mt-1 flex h-9 w-9 items-center justify-center rounded-full bg-blue-500/20 text-xs font-semibold text-blue-200 ring-1 ring-blue-400/40">
+                                        {asteroidIndex}
+                                    </div>
+
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="rounded-full bg-white/10 px-3 py-1 text-xs sm:text-sm font-semibold text-white shadow-[0_0_20px_rgba(15,23,42,0.7)]">
+                                                {name}
+                                            </span>
+                                            {isHazardous && (
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-red-200">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                                                    Hazardous
+                                                </span>
+                                            )}
+                                        </div>
+
+
+                                        <p className="text-xs sm:text-sm text-white/70">
+                                            <span className="text-white/60">Speed:</span>{" "}
+                                            <span className="text-white">{displaySpeed}</span>
+                                            <span className="mx-2 text-white/30">•</span>
+                                            <span className="text-white/60">Diameter:</span>{" "}
+                                            <span className="text-white">{displayDiameter}</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+
+                                <div className="flex justify-end sm:justify-center">
+                                    <Link
+                                        key={"asteroid_id"}
+                                        href={`/asteroids/${asteroid.id}/${scaleAsteroidSize}-${scaleAsteroidSpeed}-${textureIndex}`}
+                                        aria-current="page"
+                                        className="inline-block"
+                                    >
+                                        <button
+                                            type="button"
+                                            className="mt-1 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 px-5 py-2 text-xs sm:text-sm font-medium text-white shadow-lg shadow-blue-500/50 transition hover:shadow-blue-400/80 focus:outline-none focus:ring-2 focus:ring-blue-300/70"
+                                        >
+                                            Open 3D view
+                                        </button>
+                                    </Link>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+            </div>
         </div>
-    )
+    );
 }

@@ -1,110 +1,247 @@
-'use server'
-import React from 'react';
-import ThreeScene from '@/app/ui/treejs/scene/AsteroidScene';
-import BackgroundImage from '@/app/ui/shared/background-image';
-import Timeline from '@/app/ui/asteroids/timeline';
-import { getAsteroid } from '@/app/lib/data/asteroids/getAsteroid';
-import { getTextureUrls } from '@/app/lib/utils/getTextureUrls';
-import Header from '@/app/ui/header/Header';
 
+"use server";
 
+import React from "react";
+import ThreeScene from "@/app/ui/treejs/scene/AsteroidScene";
+import BackgroundImage from "@/app/ui/shared/background-image";
+import Timeline from "@/app/ui/asteroids/timeline";
+import { getAsteroid } from "@/app/lib/data/asteroids/getAsteroid";
+import { getTextureUrls } from "@/app/lib/utils/getTextureUrls";
+import Header from "@/app/ui/header/Header";
+import Link from "next/link";
+import { ROUTES } from "@/app/lib/constants/routes";
 
-export default async function Page({ params }: { params: { id: string; scaleAsteroidSize: string } }) {
+export default async function Page({
+  params,
+}: {
+  params: { id: string; scaleAsteroidSize: string };
+}) {
   const { id, scaleAsteroidSize } = params;
 
   const asteroid = await getAsteroid(id);
 
+  const [sizeStr, speedStr, textureIndexStr] = scaleAsteroidSize.split("-");
+  const diameterSphere = parseFloat(sizeStr);
+  const speedSphere = parseFloat(speedStr);
+  const textureIndex = parseInt(textureIndexStr, 10);
 
-  const diameterSphere = parseFloat(scaleAsteroidSize.split("-")[0]);
-  const speedSphere = parseFloat(scaleAsteroidSize.split("-")[1]);
-  const textureIndex = parseInt(scaleAsteroidSize.split("-")[2]);
 
+  const name = asteroid?.name ?? "Not named";
+  const isHazardous = asteroid?.is_potentially_hazardous_asteroid ?? false;
+  const relativeVelocity =
+    asteroid?.close_approach_data?.[0]?.relative_velocity;
+  const missDistance =
+    asteroid?.close_approach_data?.[0]?.miss_distance?.kilometers;
 
-  // Название астероида
-  const name = asteroid?.name ?? 'Not named';
-  const isDanger = asteroid?.is_potentially_hazardous_asteroid
-  const relative_velocity = asteroid?.close_approach_data?.[0]?.relative_velocity
+  const estimated_diameterMin =
+    asteroid?.estimated_diameter?.meters?.estimated_diameter_min;
+  const estimated_diameterMax =
+    asteroid?.estimated_diameter?.meters?.estimated_diameter_max;
+  const averageDiameter =
+    estimated_diameterMin && estimated_diameterMax
+      ? (estimated_diameterMin + estimated_diameterMax) / 2
+      : undefined;
 
-  // Оценочный диаметр астероида в метрах
-  const estimated_diameterMin = asteroid?.estimated_diameter?.meters?.estimated_diameter_min;
-  const estimated_diameterMax = asteroid?.estimated_diameter?.meters?.estimated_diameter_max;
-
-  // Десигнация астероида
   const designation = asteroid?.designation;
-  // // URL на сайт JPL для дополнительной информации
   const nasa_jpl_url = asteroid?.nasa_jpl_url;
-  // // Абсолютная величина яркости астероида
   const absolute_magnitude_h = asteroid?.absolute_magnitude_h;
-  // Является ли астероид потенциально опасным
-  const is_potentially_hazardous_asteroid = asteroid?.is_potentially_hazardous_asteroid;
-  // Данные о ближайших подходах
-  const closeApproachData = asteroid?.close_approach_data;
-  // Орбитальные данные
   const orbital_data = asteroid?.orbital_data;
-  // Пример: эксцентриситет орбиты
   const eccentricity = orbital_data?.eccentricity;
-  // Пример: полуось орбиты
   const semi_major_axis = orbital_data?.semi_major_axis;
-  // Пример: наклонение орбиты
   const inclination = orbital_data?.inclination;
-  // Пример: орбитальный период
   const orbital_period = orbital_data?.orbital_period;
-  // Является ли объект частью системы мониторинга Sentry
   const is_sentry_object = asteroid?.is_sentry_object;
+  const closeApproachData = asteroid?.close_approach_data ?? [];
 
   const textures = await getTextureUrls();
   const textureUrl = textures[textureIndex];
 
-
-  const averageDiameter = (estimated_diameterMin + estimated_diameterMax) / 2;
   return (
     <>
       <Header />
+      <BackgroundImage
+        src="https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2F5.jpg?alt=media&token=41e8c6f8-4527-4215-adf0-0258a76924a6"
+        className="fixed left-0 top-0 z-0 h-full w-full blur-[1px]"
+      />
 
-      <div className="relative w-full h-[calc(h-screen - 15vh)]">
-        <BackgroundImage src={"https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2F5.jpg?alt=media&token=41e8c6f8-4527-4215-adf0-0258a76924a6"} className="fixed w-full h-full left-0 top-0 z-0 blur-0" />
-        {/* Контейнер для сцены */}
-        <div className="absolute inset-0 z-10">
-          <ThreeScene
-            asteroidIndex={textureIndex}
-            asteroid={params.id}
-            diameterSphere={diameterSphere}
-            speedSphere={speedSphere}
-            urlTexture={textureUrl}
-          />
-        </div>
+      <main className="relative min-h-screen overflow-hidden text-white">
 
-        {/* Контейнер для описания */}
-        <div className="absolute top-0 left-0 w-full md:w-1/3 h-[calc(80vh-2rem)] text-slate-100 bg-opacity-70 z-20 p-4">
-          <h1 className="text-xl sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl font-bold mb-4">
-            Asteroid : {name}
-          </h1>
-          <div
-            id="content"
-            className="message-body max-h-[35vh] min-h-[35vh] overflow-x-auto overflow-y-auto"
-          >
-            <h2 className="text-xs sm:text-xs md:text-xl lg:text-1xl xl:text-2xl">
-              Average Diameter : {Math.round(averageDiameter)} meters
-            </h2>
-            {relative_velocity?.kilometers_per_second &&
-              <h2 className="text-xs sm:text-xs md:text-xl lg:text-1xl xl:text-2xl">
-                {Math.round(relative_velocity?.kilometers_per_second)} <strong>KM / sec</strong>
-              </h2>}
-          </div>
-          {closeApproachData && closeApproachData.length > 0 &&
-            <div>
-              <p className='sm:text-xs md:text-xs lg:text-xl xl:text-1xl mb-4'>Timeline across our solar system</p>
-              <div className="h-[calc(100%-48rem)] overflow-y-auto text-sm " style={{
-                scrollbarWidth: "none",  // Firefox
-                msOverflowStyle: "none"  // Edge
-              }}>
-                <section className="my-4">
-                  <Timeline closeApproachData={closeApproachData} />
-                </section>
-              </div>
+        <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-black/70 via-black/80 to-slate-950/95" />
+
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+
+          <section className="order-1 lg:order-none">
+            <div className="mb-4 flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/50">
+              <span>Hazardous NEO</span>
+              {designation && (
+                <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] tracking-[0.25em] text-white/70">
+                  {designation}
+                </span>
+              )}
             </div>
-          }
+
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
+              {name}
+            </h1>
+
+            <p className="mt-3 max-w-2xl text-sm text-white/70 sm:text-base">
+              A 3D view of this near-Earth object based on NASA’s orbital data.
+              Rotate and explore its surface, then scroll through its close
+              approaches in the timeline.
+
+            </p>
+            <Link
+              href={ROUTES.neos}
+              className="mt-4 inline-flex items-center justify-center self-start rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
+            >
+              Back to Asteroids
+            </Link>
+            <div
+              className="
+    mt-6
+    h-[55vh] sm:h-[60vh] lg:h-[70vh]
+    rounded-3xl ring-1 ring-white/10
+    overflow-hidden
+    bg-black/10      
+  "
+            >
+
+              <ThreeScene
+                asteroidIndex={textureIndex}
+                asteroid={params.id}
+                diameterSphere={diameterSphere}
+                speedSphere={speedSphere}
+                urlTexture={textureUrl}
+              />
+            </div>
+
+          </section>
+
+
+          <aside className="order-2 flex flex-col gap-4 lg:order-none">
+            <div className="rounded-3xl bg-black/50 p-5 ring-1 ring-white/10 backdrop-blur-lg">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white/70">
+                  Asteroid profile
+                </span>
+                <span
+                  className={
+                    isHazardous
+                      ? "inline-flex items-center gap-1 rounded-full bg-red-500/15 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-red-200"
+                      : "inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-emerald-200"
+                  }
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                  {isHazardous ? "Potentially hazardous" : "Not hazardous"}
+                </span>
+                {is_sentry_object && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-amber-200">
+                    Sentry monitored
+                  </span>
+                )}
+              </div>
+
+              <div className="mb-4 flex flex-wrap gap-2">
+                {averageDiameter && (
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">
+                    Avg. diameter:{" "}
+                    <span className="font-semibold text-white">
+                      {Math.round(averageDiameter).toLocaleString("en-US")} m
+                    </span>
+                  </span>
+                )}
+                {relativeVelocity?.kilometers_per_second && (
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">
+                    Speed:{" "}
+                    <span className="font-semibold text-white">
+                      {Math.round(
+                        Number(relativeVelocity.kilometers_per_second),
+                      ).toLocaleString("en-US")}{" "}
+                      km/s
+                    </span>
+                  </span>
+                )}
+                {missDistance && (
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">
+                    Closest miss:{" "}
+                    <span className="font-semibold text-white">
+                      {Number(missDistance).toFixed(0)} km
+                    </span>
+                  </span>
+                )}
+              </div>
+
+
+              <dl className="space-y-2 text-sm text-white/70">
+                {absolute_magnitude_h && (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-white/50">Absolute magnitude (H)</dt>
+                    <dd className="text-white">
+                      {Number(absolute_magnitude_h).toFixed(2)}
+                    </dd>
+                  </div>
+                )}
+                {eccentricity && (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-white/50">Eccentricity</dt>
+                    <dd className="text-white">
+                      {Number(eccentricity).toFixed(4)}
+                    </dd>
+                  </div>
+                )}
+                {semi_major_axis && (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-white/50">Semi-major axis (AU)</dt>
+                    <dd className="text-white">
+                      {Number(semi_major_axis).toFixed(3)}
+                    </dd>
+                  </div>
+                )}
+                {inclination && (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-white/50">Inclination (°)</dt>
+                    <dd className="text-white">
+                      {Number(inclination).toFixed(2)}
+                    </dd>
+                  </div>
+                )}
+                {orbital_period && (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-white/50">Orbital period (days)</dt>
+                    <dd className="text-white">
+                      {Number(orbital_period).toFixed(1)}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+
+              {nasa_jpl_url && (
+                <div className="mt-4">
+                  <a
+                    href={nasa_jpl_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-white/60 hover:text-white"
+                  >
+                    Open full NASA JPL orbit data
+                    <span aria-hidden="true">↗</span>
+                  </a>
+                </div>
+              )}
+            </div>
+
+
+            {closeApproachData.length > 0 && (
+              <div className="rounded-3xl bg-black/50 p-5 ring-1 ring-white/10 backdrop-blur-lg">
+                <p className="mb-3 text-xs uppercase tracking-[0.3em] text-white/50">
+                  Timeline across our solar system
+                </p>
+                <Timeline closeApproachData={closeApproachData} />
+              </div>
+            )}
+          </aside>
         </div>
-      </div></>
+      </main>
+    </>
   );
 }
