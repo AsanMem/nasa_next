@@ -19,13 +19,15 @@ export type EpicImage = {
   imageUrl?: string;
 };
 
-export function getEpicImageUrl(image: string, date: string) {
-  const dateObj = new Date(date);
-  const year = dateObj.getUTCFullYear();
-  const month = String(dateObj.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(dateObj.getUTCDate()).padStart(2, "0");
-  const path = `${EPIC_ARCHIVE_BASE}/${year}/${month}/${day}/jpg/${image}.jpg`;
-  return buildNasaUrl(path);
+function buildEpicImageUrl(image: string, date: string) {
+  // date: "2025-07-15 03:48:07"
+  const d = new Date(date.replace(" ", "T") + "Z"); // безопасно в UTC
+
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+
+  return `https://epic.gsfc.nasa.gov/archive/natural/${year}/${month}/${day}/jpg/${image}.jpg`;
 }
 
 export async function fetchEpicImages(limit = 4): Promise<EpicImage[]> {
@@ -39,7 +41,7 @@ export async function fetchEpicImages(limit = 4): Promise<EpicImage[]> {
 
   return response.slice(0, limit).map((item) => ({
     ...item,
-    imageUrl: item.image && item.date ? getEpicImageUrl(item.image, item.date) : undefined,
+    imageUrl: item.image && item.date ? buildEpicImageUrl(item.image, item.date) : undefined,
   }));
 }
 

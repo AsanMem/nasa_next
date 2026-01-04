@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { usePrefersReducedMotion } from "@/app/hooks/usePrefersReducedMotion";
@@ -12,13 +12,13 @@ gsap.registerPlugin(ScrollTrigger);
 const VIDEO_URL =
     "https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fvideos%2FISS071-E-226528-227449-20240625-Night.mp4?alt=media&token=b1936d11-9e58-471b-b4a7-df92c16653f9";
 const SAFE_VIDEO_URL = VIDEO_URL.replace(/\\\?/g, "?");
-console.log('[VIDEO_URL]', SAFE_VIDEO_URL);
+
 type Layer = {
     id: string;
-    z: number;            // глубина (чем больше, тем ближе)
+    z: number;
     opacity?: number;
-    yScroll?: number;     // амплитуда вертикального сдвига от скролла (px)
-    tilt?: number;        // чувствительность к курсору/наклону
+    yScroll?: number;
+    tilt?: number;
     maskBottomVH?: number;
     saturate?: number;
     brightness?: number;
@@ -31,7 +31,6 @@ const VIDEO_LAYER: Layer = {
     opacity: 1,
     yScroll: 60,
     tilt: 1.8,
-    // maskBottomVH: 0,
 };
 
 function mapRange(
@@ -51,8 +50,9 @@ export default function HeroParallax(): JSX.Element {
     const contentRef = useRef<HTMLDivElement | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const prefersReduced = usePrefersReducedMotion();
+    const [ready, setReady] = useState(false);
 
-    // массив слоёв  для совместимости с логикой
+
     const layers = useMemo(() => [VIDEO_LAYER], []);
 
     useLayoutEffect(() => {
@@ -63,7 +63,6 @@ export default function HeroParallax(): JSX.Element {
         scene.style.transformStyle = "preserve-3d";
 
         const ctx = gsap.context(() => {
-            // Режим «меньше анимации»: без скролл-сдвигов/наклонов
             if (prefersReduced) {
                 layerRefs.current.forEach((node, i) => {
                     const l = layers[i];
@@ -77,7 +76,7 @@ export default function HeroParallax(): JSX.Element {
                 return;
             }
 
-            // Плавная проявка + лёгкий подъезд к своей Z-позиции
+
             layerRefs.current.forEach((node, i) => {
                 const l = layers[i];
                 if (!node || !l) return;
@@ -86,7 +85,8 @@ export default function HeroParallax(): JSX.Element {
                 const safeScale = 1 + Math.max(0, (l.z + 300) / 1200);
 
                 gsap.set(node, {
-                    opacity: 0,
+
+                    opacity: l.id === "video" ? (l.opacity ?? 1) : 0,
                     y: initialY,
                     transform: `translateZ(${l.z}px) scale(${safeScale})`,
                     filter: [
@@ -98,15 +98,24 @@ export default function HeroParallax(): JSX.Element {
                         .join(" "),
                 });
 
-                gsap.to(node, {
-                    opacity: l.opacity ?? 1,
-                    y: 0,
-                    duration: 1.1,
-                    ease: "power2.out",
-                    delay: i * 0.06,
-                });
+                if (l.id !== "video") {
+                    gsap.to(node, {
+                        opacity: l.opacity ?? 1,
+                        y: 0,
+                        duration: 1.1,
+                        ease: "power2.out",
+                        delay: i * 0.06,
+                    });
+                } else {
 
-                // Скролл-сдвиг фона
+                    gsap.to(node, {
+                        y: 0,
+                        duration: 1.1,
+                        ease: "power2.out",
+                        delay: i * 0.06,
+                    });
+                }
+
                 if (l.yScroll) {
                     gsap.to(node, {
                         y: l.yScroll,
@@ -121,7 +130,6 @@ export default function HeroParallax(): JSX.Element {
                 }
             });
 
-            // Лёгкий параллакс текста
             if (contentRef.current && !prefersReduced) {
                 gsap.fromTo(
                     contentRef.current,
@@ -139,7 +147,7 @@ export default function HeroParallax(): JSX.Element {
                 );
             }
 
-            // Экономия ресурсов: play/pause видео по видимости секции
+
             if (videoRef.current) {
                 ScrollTrigger.create({
                     trigger: root,
@@ -162,7 +170,6 @@ export default function HeroParallax(): JSX.Element {
         };
     }, [layers, prefersReduced]);
 
-    // Наклон/параллакс от курсора
     useEffect(() => {
         if (prefersReduced) return;
 
@@ -226,7 +233,6 @@ export default function HeroParallax(): JSX.Element {
         };
     }, [layers, prefersReduced]);
 
-
     useEffect(() => {
         const onVis = () => {
             const v = videoRef.current;
@@ -238,12 +244,29 @@ export default function HeroParallax(): JSX.Element {
         return () => document.removeEventListener("visibilitychange", onVis);
     }, []);
 
+    const maskBottom = layers[0].maskBottomVH ?? 18; // дефолт
+    const mask = `linear-gradient(
+    to bottom,
+    rgba(0,0,0,1) 22%,
+    rgba(0,0,0,1) ${100 - maskBottom}%,
+    rgba(0,0,0,0) 100%
+  )`;
 
-    const mask =
-        // (  layers[0].maskBottomVH ?? 0) > 0
-        true ? `linear-gradient(to bottom, rgba(0,0,0,1) 22%, rgba(0,0,0,1) ${100 - (layers[0].maskBottomVH as number)
-            }%, rgba(0,0,0,0) 100%)`
-            : undefined;
+
+    useEffect(() => {
+        const v = videoRef.current;
+        if (!v) return;
+
+        const onLoaded = () => {
+            try {
+                v.currentTime = 0.25;
+                void v.play();
+            } catch { }
+        };
+
+        v.addEventListener("loadeddata", onLoaded);
+        return () => v.removeEventListener("loadeddata", onLoaded);
+    }, []);
 
     return (
         <section
@@ -255,13 +278,11 @@ export default function HeroParallax(): JSX.Element {
 
             <div
                 ref={sceneRef}
-                //  className="pointer-events-none absolute inset-0 -z-10 rounded-3xl border border-white/10"
                 className="pointer-events-none absolute inset-0 z-0"
                 style={{
                     transformStyle: "preserve-3d",
                     overflow: "hidden",
-                    // background:"radial-gradient(circle at 50% -10%, rgba(59,130,246,0.35), transparent 60%)",
-                    background: "transparent"
+                    background: "transparent",
                 }}
                 aria-hidden
             >
@@ -271,55 +292,64 @@ export default function HeroParallax(): JSX.Element {
                     style={{
                         transform: `translateZ(${layers[0].z}px)`,
                         willChange: "transform, opacity, filter",
-                        WebkitMaskImage: mask,
-                        maskImage: mask,
-                        opacity: 0,
+                        WebkitMaskImage: ready ? mask : "none",
+                        maskImage: ready ? mask : "none",
+
                     }}
                 >
                     <video
                         ref={videoRef}
                         className="h-full w-full object-cover"
-                        src={VIDEO_URL}
-                        //  для iOS:
+                        src={SAFE_VIDEO_URL}
+                        poster="/media/posters/iss71-night.jpg"
                         playsInline
                         muted
                         loop
-                        autoPlay
-                        preload="metadata"
+                        preload="auto"
                         controls={false}
                         disablePictureInPicture
-                        onCanPlay={() => {
+                        onLoadedData={() => {
+                            setReady(true);
                             try {
+                                if (videoRef.current) videoRef.current.currentTime = 0.25;
                                 void videoRef.current?.play();
                             } catch { }
                         }}
-                    />
-                    <div
-                        className="pointer-events-none absolute inset-0"
-                        style={{ boxShadow: "0 0 120px 80px rgba(0,0,0,0.85) inset" }}
+                        onError={() => setReady(true)}
                     />
 
-                    {/* Доп. плавность: радиальный оверлей (опционально) */}
+                    <div
+                        className="pointer-events-none absolute inset-0"
+                        style={{
+                            boxShadow: "0 0 120px 80px rgba(0,0,0,0.85) inset",
+                            opacity: ready ? 1 : 0,
+                            transition: "opacity 600ms ease",
+                        }}
+                    />
+
                     <div
                         className="pointer-events-none absolute inset-0"
                         style={{
                             background:
                                 "radial-gradient(80% 65% at 50% 40%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.6) 100%)",
+                            opacity: ready ? 1 : 0,
+                            transition: "opacity 600ms ease",
                         }}
                     />
                 </div>
 
-                {/* Цветовая виньетка для связности палитры (без картинок) */}
                 <div
                     className="pointer-events-none absolute inset-0"
                     style={{
                         background:
                             "linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0) 35%, rgba(0,0,0,0.65))",
+                        opacity: ready ? 1 : 0,
+                        transition: "opacity 600ms ease",
                     }}
                 />
             </div>
 
-            {/* КОНТЕНТ ПОВЕРХ */}
+
             <div
                 ref={contentRef}
                 className="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-6 text-center"

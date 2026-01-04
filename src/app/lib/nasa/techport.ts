@@ -47,44 +47,71 @@ export type TechportProject = TechportProjectDetail & {
   startDateFormatted?: string;
   endDateFormatted?: string;
 };
+export async function fetchTechportProjects(
+  limit = 12,
+): Promise<TechportProjectSummary[]> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6000);
 
-export async function fetchTechportProjects(limit = 12): Promise<TechportProjectSummary[]> {
-  const response = await fetchNasaJson<TechportListResponse>(TECHPORT_LIST_ENDPOINT, {
-    revalidate: TECHPORT_REVALIDATE_SECONDS,
-  });
+  try {
+    const response = await fetchNasaJson<TechportListResponse>(
+      TECHPORT_LIST_ENDPOINT,
+      {
+        revalidate: TECHPORT_REVALIDATE_SECONDS,
+        signal: controller.signal, 
+      },
+    );
 
-  const projects = response?.projects?.projects ?? [];
+    const projects = response?.projects?.projects ?? [];
 
-  return projects.slice(0, limit).map((project) => ({
-    ...project,
-    formattedLastUpdated: project.lastUpdated
-      ? formatDubaiDate(project.lastUpdated)
-      : undefined,
-  }));
+    return projects.slice(0, limit).map((project) => ({
+      ...project,
+      formattedLastUpdated: project.lastUpdated
+        ? formatDubaiDate(project.lastUpdated)
+        : undefined,
+    }));
+  } catch (e) {
+    console.warn("[Techport] fetch failed/timeout", e);
+    return [];
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
-export async function fetchTechportProject(id: string | number): Promise<TechportProject | null> {
-  const response = await fetchNasaJson<TechportDetailResponse>(
-    `${TECHPORT_DETAIL_ENDPOINT}/${id}`,
-    {
-      revalidate: TECHPORT_REVALIDATE_SECONDS,
-    },
-  );
 
-  if (!response?.project) {
+export async function fetchTechportProject(
+  id: string | number,
+): Promise<TechportProject | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6000);
+
+  try {
+    const response = await fetchNasaJson<TechportDetailResponse>(
+      `${TECHPORT_DETAIL_ENDPOINT}/${id}`,
+      {
+        revalidate: TECHPORT_REVALIDATE_SECONDS,
+        signal: controller.signal,
+      },
+    );
+
+    if (!response?.project) return null;
+
+    return {
+      ...response.project,
+      lastUpdatedFormatted: response.project.lastUpdated
+        ? formatDubaiDate(response.project.lastUpdated)
+        : undefined,
+      startDateFormatted: response.project.startDate
+        ? formatDubaiDate(response.project.startDate)
+        : undefined,
+      endDateFormatted: response.project.endDate
+        ? formatDubaiDate(response.project.endDate)
+        : undefined,
+    };
+  } catch (e) {
+    console.warn("[Techport] detail fetch failed/timeout", e);
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return {
-    ...response.project,
-    lastUpdatedFormatted: response.project.lastUpdated
-      ? formatDubaiDate(response.project.lastUpdated)
-      : undefined,
-    startDateFormatted: response.project.startDate
-      ? formatDubaiDate(response.project.startDate)
-      : undefined,
-    endDateFormatted: response.project.endDate
-      ? formatDubaiDate(response.project.endDate)
-      : undefined,
-  };
 }

@@ -1,63 +1,64 @@
 "use client";
-import { useState, useEffect } from "react";
-import MainTittle from "../shared/main-tittle";
 
-export default function ImageSlideshow({ images }: any) {
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [nextImageIndex, setNextImageIndex] = useState(1);
-    const [isLoading, setIsLoading] = useState(true);
+import { useState, useEffect, useMemo } from "react";
 
-    useEffect(() => {
-        const preloadImage = (src: string) => {
-            const img = new Image();
-            img.src = src;
-            img.onload = () => setIsLoading(false);
-        };
+type EpicImage = {
+    imageUrl?: string;
+    caption?: string;
+    date?: string;
+};
 
-        const nextIndex = (currentImageIndex + 1) % images.length;
-        const nextImage = images[nextIndex];
-        const [datePart] = nextImage.date.split(" ");
-        const formattedDate = datePart.replaceAll("-", "/");
-        const nextImageUrl = `https://epic.gsfc.nasa.gov/archive/natural/${formattedDate}/png/${nextImage.image}.png`;
+export default function ImageSlideshow({ images }: { images: EpicImage[] }) {
+    const safeImages = useMemo(
+        () =>
+            Array.isArray(images)
+                ? images.filter((img) => img && img.imageUrl)
+                : [],
+        [images],
+    );
 
-        preloadImage(nextImageUrl);
-        setNextImageIndex(nextIndex);
-    }, [currentImageIndex, images]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            if (!isLoading) {
-                setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-                setIsLoading(true);
-            }
+        setCurrentIndex(0);
+    }, [safeImages.length]);
+
+
+    useEffect(() => {
+        if (safeImages.length <= 1) return;
+
+        const id = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % safeImages.length);
         }, 3500);
 
-        return () => clearInterval(interval);
-    }, [images.length, isLoading]);
+        return () => clearInterval(id);
+    }, [safeImages.length]);
 
-    const currentImage = images[currentImageIndex];
-    const [datePart] = currentImage.date.split(" ");
-    const formattedDate = datePart.replaceAll("-", "/");
+    if (!safeImages.length) {
+        return <p>No images available</p>;
+    }
 
-    const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
+    const current = safeImages[currentIndex];
 
     return (
-        <>
-            {/* <MainTittle title={`EPIC Natural Color Images In Real Time`} description="" classes={`absolute z-10 inset-x-0 ${isMobile && "bottom-52"}`} /> */}
+        <div className="flex justify-center">
             <div className="flex justify-center">
-                <div className="relative">
+                <div className="flex flex-col items-center">
                     <img
-                        src={`https://epic.gsfc.nasa.gov/archive/natural/${formattedDate}/png/${currentImage.image}.png`}
-                        alt={currentImage.caption}
-                        className={`max-w-full object-contain max-h-[79vh] transition-opacity duration-1000 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+                        src={current.imageUrl as string}
+                        alt={current.caption ?? "EPIC Earth image"}
+                        className="max-w-full object-contain max-h-[79vh]"
                     />
 
-                    <div className="absolute bottom-24 text-white text-center">
-                        <h2 className="text-lg font-semibold">{currentImage.caption}</h2>
-                        <p className="text-sm text-gray-300">{currentImage.date}</p>
+                    <div className="mt-4 text-gray-300 text-center">
+                        <h2 className="text-sm font-semibold">
+                            {current.caption ?? "EPIC Earth image"}
+                        </h2>
+                        <p className=" text-gray-300">{current.date}</p>
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 }

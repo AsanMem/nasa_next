@@ -56,7 +56,7 @@ export default function ListImages({ gallery, totalPages }: ListImagesProps) {
 
   return (
     <div className="space-y-8">
-      <div ref={cardsRef} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div ref={cardsRef} className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
         {gallery.map((img: any, i: number) => (
           <CardTopic topic={img} key={img.data[0].title + i} />
         ))}

@@ -3,21 +3,21 @@ import Link from "next/link";
 import { ROUTES } from "../lib/constants/routes";
 import { fetchNaturalImages } from "../lib/data/epic/fetchNaturalImages";
 import ImageSlideshow from "../ui/main/image-component";
+import { fetchEpicImages } from "../lib/nasa/epic";
 
 export default async function Main() {
-    const images = await fetchNaturalImages();
-    //  console.log(images, "images")
+    const images = await fetchEpicImages(10);
     return (
-        <div className="min-h-screen bg-gradient-to-b from-black via-black to-slate-950 text-white">
+        <div className="min-h-screen bg-black text-white">
             <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-16">
                 <header className="flex flex-col gap-4">
-                    <p className="text-sm uppercase tracking-[0.6em] text-white/50">EONET</p>
+                    <p className="text-sm uppercase tracking-[0.6em] text-white/50">   EPIC EARTH</p>
                     <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-                        EPIC Natural Color Images In Real Time
+                        Earth, as Seen From Deep Space
                     </h1>
                     <p className="max-w-3xl text-base text-white/70 sm:text-lg">
-                        This feed highlights live geophysical phenomena captured by NASA and agency partners.
-                        Data is fetched server-side and revalidated every 30 minutes to keep the view current.
+                        Experience real-time natural-color images of Earth captured by NASA’s EPIC camera
+                        aboard the DSCOVR spacecraft. A living portrait of our planet, refreshed throughout the day.
                     </p>
                     <Link
                         href={ROUTES.library}

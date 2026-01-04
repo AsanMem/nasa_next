@@ -1,10 +1,24 @@
-export default function HelloTitle({ mainText, supportiveText }: { mainText: string | JSX.Element, supportiveText: string }) {
-
-
+export default function HelloTitle({
+  mainText,
+  supportiveText,
+}: {
+  mainText: string | JSX.Element;
+  supportiveText: string;
+}) {
   return (
-    <div className="text-center text-gray-300 font-semibold pt-16">
-      <h1 className="text-2xl sm:text-2xl md:text-4xl lg:text-4xl xl:text-5xl px-8">{mainText}</h1>
-      <p className=" text-xs sm:text-xs md:text-xl lg:text-2xl xl:text-3xl px-16"> {supportiveText}
+    <header className="mx-auto flex max-w-4xl flex-col items-center gap-4 text-center">
+      <p className="text-sm uppercase tracking-[0.6em] text-white/50">
+        Explore
       </p>
-    </div>)
+
+      <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
+        {mainText}
+      </h1>
+
+      <p className="max-w-3xl text-center text-sm font-medium tracking-[0.08em] text-white/65 sm:text-base sm:leading-7">
+        {supportiveText}
+      </p>
+
+    </header>
+  );
 }

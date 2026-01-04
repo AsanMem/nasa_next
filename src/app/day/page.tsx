@@ -1,7 +1,6 @@
 'use server'
 import { fetchPictureOfTheDay } from "../lib/data/day/fetchPictureOfTheDay";
 import DayClient from "../ui/day/day-client";
-import Header from "../ui/header/Header";
 
 
 export default async function Day() {
@@ -9,9 +8,6 @@ export default async function Day() {
 
 
   return (
-    <><Header />
-      <DayClient
-        photoData={photoData}
-      /></>
+    <DayClient photoData={photoData} />
   );
 }

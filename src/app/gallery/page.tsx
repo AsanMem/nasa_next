@@ -1,8 +1,7 @@
 import ListImages from "../ui/gallery/list-images";
 import HelloTitle from "../ui/shared/hello-title";
 import SearchData from "../ui/gallery/search-images";
-import BackgroundImage from "../ui/shared/background-image";
-import { fetchFilteredImages } from "@/app/lib/data/fetchFilteredImages"; // DYD_D'D�D��Z��D�D�D� �?�ZD'D�!
+import { fetchFilteredImages } from "@/app/lib/data/fetchFilteredImages";
 import Header from "../ui/header/Header";
 import { fetchWikipediaArticles } from "@/app/lib/wiki";
 import WikiSidebar from "../ui/wiki/wiki-sidebar";
@@ -26,14 +25,8 @@ export default async function Page({ searchParams }: IProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-black to-slate-950 text-white">
       <Header />
-      {/* <BackgroundImage
-        src={
-          "https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2Fgreg-rakozy-oMpAz-DN-9I-unsplash.jpg?alt=media&token=6c2c6d96-9b8e-4db7-a0ac-c7534293e2fd"
-        }
-        className="fixed left-0 top-0 z-0 h-full w-full blur-sm"
-      /> */}
       <div className="relative z-10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 pt-24">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 pt-16">
           <HelloTitle
             mainText="Hello Earthlings!"
             supportiveText="Here you can find photos of our planet, other planets, stars and galaxies!"

@@ -80,19 +80,26 @@ export async function fetchJsonSafe<T>(
   }
 }
 
+
 type FetchNasaOptions = {
   revalidate?: number;
   init?: RequestInit;
+  signal?: AbortSignal; 
   includeApiKey?: boolean;
   query?: Record<string, string | number | undefined>;
 };
 
 export async function fetchNasaJson<T>(
   baseUrl: string,
-  { revalidate, init, includeApiKey = true, query }: FetchNasaOptions = {},
+  { revalidate, init, signal, includeApiKey = true, query }: FetchNasaOptions = {},
 ): Promise<T | null> {
   const url = buildNasaUrl(baseUrl, query, { includeApiKey });
-  return fetchJsonSafe<T>(url, revalidate ?? DEFAULT_REVALIDATE_SECONDS, init);
+
+
+  const mergedInit: RequestInit | undefined =
+    signal ? { ...(init ?? {}), signal } : init;
+
+  return fetchJsonSafe<T>(url, revalidate ?? DEFAULT_REVALIDATE_SECONDS, mergedInit);
 }
 
 export function formatDubaiDateTime(
@@ -100,6 +107,11 @@ export function formatDubaiDateTime(
   options: Intl.DateTimeFormatOptions = {},
 ) {
   const date = new Date(dateInput);
+  
+  if (isNaN(date.getTime())) {
+    return undefined;
+  }
+  
   const formatter = new Intl.DateTimeFormat("en-GB", {
     timeZone: DUBAI_TIME_ZONE,
     year: "numeric",
@@ -119,6 +131,10 @@ export function formatDubaiDate(
   options: Intl.DateTimeFormatOptions = {},
 ) {
   const date = new Date(dateInput);
+
+    if (isNaN(date.getTime())) {
+    return undefined;
+  }
   const formatter = new Intl.DateTimeFormat("en-GB", {
     timeZone: DUBAI_TIME_ZONE,
     year: "numeric",
