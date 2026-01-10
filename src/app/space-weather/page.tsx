@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ROUTES } from "@/app/lib/constants/routes";
 import { fetchDonkiNotifications } from "@/app/lib/nasa/donki";
-import { extractImageUrlsFromText } from "../library/page";
+import { extractImageUrlsFromText } from "../ui/library/helpers";
+
 
 const CARD_CLASS =
   "rounded-3xl bg-white/5 p-6 ring-1 ring-white/10 backdrop-blur hover:bg-white/10 hover:ring-white/20 transition";

@@ -17,7 +17,7 @@ interface PhotoData {
 }
 
 interface DayClientProps {
-    photoData: PhotoData;
+    photoData: PhotoData | null;
 }
 
 function toYouTubeEmbedUrl(url?: string) {

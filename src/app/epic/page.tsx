@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { ROUTES } from "../lib/constants/routes";
-import { fetchNaturalImages } from "../lib/data/epic/fetchNaturalImages";
 import ImageSlideshow from "../ui/main/image-component";
 import { fetchEpicImages } from "../lib/nasa/epic";
 

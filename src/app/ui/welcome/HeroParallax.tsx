@@ -287,7 +287,9 @@ export default function HeroParallax(): JSX.Element {
                 aria-hidden
             >
                 <div
-                    ref={(n) => (layerRefs.current[0] = n)}
+                    ref={(n) => {
+                        layerRefs.current[0] = n;
+                    }}
                     className="absolute inset-0"
                     style={{
                         transform: `translateZ(${layers[0].z}px)`,

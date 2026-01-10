@@ -235,12 +235,8 @@ export function mapTechTransferItemToRubricItem(item: TechTransferItem): RubricC
       item.application?.replace(/<[^>]*>/g, "") ||
       item.description ||
       "TechTransfer asset",
-
-
-    detail: item.center,
-
-
-    meta: [item.reference, item.patentNumber].filter(Boolean).join(" • ") ||
+      detail: item.center ?? undefined,
+      meta: [item.reference, item.patentNumber].filter(Boolean).join(" • ") ||
       item.releaseDateFormatted,
     imageUrl,
   };
@@ -254,7 +250,7 @@ export function extractImageUrlsFromText(text?: string): string[] {
   return Array.from(new Set(matches));
 }
 
-export function extractImageUrlFromRaw(raw: string[]): string | undefined {
+export function extractImageUrlFromRaw(raw: Array<string | null>): string | undefined {
   const text = raw.join(" ");
   const match = text.match(
     /(https?:\/\/[^\s'"]+\.(?:png|jpe?g|gif|webp))/i
