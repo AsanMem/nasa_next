@@ -6,6 +6,7 @@ import { renderMedia } from "./render-media";
 import { renderMediaGrid } from "./render-media-grid";
 import Link from "next/link";
 import EpicSlideshow from "./epic-slide-show";
+import { renderAsteroidPreview } from "./render-asteroid-preview";
 
 export function PreviewCard({
     section,
@@ -19,6 +20,8 @@ export function PreviewCard({
     const isGallerySection =
         section.key === "images" || section.key === "videos";
     const isEpicSection = section.key === "epic";
+    const isAsteroid = section.key === "neos";
+
     const isEonetSection = section.key === "eonet";
     const href =
         query && isGallerySection
@@ -33,7 +36,11 @@ export function PreviewCard({
         mediaNode = renderEonetPreview()
     } else if (isGallerySection && content?.gallery?.length) {
         mediaNode = renderMediaGrid(content.gallery);
-    } else {
+    } else if (isAsteroid) {
+        mediaNode = renderAsteroidPreview()
+    }
+
+    else {
         mediaNode = renderMedia(content?.media);
     }
 
@@ -47,11 +54,11 @@ export function PreviewCard({
                     <span>Featured</span>
                 </div>
 
-                <h3 className="text-xl font-semibold tracking-tight">
+                <h3 className="break-words [overflow-wrap:anywhere] text-xl font-semibold tracking-tight">
                     {content?.title ?? section.title}
                 </h3>
 
-                <p className="text-sm text-white/70">
+                <p className="break-words [overflow-wrap:anywhere] text-sm text-white/70">
                     {content?.description ?? section.description}
                 </p>
 

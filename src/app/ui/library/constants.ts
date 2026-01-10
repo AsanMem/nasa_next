@@ -123,7 +123,7 @@ export const BUTTON_CLASS =
     "pulsar",
     "star cluster",
     "globular cluster",
-    "open cluster",
+   // "open cluster",
     "white dwarf",
     "brown dwarf",
     "exoplanet",
@@ -199,7 +199,6 @@ export const BUTTON_CLASS =
     // Астрофизика
     "dark matter",
     "dark energy",
-    "cosmic microwave background",
     "interstellar dust",
     "gravitational waves",
     "magnetosphere",

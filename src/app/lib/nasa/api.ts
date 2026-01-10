@@ -68,7 +68,6 @@ export async function fetchJsonSafe<T>(
 
     try {
       const json =  (await response.json()) as T;
-  //    console.log(url , json,"json")
       return json
     } catch (parseError) {
       console.error(`Failed to parse JSON from ${url}`, parseError);

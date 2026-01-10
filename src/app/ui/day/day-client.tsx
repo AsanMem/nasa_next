@@ -96,13 +96,12 @@ export default function DayClient({ photoData }: DayClientProps) {
 
         setIsDownloading(true);
         try {
-            const downloadUrl = photoData?.hdurl || validApodUrl; // приоритет hdurl
+            const downloadUrl = photoData?.hdurl || validApodUrl;
             const ext = getExtFromUrl(downloadUrl);
             const baseTitle = sanitizeFilename(photoData?.title ?? "nasa_apod");
             const filename = `${baseTitle || "nasa_apod"}.${ext}`;
 
             const res = await fetch(downloadUrl);
-            console.log(res, "res")
             if (!res.ok) throw new Error("Unable to download image");
 
             const blob = await res.blob();
@@ -161,16 +160,24 @@ export default function DayClient({ photoData }: DayClientProps) {
 
                 <section className="rounded-3xl bg-white/5 p-6 ring-1 ring-white/10 backdrop-blur-lg">
                     <div
-                        className="
-              mb-6 w-full overflow-hidden rounded-2xl bg-black/30 ring-1 ring-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.35)]
-              lg:float-left lg:mr-8 lg:mb-4 lg:w-[540px]
-            "
+                        className={`
+    mb-6 w-full overflow-hidden rounded-2xl
+    bg-black/30 ring-1 ring-white/10
+    shadow-[0_10px_30px_rgba(0,0,0,0.35)]
+    transition-all
+
+    ${isImage
+                                ? "lg:float-none lg:mx-auto lg:w-[min(90vw,1100px)]"
+                                : "lg:float-left lg:mr-8 lg:mb-4 lg:w-[540px]"
+                            }
+  `}
                         style={{
                             aspectRatio: String(containerAspect),
-                            maxHeight: "70vh",
-                            minHeight: "240px",
+                            maxHeight: isImage ? "85vh" : "70vh",
+                            minHeight: isImage ? "420px" : "240px",
                         }}
                     >
+
                         {isImage && (
                             <div className="relative h-full w-full">
                                 {/* NEW: download button (same icon + spinner) */}

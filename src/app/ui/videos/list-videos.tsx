@@ -75,7 +75,7 @@ export default function ListVideos({ videos, totalPages, query }: ListVideosProp
           const preview = video?.links?.[0]?.href;
 
           return (
-            <div className="cardVideo" key={(data?.title ?? "nasa-video") + i}>
+            <div key={(data?.title ?? "nasa-video") + i}>
               <CardVideo
                 videoPreview={preview ?? ""}
                 videoPlay={video?.videoUrl ?? ""}

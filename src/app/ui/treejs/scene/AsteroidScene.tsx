@@ -17,10 +17,8 @@ interface ThreeSceneProps {
 const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, diameterSphere, speedSphere, urlTexture }) => {
     const mountRef = useRef<HTMLDivElement | null>(null);
     const noiseRef = useRef(null);
-    console.log(diameterSphere, "diameterSphere before")
     const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
     diameterSphere = isMobile && diameterSphere > 5.922 ? 5.922 : diameterSphere;
-    console.log(diameterSphere, "diameterSphere after")
     let noiseInstance: any;
     useEffect(() => {
 
@@ -60,13 +58,10 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
                 try {
                     const loadAsteroidTexture = async () => {
                         try {
-                            console.log("Loading texture from:", urlTexture);
-                            //  Promise для обработки загрузки
                             const texture = await new Promise<THREE.Texture>((resolve, reject) => {
                                 new THREE.TextureLoader().load(
                                     urlTexture, // Используем URL с токеном напрямую
                                     (loadedTexture) => {
-                                        console.log("Texture successfully loaded");
                                         resolve(loadedTexture);
                                     },
                                     undefined,
@@ -74,13 +69,11 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
                                         console.error('Texture loading error:', err);
 
                                         // Fallback:через прокси если прямая загрузка не работает
-                                        console.log("Trying proxy fallback...");
                                         const proxyUrl = `/api/texture?url=${encodeURIComponent(urlTexture)}`;
 
                                         new THREE.TextureLoader().load(
                                             proxyUrl,
                                             (proxyTexture) => {
-                                                console.log("Texture loaded via proxy");
                                                 resolve(proxyTexture);
                                             },
                                             undefined,
@@ -103,7 +96,6 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
 
                     // Использование
                     const texture = await loadAsteroidTexture();
-                    console.log(texture, "texture");
 
                     const material = new THREE.MeshStandardMaterial({
                         map: texture,

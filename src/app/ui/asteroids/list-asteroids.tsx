@@ -61,8 +61,6 @@ export default async function ListAsteroids({ asteroidsObjects }: any) {
                         const textureIndex = asteroidIndex % numberOfImages;
                         const isHazardous = asteroid.is_potentially_hazardous_asteroid;
 
-                        console.log({ textureIndex, name, asteroidIndex });
-
                         const displaySpeed = `${currentSpeed} km/s`;
                         const displayDiameter = `${Math.round(averageDiameter)} m`;
 
