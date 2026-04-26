@@ -45,7 +45,7 @@ export default function CardImage({ nasaPicture, title, description, keywords }:
                                     <h3 className="text-xl font-medium leading-tight">{title}</h3>
                                     <button className="" onClick={handleCloseModal}>x</button>
                                 </div>
-                                <p className="mb-2 text-base text-slate-700" style={{ wordWrap: 'break-word' }}>{description}</p>
+                                <p className="text-readable mb-2 text-base text-slate-700" style={{ wordWrap: 'break-word' }}>{description}</p>
                                 {keywords && keywords.length > 0 ?
                                     <div className="flex flex-wrap mb-1">
                                         {keywords.map((keyword, index) => <span key={index} className="font-sans mr-2 mb-1 inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">{keyword}</span>)}

@@ -41,7 +41,7 @@ export default function CardVideo({
           {videoPreview ? (
             <img className="h-full w-full object-cover" src={videoPreview} alt={title} />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-white/60">
+            <div className="text-readable flex h-full items-center justify-center text-sm text-white/60">
               Preview unavailable
             </div>
           )}
@@ -70,7 +70,7 @@ export default function CardVideo({
           </h3>
           {description ? (
             <p
-              className="text-sm text-white/70"
+              className="text-readable text-sm text-white/70"
               style={{
                 display: "-webkit-box",
                 WebkitLineClamp: 3,
@@ -105,7 +105,7 @@ export default function CardVideo({
                   </video>
                 ) : (
                   <div className="flex h-64 items-center justify-center text-white">
-                    Video unavailable
+                    <span className="text-readable">Video unavailable</span>
                   </div>
                 )}
                 <button
@@ -120,7 +120,7 @@ export default function CardVideo({
               <div className="space-y-4 p-6">
                 <h3 className="text-xl font-semibold">{title}</h3>
                 {description ? (
-                  <p className="text-sm leading-relaxed text-gray-700">{description}</p>
+                  <p className="text-readable text-sm text-gray-700">{description}</p>
                 ) : null}
                 {keywords && keywords.length > 0 ? (
                   <div className="flex flex-wrap gap-2">

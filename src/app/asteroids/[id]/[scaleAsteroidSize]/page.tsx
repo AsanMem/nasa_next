@@ -84,7 +84,7 @@ export default async function Page({
               {name}
             </h1>
 
-            <p className="mt-3 max-w-2xl text-sm text-white/70 sm:text-base">
+            <p className="text-readable mt-3 max-w-2xl text-sm text-white/70 sm:text-base">
               A 3D view of this near-Earth object based on NASA’s orbital data.
               Rotate and explore its surface, then scroll through its close
               approaches in the timeline.
@@ -172,7 +172,7 @@ export default async function Page({
               </div>
 
 
-              <dl className="space-y-2 text-sm text-white/70">
+              <dl className="text-readable space-y-2 text-sm text-white/70">
                 {absolute_magnitude_h && (
                   <div className="flex justify-between gap-4">
                     <dt className="text-white/50">Absolute magnitude (H)</dt>

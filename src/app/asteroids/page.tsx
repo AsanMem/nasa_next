@@ -36,12 +36,12 @@ export default async function Asteroids() {
             <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
               Near-Earth Objects passing by today
             </h1>
-            <p className="max-w-2xl text-base text-white/70 sm:text-lg">
+            <p className="text-readable max-w-2xl text-base text-white/70 sm:text-lg">
               A live snapshot of asteroids passing near our planet today. Explore
               their size, speed, and potential risk before taking a closer look in 3D.
             </p>
 
-            <p className="max-w-2xl text-sm sm:text-base text-white/70">
+            <p className="text-readable max-w-2xl text-sm sm:text-base text-white/70">
               Today,{" "}
               <span className="font-semibold text-white/90">
                 {formatFriendlyDate(today)}
@@ -69,7 +69,7 @@ export default async function Asteroids() {
             <h2 className="mb-4 text-lg sm:text-xl font-semibold tracking-tight">
               Today&apos;s close approaches
             </h2>
-            <p className="mb-4 text-sm text-white/60">
+            <p className="text-readable mb-4 text-sm text-white/60">
               Each object is sized and ranked by its average diameter and relative
               speed. Open any row to see a 3D asteroid view and full NASA orbital data.
             </p>

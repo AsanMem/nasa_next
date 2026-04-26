@@ -45,7 +45,7 @@ export default function EonetEventCard({ event }: Props) {
         <EventVisual category={mainCategory} compact />
       </div>
 
-      <div className="mt-4 flex flex-col gap-2 text-sm text-white/70">
+      <div className="text-readable mt-4 flex flex-col gap-2 text-sm text-white/70">
         {coordinates && (
           <p>
             Coordinates:{" "}
@@ -76,4 +76,3 @@ export default function EonetEventCard({ event }: Props) {
 
   );
 }
-

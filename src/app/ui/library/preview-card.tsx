@@ -58,7 +58,7 @@ export function PreviewCard({
                     {content?.title ?? section.title}
                 </h3>
 
-                <p className="break-words [overflow-wrap:anywhere] text-sm text-white/70">
+                <p className="text-readable break-words [overflow-wrap:anywhere] text-sm text-white/70">
                     {content?.description ?? section.description}
                 </p>
 

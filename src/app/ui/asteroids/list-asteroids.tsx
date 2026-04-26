@@ -89,7 +89,7 @@ export default async function ListAsteroids({ asteroidsObjects }: any) {
                                         </div>
 
 
-                                        <p className="text-xs sm:text-sm text-white/70">
+                                        <p className="text-readable text-xs sm:text-sm text-white/70">
                                             <span className="text-white/60">Speed:</span>{" "}
                                             <span className="text-white">{displaySpeed}</span>
                                             <span className="mx-2 text-white/30">•</span>

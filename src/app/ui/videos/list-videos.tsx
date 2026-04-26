@@ -61,7 +61,7 @@ export default function ListVideos({ videos, totalPages, query }: ListVideosProp
   }, [videos]);
   if (!videos || videos.length === 0) {
     return (
-      <div className="rounded-3xl bg-white/5 p-6 text-center text-white/60 ring-1 ring-white/10">
+      <div className="text-readable rounded-3xl bg-white/5 p-6 text-center text-white/60 ring-1 ring-white/10">
         No NASA videos match this search yet. Try refining your keywords.
       </div>
     );

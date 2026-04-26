@@ -11,7 +11,7 @@ const CARD_CLASS =
 export default function WikiSidebar({ articles }: WikiSidebarProps) {
   if (!articles || articles.length === 0) {
     return (
-      <div className="rounded-3xl bg-white/5 p-6 text-sm text-white/50 ring-1 ring-white/10">
+      <div className="text-readable rounded-3xl bg-white/5 p-6 text-sm text-white/50 ring-1 ring-white/10">
         Wikipedia insights will appear here once you start searching.
       </div>
     );
@@ -46,7 +46,7 @@ export default function WikiSidebar({ articles }: WikiSidebarProps) {
             <p className="truncate text-sm font-semibold text-white">{article.title}</p>
             {article.extract ? (
               <p
-                className="text-sm text-white/70"
+                className="text-readable text-sm text-white/70"
                 style={{
                   display: "-webkit-box",
                   WebkitLineClamp: 2,
@@ -63,4 +63,3 @@ export default function WikiSidebar({ articles }: WikiSidebarProps) {
     </div>
   );
 }
-

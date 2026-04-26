@@ -62,7 +62,7 @@ export default function Timeline({ closeApproachData }: TimelineProps) {
                                         </span>
                                     </p>
                                 )}
-                                <p className="text-xs text-white/60">
+                                <p className="text-readable text-xs text-white/60">
                                     Approach to <span className="text-white">{body}</span>
                                 </p>
                             </div>

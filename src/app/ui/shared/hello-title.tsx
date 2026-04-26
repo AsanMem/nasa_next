@@ -15,7 +15,7 @@ export default function HelloTitle({
         {mainText}
       </h1>
 
-      <p className="max-w-3xl text-center text-sm font-medium tracking-[0.08em] text-white/65 sm:text-base sm:leading-7">
+      <p className="text-readable max-w-3xl text-center text-sm font-medium text-white/65 sm:text-base">
         {supportiveText}
       </p>
 

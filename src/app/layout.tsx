@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bungee } from "next/font/google";
+import { Bungee, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import type { Viewport } from 'next'
 
@@ -9,6 +9,13 @@ const bungee = Bungee({
   adjustFontFallback: true,
   subsets: ['latin', 'latin-ext', 'vietnamese'],
   variable: '--font-bungee'
+});
+
+const spaceGrotesk = Space_Grotesk({
+  weight: ['400', '500', '600'],
+  adjustFontFallback: true,
+  subsets: ['latin', 'latin-ext', 'vietnamese'],
+  variable: '--font-space-grotesk',
 });
 
 export const metadata: Metadata = {
@@ -31,7 +38,7 @@ export function generateViewport(): Viewport {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${bungee.variable} font-sans} w-full h-full min-h-[100vh]`}>
+      <body className={`${bungee.variable} ${spaceGrotesk.variable} w-full h-full min-h-[100vh]`}>
         {children}
       </body>
     </html >

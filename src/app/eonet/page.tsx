@@ -21,7 +21,7 @@ export default async function EonetPage() {
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             Ongoing natural events around Earth
           </h1>
-          <p className="max-w-3xl text-base text-white/70 sm:text-lg">
+          <p className="text-readable max-w-3xl text-base text-white/70 sm:text-lg">
             This feed highlights live geophysical phenomena captured by NASA and agency partners.
             Data is fetched server-side and revalidated every 30 minutes to keep the view current.
           </p>
@@ -38,7 +38,7 @@ export default async function EonetPage() {
             events.map((event) => <EonetEventCard key={event.id} event={event} />)
           ) : (
             <div className={CARD_CLASS}>
-              <p className="text-sm text-white/60">
+              <p className="text-readable text-sm text-white/60">
                 EONET did not return any ongoing events for now. Check again later for new activity.
               </p>
             </div>

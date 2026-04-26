@@ -51,7 +51,7 @@ export default function SearchData() {
                         placeholder="Search the NASA library…"
                         className="
               h-11 w-full bg-transparent px-4
-              text-sm text-white placeholder:text-white/40
+              text-readable text-sm text-white placeholder:text-white/40
               outline-none
             "
                         onChange={(e) => handleSearch(e.target.value)}
@@ -78,7 +78,7 @@ export default function SearchData() {
 
                 {!searchParams.get("query") && (
                     <div className="mt-3 flex flex-wrap justify-center gap-2">
-                        <span className="text-xs text-white/40  py-1">Try:</span>
+                        <span className="text-readable text-xs text-white/40  py-1">Try:</span>
 
                         {tips.map((t) => (
                             <button
@@ -87,7 +87,7 @@ export default function SearchData() {
                                 onClick={() => handleSearch(t)}
                                 className="
           rounded-full bg-white/5 px-3 py-1
-          text-xs text-white/60
+          text-readable text-xs text-white/60
           ring-1 ring-white/10 backdrop-blur
           transition
           hover:bg-white/10 hover:text-white hover:ring-white/20

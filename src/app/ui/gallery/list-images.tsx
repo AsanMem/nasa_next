@@ -48,7 +48,7 @@ export default function ListImages({ gallery, totalPages }: ListImagesProps) {
 
   if (!gallery || gallery.length === 0) {
     return (
-      <div className="rounded-3xl bg-white/5 p-6 text-center text-white/60 ring-1 ring-white/10">
+      <div className="text-readable rounded-3xl bg-white/5 p-6 text-center text-white/60 ring-1 ring-white/10">
         Space imagery is cooling off right now. Try a different search query.
       </div>
     );

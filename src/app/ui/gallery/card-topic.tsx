@@ -151,7 +151,7 @@ export default function CardTopic({ topic }: IProps) {
           </div>
           {description ? (
             <p
-              className="text-sm text-white/70"
+              className="text-readable text-sm text-white/70"
               style={{
                 display: "-webkit-box",
                 WebkitLineClamp: 4,
@@ -192,7 +192,7 @@ export default function CardTopic({ topic }: IProps) {
                     </button>
                   </div>
                   {description ? (
-                    <p className="text-sm leading-relaxed text-gray-700">{description}</p>
+                    <p className="text-readable text-sm text-gray-700">{description}</p>
                   ) : null}
                   {keywords && keywords.length > 0 ? (
                     <div className="flex flex-wrap gap-2">

@@ -144,7 +144,7 @@ export default function DayClient({ photoData }: DayClientProps) {
                             : "Today’s NASA highlight is updating"}
                     </h1>
 
-                    <p className="max-w-3xl text-base text-white/70 sm:text-lg">
+                    <p className="text-readable max-w-3xl text-base text-white/70 sm:text-lg">
                         {hasData
                             ? "Daily highlights from the cosmos with NASA’s featured media."
                             : "The daily feed is temporarily unavailable. Please check back soon — meanwhile you can explore the Library."}
@@ -274,7 +274,7 @@ export default function DayClient({ photoData }: DayClientProps) {
                                     <h3 className="mt-2 text-lg font-semibold text-white">
                                         Today’s highlight is updating
                                     </h3>
-                                    <p className="mt-2 text-sm text-white/70">
+                                    <p className="text-readable mt-2 text-sm text-white/70">
                                         NASA’s daily feed is temporarily unavailable. Please check back soon.
                                     </p>
 
@@ -300,7 +300,7 @@ export default function DayClient({ photoData }: DayClientProps) {
                     </div>
 
                     <MainTittle title="" description="" classes="" />
-                    <p className="text-justify text-sm leading-relaxed text-gray-100">{photoData?.explanation}</p>
+                    <p className="text-readable text-justify text-sm text-gray-100">{photoData?.explanation}</p>
 
                     <div className="clear-both hidden lg:block" />
                 </section>

@@ -94,7 +94,7 @@ export default async function LibraryPage() {
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             Your personal doorway into NASA’s universe
           </h1>
-          <p className="max-w-3xl text-base text-white/70 sm:text-lg">
+          <p className="text-readable max-w-3xl text-base text-white/70 sm:text-lg">
             Explore mission stories, Earth’s moments, and discoveries—simple, clear, and inspiring.
           </p>
         </header>
@@ -107,7 +107,7 @@ export default async function LibraryPage() {
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               Your favorite corners of the cosmos
             </h2>
-            <p className="mt-2 text-sm text-white/60">
+            <p className="text-readable mt-2 text-sm text-white/60">
               Quick previews of the sections you explore most—everything right where you need it.
             </p>
           </div>
@@ -139,7 +139,7 @@ export default async function LibraryPage() {
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               Fresh NASA topics waiting for your curiosity
             </h2>
-            <p className="mt-2 text-sm text-white/60">
+            <p className="text-readable mt-2 text-sm text-white/60">
               Dive into new ideas, discoveries, and stories shaping tomorrow.
             </p>
           </div>
@@ -223,8 +223,8 @@ export default async function LibraryPage() {
                       ))}
                     </div>
                   )}
-                  {item.summary ? <p className="text-sm text-white/70">{item.summary}</p> : null}
-                  <div className="mt-auto flex items-center justify-between text-xs uppercase tracking-[0.4em] text-white/40">
+                  {item.summary ? <p className="text-readable text-sm text-white/70">{item.summary}</p> : null}
+                  <div className="text-readable mt-auto flex items-center justify-between text-xs text-white/40">
                     <span>{item.timestamp ?? "Recent"}</span>
                     <span>
                       {item.source === "DONKI" && "Space Weather"}
@@ -235,7 +235,7 @@ export default async function LibraryPage() {
                 </div>
               ))
             ) : (
-              <div className="rounded-3xl bg-white/5 p-6 text-sm text-white/60 ring-1 ring-white/10">
+              <div className="text-readable rounded-3xl bg-white/5 p-6 text-sm text-white/60 ring-1 ring-white/10">
                 Space weather feed is cooling off right now. Revisit in a few moments.
               </div>
             )}
