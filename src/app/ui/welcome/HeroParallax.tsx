@@ -303,7 +303,7 @@ export default function HeroParallax(): JSX.Element {
                         ref={videoRef}
                         className="h-full w-full object-cover"
                         src={SAFE_VIDEO_URL}
-                        poster="/media/posters/iss71-night.jpg"
+                        poster="/media/main/1.jpg"
                         playsInline
                         muted
                         loop

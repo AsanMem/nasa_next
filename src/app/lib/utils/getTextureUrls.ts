@@ -2,9 +2,13 @@
 
 
 import { ref, listAll, getDownloadURL } from "firebase/storage";
-import { storage } from "../../../../firebaseConfig";
+import { hasFirebaseStorageBucket, storage } from "../../../../firebaseConfig";
 
 export const getTextureUrls = async (): Promise<string[]> => {
+  if (!hasFirebaseStorageBucket) {
+    return [];
+  }
+
   try {
    
     const texturesRef = ref(storage, "media/asteroid/textures");

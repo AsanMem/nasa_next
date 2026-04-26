@@ -1,5 +1,6 @@
 'use server'
 import { retryFetch } from "../fetchWithRetry";
+import { buildNasaUrl } from "../../nasa/api";
 
 
 import { formatDate } from "../../utils";
@@ -9,8 +10,14 @@ export async function fetchAsteroids({
   END_DATE = formatDate(),
 } = {}) {
   try {
+    const url = buildNasaUrl("https://api.nasa.gov/neo/rest/v1/feed", {
+      start_date: START_DATE,
+      end_date: END_DATE,
+    });
+
     const response = await retryFetch(
-      `https://api.nasa.gov/neo/rest/v1/feed?start_date=${START_DATE}&end_date=${END_DATE}&api_key=${process.env.APP_NASA_API_KEY}`
+      url,
+      { debugLabel: "asteroids-feed" },
     );
     return await response.json();
   } catch (error) {

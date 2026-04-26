@@ -7,14 +7,44 @@ const NASA_KEY_ENV_VARS = [
   "NEXT_PUBLIC_NASA_API_KEY",
 ];
 
-export function getNasaApiKey() {
+let warnedAboutMissingNasaKey = false;
+
+export type NasaApiKeySource = "NASA_API_KEY" | "APP_NASA_API_KEY" | "NEXT_PUBLIC_NASA_API_KEY" | "DEMO_KEY";
+
+export function getNasaApiKeySource(): NasaApiKeySource | undefined {
   for (const key of NASA_KEY_ENV_VARS) {
     const value = process.env[key];
     if (value && value.trim().length > 0) {
-      return value.trim();
+      return key as NasaApiKeySource;
     }
   }
-  return "DEMO_KEY";
+
+  if (process.env.NODE_ENV !== "production" && !warnedAboutMissingNasaKey) {
+    warnedAboutMissingNasaKey = true;
+    console.warn(
+      "NASA API key is not configured. Set NASA_API_KEY for server-side NASA API requests.",
+    );
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return "DEMO_KEY";
+  }
+
+  return undefined;
+}
+
+export function getNasaApiKey() {
+  const source = getNasaApiKeySource();
+
+  if (!source) {
+    return undefined;
+  }
+
+  if (source === "DEMO_KEY") {
+    return "DEMO_KEY";
+  }
+
+  return process.env[source]?.trim();
 }
 
 export function buildNasaUrl(
@@ -31,8 +61,9 @@ export function buildNasaUrl(
     url.searchParams.set(key, String(value));
   });
 
-  if (includeApiKey && !url.searchParams.has("api_key")) {
-    url.searchParams.set("api_key", getNasaApiKey());
+  const apiKey = includeApiKey ? getNasaApiKey() : undefined;
+  if (apiKey && !url.searchParams.has("api_key")) {
+    url.searchParams.set("api_key", apiKey);
   }
 
   return url.toString();

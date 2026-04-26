@@ -34,8 +34,13 @@ export async function fetchOngoingEonetEvents(limit = 6): Promise<EonetEvent[]> 
   const response = await fetchNasaJson<EonetApiResponse>(EONET_ENDPOINT, {
     revalidate: EONET_REVALIDATE_SECONDS,
     includeApiKey: false,
+    init: {
+      headers: {
+        Accept: "application/json",
+      },
+    },
     query: {
-      status: "ongoing",
+      status: "open",
       limit,
       sort: "date",
       order: "desc",
@@ -43,6 +48,9 @@ export async function fetchOngoingEonetEvents(limit = 6): Promise<EonetEvent[]> 
   });
 
   if (!response || !Array.isArray(response.events)) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[EONET] JSON events response was unavailable or invalid; returning an empty event list.");
+    }
     return [];
   }
 
@@ -53,4 +61,3 @@ export async function fetchOngoingEonetEvents(limit = 6): Promise<EonetEvent[]> 
       : undefined,
   }));
 }
-

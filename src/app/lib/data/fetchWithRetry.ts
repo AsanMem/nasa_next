@@ -8,6 +8,13 @@ type RetryFetchOptions = {
   debugLabel?: string;       // метка в логах
 };
 
+class NonRetryableFetchError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "NonRetryableFetchError";
+  }
+}
+
 function sleep(ms: number) {
   return new Promise((res) => setTimeout(res, ms));
 }
@@ -34,7 +41,7 @@ export async function retryFetch(
     timeoutMs = 8000,
     baseDelayMs = 600,
     maxDelayMs = 6000,
-    retryOnStatuses = [408, 429, 500, 502, 503, 504],
+    retryOnStatuses = [408, 500, 502, 503, 504],
     fetchInit,
     debugLabel,
   }: RetryFetchOptions = {},
@@ -59,13 +66,16 @@ export async function retryFetch(
       const msg = `[retryFetch${debugLabel ? `:${debugLabel}` : ""}] ${res.status} ${res.statusText} (${attempt + 1}/${retries})`;
 
       if (!retryable) {
-        throw new Error(`${msg} — non-retryable`);
+        throw new NonRetryableFetchError(`${msg} — non-retryable`);
       }
 
       lastError = new Error(`${msg} — retryable`);
     } catch (err) {
       clearTimeout(timeoutId);
 
+      if (err instanceof NonRetryableFetchError) {
+        throw err;
+      }
 
       lastError = err;
 

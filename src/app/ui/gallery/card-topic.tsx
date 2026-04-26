@@ -38,7 +38,7 @@ export default function CardTopic({ topic }: IProps) {
       if (!nasaId) {
         throw new Error("NASA ID is missing");
       }
-      const apiUrl = `https://images-api.nasa.gov/asset/${nasaId}?api_key=${process.env.NEXT_PUBLIC_NASA_API_KEY}`;
+      const apiUrl = `https://images-api.nasa.gov/asset/${nasaId}`;
 
       const response = await fetch(apiUrl);
       if (!response.ok) {

@@ -1,14 +1,18 @@
 'use server'
 
 import { retryFetch } from "../fetchWithRetry";
+import { buildNasaUrl } from "../../nasa/api";
 
 
 
 
 export async function getAsteroid(id: string): Promise<any> {
   try {
+    const url = buildNasaUrl(`https://api.nasa.gov/neo/rest/v1/neo/${id}`);
+
     const response = await retryFetch(
-      `https://api.nasa.gov/neo/rest/v1/neo/${id}?api_key=${process.env.APP_NASA_API_KEY}`
+      url,
+      { debugLabel: "asteroid-detail" },
     );
     return await response.json();
   } catch (error) {
