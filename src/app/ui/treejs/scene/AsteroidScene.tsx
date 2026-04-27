@@ -67,7 +67,6 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
                                     undefined,
                                     (err) => {
                                         console.error('Texture loading error:', err);
-
                                         // Fallback:через прокси если прямая загрузка не работает
                                         const proxyUrl = `/api/texture?url=${encodeURIComponent(urlTexture)}`;
 
