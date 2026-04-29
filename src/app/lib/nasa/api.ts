@@ -1,25 +1,16 @@
 const DEFAULT_REVALIDATE_SECONDS = 60 * 60; // 1 hour fallback
 const DUBAI_TIME_ZONE = "Asia/Dubai";
 
-const NASA_KEY_ENV_VARS = [
-  "NASA_API_KEY",
-  "APP_NASA_API_KEY",
-  "NEXT_PUBLIC_NASA_API_KEY",
-];
-
 let warnedAboutMissingNasaKey = false;
 
-export type NasaApiKeySource = "NASA_API_KEY" | "APP_NASA_API_KEY" | "NEXT_PUBLIC_NASA_API_KEY" | "DEMO_KEY";
+export type NasaApiKeySource = "NASA_API_KEY" | "DEMO_KEY";
 
 export function getNasaApiKeySource(): NasaApiKeySource | undefined {
-  for (const key of NASA_KEY_ENV_VARS) {
-    const value = process.env[key];
-    if (value && value.trim().length > 0) {
-      return key as NasaApiKeySource;
-    }
+  if (process.env.NASA_API_KEY?.trim()) {
+    return "NASA_API_KEY";
   }
 
-  if (process.env.NODE_ENV !== "production" && !warnedAboutMissingNasaKey) {
+  if (!warnedAboutMissingNasaKey) {
     warnedAboutMissingNasaKey = true;
     console.warn(
       "NASA API key is not configured. Set NASA_API_KEY for server-side NASA API requests.",
