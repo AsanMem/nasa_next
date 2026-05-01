@@ -17,7 +17,20 @@ type DonkiApiResponse = DonkiNotification[];
 
 export type DonkiNotificationItem = DonkiNotification & {
   formattedTime?: string;
+  isFallback?: boolean;
 };
+
+const DONKI_FALLBACK_NOTIFICATIONS: DonkiNotificationItem[] = [
+  {
+    messageType: "Space Weather",
+    messageID: "local-donki-fallback-1",
+    messageTitle: "Space weather feed temporarily unavailable",
+    messageBody:
+      "NASA DONKI notifications could not be loaded right now. The app is showing this local fallback so the Space Weather section remains available while the live feed recovers.",
+    formattedTime: "Local fallback",
+    isFallback: true,
+  },
+];
 
 export async function fetchDonkiNotifications({
   startDate,
@@ -44,7 +57,10 @@ export async function fetchDonkiNotifications({
   });
 
   if (!response || !Array.isArray(response)) {
-    return [];
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[DONKI] Notification fetch failed or returned invalid data; using static fallback.");
+    }
+    return DONKI_FALLBACK_NOTIFICATIONS.slice(0, limit);
   }
 
   return response
@@ -61,4 +77,3 @@ export async function fetchDonkiNotifications({
         : undefined,
     }));
 }
-

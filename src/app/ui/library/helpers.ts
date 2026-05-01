@@ -7,6 +7,7 @@ import { fetchNasaImages, fetchNasaVideos } from "@/app/lib/nasa/media";
 import { EpicImage } from "@/app/lib/nasa/epic";
 import { TechTransferItem } from "@/app/lib/nasa/techtransfer";
 import { RubricCardItem } from "./rubric-сard";
+import { sanitizePlainText, truncatePlainText } from "@/app/lib/utils/text";
 
 export async function buildNewsFeed(
   donki: DonkiNotificationItem[],
@@ -22,8 +23,8 @@ export async function buildNewsFeed(
       id: item.messageID ?? `donki-${index}`,
       type: "Space Weather",
       source: "DONKI",
-      title: item.messageTitle ?? item.messageType ?? "Space weather alert",
-      summary: item.messageBody?.slice(0, 200),
+      title: sanitizePlainText(item.messageTitle) ?? item.messageType ?? "Space weather alert",
+      summary: truncatePlainText(item.messageBody, 200),
       timestamp: item.formattedTime,
       imageUrls,
     };
@@ -33,7 +34,7 @@ export async function buildNewsFeed(
     id: event.id,
     type: "Earth Events",
     source: "EONET",
-    title: event.title ?? "Earth observation update",
+    title: sanitizePlainText(event.title) ?? "Earth observation update",
     summary: event.categories?.map((category) => category.title).join(", "),
     timestamp: event.formattedDate,
   }));
@@ -70,8 +71,8 @@ export function getApodPreview(apod: ApodItem | null): PreviewContent | null {
         alt: apod.title ?? "Astronomy Picture of the Day",
       }
       : undefined,
-    title: apod.title ?? "Astronomy Picture of the Day",
-    description: apod.explanation?.slice(0, 140),
+    title: sanitizePlainText(apod.title) ?? "Astronomy Picture of the Day",
+    description: truncatePlainText(apod.explanation, 140),
   };
 }
 
@@ -137,7 +138,7 @@ export function getFirstAssetPreview(
   if (!mainLink?.href && gallery.length === 0) {
     return {
       title: data?.title ?? fallbackTitle,
-      description: data?.description?.slice(0, 140),
+      description: truncatePlainText(data?.description, 140),
       metadata: data?.date_created,
     };
   }
@@ -152,8 +153,8 @@ export function getFirstAssetPreview(
     gallery: gallery.length
       ? (gallery as { url: string; alt: string }[])
       : undefined,
-    title: data?.title ?? fallbackTitle,
-    description: data?.description?.slice(0, 140),
+    title: sanitizePlainText(data?.title) ?? fallbackTitle,
+    description: truncatePlainText(data?.description, 140),
     metadata: data?.date_created,
   };
 }
@@ -183,8 +184,8 @@ export function getEpicPreview(images: EpicImage[]): PreviewContent | null {
       }
       : undefined),
     slideshow: slides.length ? slides : undefined,
-    title: first.caption ?? "EPIC Earth capture",
-    description: first.identifier,
+    title: sanitizePlainText(first.caption) ?? "EPIC Earth capture",
+    description: sanitizePlainText(first.identifier),
     metadata: first.date,
   };
 }
@@ -195,7 +196,7 @@ export function getNeoPreview(neos: NeoFeedItem[]): PreviewContent | null {
   const neo = neos[0];
 
 
-  const fallbackHazard = "/media/main/1.png";
+  const fallbackHazard = "/media/main/1.png.optimized.webp";
   const fallbackNormal = "/media/fallback/neo.jpg";
 
   const mediaUrl = neo.hazard ? fallbackHazard : fallbackNormal;
@@ -205,8 +206,8 @@ export function getNeoPreview(neos: NeoFeedItem[]): PreviewContent | null {
       url: mediaUrl,
       alt: neo.hazard ? "Potentially hazardous asteroid" : "Near-Earth object",
     },
-    title: neo.name,
-    description: neo.summary,
+    title: sanitizePlainText(neo.name) ?? "Near-Earth object",
+    description: sanitizePlainText(neo.summary),
     metadata: neo.closeApproachTime,
   };
 }
@@ -219,8 +220,8 @@ export function mapNasaItemToRubricItem(nasa: NasaItem): RubricCardItem {
 
   return {
 
-    title: nasa.application.replace(/<[^>]*>/g, ""),
-    detail: nasa.center,
+    title: sanitizePlainText(nasa.application) ?? "NASA asset",
+    detail: sanitizePlainText(nasa.center),
     meta: `${nasa.reference} • ${nasa.patentNumber}`,
     imageUrl,
   };
@@ -232,10 +233,10 @@ export function mapTechTransferItemToRubricItem(item: TechTransferItem): RubricC
 
   return {
     title:
-      item.application?.replace(/<[^>]*>/g, "") ||
-      item.description ||
+      sanitizePlainText(item.application) ||
+      sanitizePlainText(item.description) ||
       "TechTransfer asset",
-      detail: item.center ?? undefined,
+      detail: sanitizePlainText(item.center),
       meta: [item.reference, item.patentNumber].filter(Boolean).join(" • ") ||
       item.releaseDateFormatted,
     imageUrl,
@@ -269,4 +270,3 @@ export function getDailyKeyword(offset: number = 0): string {
 
   return SPACE_KEYWORDS[(index + SPACE_KEYWORDS.length) % SPACE_KEYWORDS.length];
 }
-

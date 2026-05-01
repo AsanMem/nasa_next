@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import BackgroundImage from "../shared/background-image";
 import MainTittle from "../shared/main-tittle";
 import { useValidImageUrl } from "@/app/hooks/useValidImageUrl";
 import { ROUTES } from "@/app/lib/constants/routes";
 import Header from "../header/Header";
 import { useMemo, useState } from "react";
+import { sanitizePlainText } from "@/app/lib/utils/text";
 
 interface PhotoData {
     url?: string;
@@ -64,8 +64,7 @@ function getExtFromUrl(url?: string) {
 }
 
 export default function DayClient({ photoData }: DayClientProps) {
-    const defaultImageUrl =
-        "https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2F4.jpg?alt=media&token=95f397e8-b32c-46f1-aa44-beabb28dc15c";
+    const defaultImageUrl = "/media/starfield/2.png";
     const hasData = Boolean(photoData);
     const validApodUrl = useValidImageUrl(photoData?.url, photoData?.hdurl);
 
@@ -74,11 +73,16 @@ export default function DayClient({ photoData }: DayClientProps) {
 
     const imageUrl = isImage && validApodUrl ? validApodUrl : defaultImageUrl;
     const videoUrl = isVideo ? toYouTubeEmbedUrl(photoData?.url) : undefined;
+    const [backgroundFailed, setBackgroundFailed] = useState(false);
 
     const backgroundUrl = useMemo(() => {
-        if (isImage && validApodUrl) return validApodUrl;
+        if (backgroundFailed) return defaultImageUrl;
+        if (isImage && photoData?.url) return photoData.url;
         return defaultImageUrl;
-    }, [isImage, validApodUrl]);
+    }, [backgroundFailed, isImage, photoData?.url]);
+
+    const explanation = sanitizePlainText(photoData?.explanation);
+    const title = sanitizePlainText(photoData?.title);
 
     const [imgReady, setImgReady] = useState(false);
     const [imgRatio, setImgRatio] = useState<number | null>(null);
@@ -127,12 +131,15 @@ export default function DayClient({ photoData }: DayClientProps) {
         <div className="relative min-h-screen bg-gradient-to-b from-black via-black to-slate-950 text-white">
             <Header />
 
-            <BackgroundImage
+            <img
+                aria-hidden="true"
+                alt=""
                 src={backgroundUrl}
-                className="fixed inset-0 z-0 h-full w-full scale-110 blur-2xl opacity-60"
+                className="pointer-events-none fixed inset-0 z-0 h-full w-full scale-110 object-cover blur-2xl opacity-50"
+                onError={() => setBackgroundFailed(true)}
             />
 
-            <div className="pointer-events-none fixed inset-0 z-10 bg-[radial-gradient(80%_60%_at_50%_30%,rgba(0,0,0,0)_0%,rgba(0,0,0,0.55)_60%,rgba(0,0,0,0.85)_100%)]" />
+            <div className="pointer-events-none fixed inset-0 z-10 bg-[radial-gradient(80%_60%_at_50%_30%,rgba(0,0,0,0.12)_0%,rgba(0,0,0,0.62)_60%,rgba(0,0,0,0.9)_100%)]" />
 
             <div className="relative z-20 mx-auto flex max-w-7xl flex-col gap-6 px-6 py-16">
                 <header className="flex flex-col gap-4">
@@ -140,11 +147,11 @@ export default function DayClient({ photoData }: DayClientProps) {
 
                     <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
                         {hasData
-                            ? (photoData?.title ? `Today is ${photoData.title}` : "Today is NASA highlight")
+                            ? (title ? `Today is ${title}` : "Today is NASA highlight")
                             : "Today’s NASA highlight is updating"}
                     </h1>
 
-                    <p className="text-readable max-w-3xl text-base text-white/70 sm:text-lg">
+                    <p className="text-readable max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
                         {hasData
                             ? "Daily highlights from the cosmos with NASA’s featured media."
                             : "The daily feed is temporarily unavailable. Please check back soon — meanwhile you can explore the Library."}
@@ -237,7 +244,7 @@ export default function DayClient({ photoData }: DayClientProps) {
 
                                 <img
                                     src={imageUrl}
-                                    alt={photoData?.title ?? "APOD image"}
+                                    alt={title ?? "APOD image"}
                                     className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${imgReady ? "opacity-100" : "opacity-0"
                                         }`}
                                     onLoad={(e) => {
@@ -258,7 +265,7 @@ export default function DayClient({ photoData }: DayClientProps) {
                                     <iframe
                                         className="absolute inset-0 h-full w-full"
                                         src={videoUrl}
-                                        title={photoData?.title ?? "APOD video"}
+                                        title={title ?? "APOD video"}
                                         frameBorder="0"
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                         allowFullScreen
@@ -300,7 +307,7 @@ export default function DayClient({ photoData }: DayClientProps) {
                     </div>
 
                     <MainTittle title="" description="" classes="" />
-                    <p className="text-readable text-justify text-sm text-gray-100">{photoData?.explanation}</p>
+                    <p className="text-readable text-justify text-sm leading-relaxed text-gray-100">{explanation}</p>
 
                     <div className="clear-both hidden lg:block" />
                 </section>

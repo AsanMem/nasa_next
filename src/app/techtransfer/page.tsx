@@ -30,36 +30,45 @@ function AssetList({
 
   return (
     <ul className="flex flex-col gap-4">
-      {items.map((item, index) => (
-        <li
-          key={`${item.reference ?? item.patentNumber ?? item.title ?? index}-${index}`}
-          className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10"
-        >
-          <p className="font-semibold text-white">{item.title ?? "Untitled asset"}</p>
-          {item.description ? (
-            <p className="mt-2 text-sm text-white/70">
-              {item.description.length > 240
-                ? `${item.description.slice(0, 240)}…`
-                : item.description}
-            </p>
-          ) : null}
-          <div className="mt-3 flex flex-wrap gap-4 text-xs uppercase tracking-[0.4em] text-white/40">
-            {item.center ? <span>{item.center}</span> : null}
-            {item.releaseDateFormatted ? <span>Released {item.releaseDateFormatted}</span> : null}
-            {item.patentNumber ? <span>#{item.patentNumber}</span> : null}
-          </div>
-          {item.url ? (
-            <a
-              href={item.url}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
-            >
-              View on nasa.gov
-            </a>
-          ) : null}
-        </li>
-      ))}
+      {items.map((item, index) => {
+        const centerIsLong = Boolean(item.center && item.center.length > 80);
+
+        return (
+          <li
+            key={`${item.reference ?? item.patentNumber ?? item.title ?? index}-${index}`}
+            className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10"
+          >
+            <p className="font-semibold text-white">{item.title ?? "Untitled asset"}</p>
+            {item.description ? (
+              <p className="text-readable mt-2 text-sm leading-relaxed text-white/70">
+                {item.description.length > 240
+                  ? `${item.description.slice(0, 240)}…`
+                  : item.description}
+              </p>
+            ) : null}
+            {centerIsLong ? (
+              <p className="text-readable mt-3 text-sm leading-relaxed text-white/70">
+                {item.center}
+              </p>
+            ) : null}
+            <div className="mt-3 flex flex-wrap gap-4 text-xs uppercase tracking-[0.4em] text-white/40">
+              {item.center && !centerIsLong ? <span>{item.center}</span> : null}
+              {item.releaseDateFormatted ? <span>Released {item.releaseDateFormatted}</span> : null}
+              {item.patentNumber ? <span>#{item.patentNumber}</span> : null}
+            </div>
+            {item.url ? (
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
+              >
+                View on nasa.gov
+              </a>
+            ) : null}
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -78,7 +87,7 @@ export default async function TechTransferPage() {
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             NASA patents & software ready for collaboration
           </h1>
-          <p className="max-w-3xl text-base text-white/70 sm:text-lg">
+          <p className="text-readable max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
             Access innovations cleared for industry adoption, fetched server-side and cached daily to
             give you a reliable snapshot of NASA’s transfer pipeline.
           </p>
@@ -95,7 +104,7 @@ export default async function TechTransferPage() {
             <div>
               <p className="text-xs uppercase tracking-[0.4em] text-white/50">Patents</p>
               <h2 className="text-2xl font-semibold tracking-tight">Technology transfer patents</h2>
-              <p className="mt-2 text-sm text-white/60">
+              <p className="text-readable mt-2 text-sm leading-relaxed text-white/60">
                 Filtered daily. Perfect for scouting NASA-developed solutions ready for licensing.
               </p>
             </div>
@@ -106,7 +115,7 @@ export default async function TechTransferPage() {
             <div>
               <p className="text-xs uppercase tracking-[0.4em] text-white/50">Software</p>
               <h2 className="text-2xl font-semibold tracking-tight">Open NASA software</h2>
-              <p className="mt-2 text-sm text-white/60">
+              <p className="text-readable mt-2 text-sm leading-relaxed text-white/60">
                 Server-rendered catalogue of reusable NASA-developed software packages.
               </p>
             </div>

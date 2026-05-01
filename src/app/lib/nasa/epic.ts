@@ -23,7 +23,7 @@ const EPIC_FALLBACK_IMAGE: EpicImage = {
   caption: "EPIC Earth image temporarily unavailable",
   image: "local-epic-fallback",
   date: "2024-01-01 00:00:00",
-  imageUrl: "/media/main/1.jpg",
+  imageUrl: "/media/main/1.optimized.webp",
 };
 
 function buildEpicEndpoint(date?: string) {

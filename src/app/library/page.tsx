@@ -55,6 +55,7 @@ export default async function LibraryPage() {
   ] as const);
   const donki: DonkiNotificationItem[] =
     donkiResult.status === "fulfilled" ? donkiResult.value : [];
+  const liveDonki = donki.filter((item) => !item.isFallback);
   const eonet: EonetEvent[] = eonetResult.status === "fulfilled" ? eonetResult.value : [];
   const neos: NeoFeedItem[] = neosResult.status === "fulfilled" ? neosResult.value : [];
   const apod: ApodItem | null = apodResult.status === "fulfilled" ? apodResult.value : null;
@@ -68,7 +69,7 @@ export default async function LibraryPage() {
   const software: TechTransferItem[] =
     softwareResult.status === "fulfilled" ? softwareResult.value : [];
 
-  const newsFeed = await buildNewsFeed(donki, eonet, neos);
+  const newsFeed = await buildNewsFeed(liveDonki, eonet, neos);
 
 
   const techTransferRubricItems: RubricCardItem[] = [
@@ -245,7 +246,7 @@ export default async function LibraryPage() {
             title="Space Weather Monitor"
             description="DONKI notifications curated for quick situational awareness."
             href={ROUTES.spaceWeather}
-            items={donki.map((item) => ({
+            items={liveDonki.map((item) => ({
               title: item.messageTitle ?? item.messageType ?? "Space weather alert",
               detail: item.messageBody?.slice(0, 120),
               meta: item.formattedTime,

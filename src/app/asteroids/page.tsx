@@ -23,7 +23,8 @@ export default async function Asteroids() {
     <>
       <Header />
       <BackgroundVideo
-        src="https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fvideos%2F127578-738829608_medium.mp4?alt=media&token=7a66201a-19c5-4b84-a3a0-37b2db6b7da7"
+        src="/media/stack_videos/127578-738829608_medium.optimized.mp4"
+        poster="/media/stack_videos/127578-738829608_medium.poster.jpg"
         loop={false}
       />
 

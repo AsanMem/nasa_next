@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ROUTES } from "@/app/lib/constants/routes";
 import { fetchDonkiNotifications } from "@/app/lib/nasa/donki";
+import { sanitizePlainText } from "@/app/lib/utils/text";
 import { extractImageUrlsFromText } from "../ui/library/helpers";
 
 
@@ -23,7 +24,7 @@ export default async function SpaceWeatherPage() {
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             Space weather alerts from NASA DONKI
           </h1>
-          <p className="max-w-3xl text-base text-white/70 sm:text-lg">
+          <p className="text-readable max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
             These notifications are refreshed every 30 minutes using incremental static regeneration.
             Keep an eye on solar activity, geomagnetic storms, and more—without client-side fetching.
           </p>
@@ -39,6 +40,8 @@ export default async function SpaceWeatherPage() {
           {notifications.length > 0 ? (
             notifications.map((notification) => {
               const imageUrls = extractImageUrlsFromText(notification.messageBody);
+              const messageBody = sanitizePlainText(notification.messageBody);
+              const messageTitle = sanitizePlainText(notification.messageTitle);
 
               return (
                 <article
@@ -50,7 +53,7 @@ export default async function SpaceWeatherPage() {
                       {notification.messageType ?? "Notification"}
                     </p>
                     <h2 className="text-2xl font-semibold tracking-tight">
-                      {notification.messageTitle ?? "Space weather alert"}
+                      {messageTitle ?? "Space weather alert"}
                     </h2>
                     {notification.formattedTime ? (
                       <p className="text-xs uppercase tracking-[0.4em] text-white/50">
@@ -70,7 +73,7 @@ export default async function SpaceWeatherPage() {
                           <img
                             src={url}
                             alt={
-                              notification.messageTitle ??
+                              messageTitle ??
                               notification.messageType ??
                               "Space weather visualization"
                             }
@@ -81,8 +84,8 @@ export default async function SpaceWeatherPage() {
                     </div>
                   )}
 
-                  <p className="mt-4 whitespace-pre-line text-sm text-white/70">
-                    {notification.messageBody ?? "Details are not available for this notification."}
+                  <p className="text-readable mt-4 whitespace-pre-line text-sm leading-relaxed text-white/70">
+                    {messageBody ?? "Details are not available for this notification."}
                   </p>
 
                   {notification.messageURL ? (
@@ -100,7 +103,7 @@ export default async function SpaceWeatherPage() {
             })
           ) : (
             <div className={CARD_CLASS}>
-              <p className="text-sm text-white/60">
+              <p className="text-readable text-sm leading-relaxed text-white/60">
                 Space weather notifications are currently unavailable. NASA’s DONKI service might be
                 updating—try again shortly.
               </p>
@@ -112,4 +115,3 @@ export default async function SpaceWeatherPage() {
     </div>
   );
 }
-

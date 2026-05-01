@@ -37,8 +37,8 @@ export function generateViewport(): Viewport {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${bungee.variable} ${spaceGrotesk.variable} w-full h-full min-h-[100vh]`}>
+    <html lang="en" className="bg-black">
+      <body className={`${bungee.variable} ${spaceGrotesk.variable} w-full h-full min-h-[100vh] overflow-x-hidden bg-black`}>
         {children}
       </body>
     </html >

@@ -3,9 +3,9 @@ import Image from "next/image";
 export function renderEonetPreview() {
     const gallery = [
         { url: "/media/eonet/1.jpg", alt: "EONET preview 1" },
-        { url: "/media/eonet/2.jpg", alt: "EONET preview 2" },
-        { url: "/media/eonet/3.jpg", alt: "EONET preview 3" },
-        { url: "/media/eonet/4.jpg", alt: "EONET preview 4" },
+        { url: "/media/eonet/2.optimized.webp", alt: "EONET preview 2" },
+        { url: "/media/eonet/3.optimized.webp", alt: "EONET preview 3" },
+        { url: "/media/eonet/4.optimized.webp", alt: "EONET preview 4" },
     ];
 
     return (

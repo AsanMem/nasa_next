@@ -20,7 +20,7 @@ const APOD_FALLBACK: ApodItem = {
   explanation:
     "NASA's live Astronomy Picture of the Day feed is temporarily unavailable. This local fallback keeps the page available while the API key or upstream service is restored.",
   media_type: "image",
-  url: "/media/main/1.jpg",
+  url: "/media/main/1.optimized.webp",
 };
 
 function logApod(message: string) {
@@ -60,6 +60,5 @@ export async function fetchApod(): Promise<ApodItem | null> {
   logApod("NASA APOD fetch failed or returned invalid data; using static fallback.");
   return APOD_FALLBACK;
 }
-
 
 

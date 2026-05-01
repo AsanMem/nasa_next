@@ -36,12 +36,12 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
 
             // Создание сцены, камеры и рендерера
             const scene = new THREE.Scene();
-            scene.background = new THREE.CubeTextureLoader()
-                .load([]);
+            scene.background = new THREE.Color(0x02030a);
 
             const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(width, height);
+            renderer.setClearColor(0x02030a, 1);
             mountRef.current.appendChild(renderer.domElement);
 
             // Настройка освещения
@@ -60,27 +60,14 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
                         try {
                             const texture = await new Promise<THREE.Texture>((resolve, reject) => {
                                 new THREE.TextureLoader().load(
-                                    urlTexture, // Используем URL с токеном напрямую
+                                    urlTexture,
                                     (loadedTexture) => {
                                         resolve(loadedTexture);
                                     },
                                     undefined,
                                     (err) => {
                                         console.error('Texture loading error:', err);
-                                        // Fallback:через прокси если прямая загрузка не работает
-                                        const proxyUrl = `/api/texture?url=${encodeURIComponent(urlTexture)}`;
-
-                                        new THREE.TextureLoader().load(
-                                            proxyUrl,
-                                            (proxyTexture) => {
-                                                resolve(proxyTexture);
-                                            },
-                                            undefined,
-                                            (proxyErr) => {
-                                                console.error('Proxy texture loading failed:', proxyErr);
-                                                reject(proxyErr);
-                                            }
-                                        );
+                                        reject(err);
                                     }
                                 );
                             });
@@ -106,7 +93,14 @@ const AsteroidScene: React.FC<ThreeSceneProps> = ({ asteroid, asteroidIndex, dia
 
                     // Создание звезд
                     const starGeometry = new THREE.BufferGeometry();
-                    const starMaterial = new THREE.PointsMaterial({ color: 0xffffff });
+                    const starMaterial = new THREE.PointsMaterial({
+                        color: 0xffffff,
+                        size: 1.25,
+                        sizeAttenuation: true,
+                        transparent: true,
+                        opacity: 0.85,
+                        depthWrite: false,
+                    });
 
                     const starVertices = [];
                     for (let i = 0; i < 10000; i++) {

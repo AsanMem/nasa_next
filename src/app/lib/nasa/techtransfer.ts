@@ -1,4 +1,5 @@
 import { fetchJsonSafe, formatDubaiDate } from "./api";
+import { sanitizePlainText } from "../utils/text";
 
 const TECHTRANSFER_PATENT_ENDPOINT = "https://technology.nasa.gov/api/api/patent/rocket";
 const TECHTRANSFER_SOFTWARE_ENDPOINT =
@@ -41,10 +42,10 @@ function mapTechTransferItem(item: TechTransferRawItem): TechTransferItem {
   ] = item;
 
   return {
-    title,
-    description,
-    application,
-    center,
+    title: sanitizePlainText(title),
+    description: sanitizePlainText(description),
+    application: sanitizePlainText(application),
+    center: sanitizePlainText(center),
     reference,
     patentNumber,
     url,

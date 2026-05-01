@@ -60,13 +60,13 @@ export default async function Page({
     <>
       <Header />
       <BackgroundImage
-        src="https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2F5.jpg?alt=media&token=41e8c6f8-4527-4215-adf0-0258a76924a6"
-        className="fixed left-0 top-0 z-0 h-full w-full blur-[1px]"
+        src="/media/starfield/2.png"
+        className="fixed left-0 top-0 z-0 h-full w-full opacity-80"
       />
 
       <main className="relative min-h-screen overflow-hidden text-white">
 
-        <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-black/70 via-black/80 to-slate-950/95" />
+        <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-black/35 via-black/55 to-slate-950/85" />
 
         <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
 

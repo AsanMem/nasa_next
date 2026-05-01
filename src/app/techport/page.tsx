@@ -22,7 +22,7 @@ export default async function TechportPage() {
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             NASA technology portfolio
           </h1>
-          <p className="max-w-3xl text-base text-white/70 sm:text-lg">
+          <p className="text-readable max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
             A curated feed of NASA’s latest technology initiatives. Each project is fetched
             server-side and cached for 24 hours to balance freshness with stability.
           </p>
@@ -50,7 +50,7 @@ export default async function TechportPage() {
               </article>
             ))
           ) : (
-            <div className="rounded-3xl bg-white/5 p-6 text-sm text-white/60 ring-1 ring-white/10 md:col-span-2">
+            <div className="text-readable rounded-3xl bg-white/5 p-6 text-sm leading-relaxed text-white/60 ring-1 ring-white/10 md:col-span-2">
               No Techport data is available right now. Try again later or open an individual project
               if you already know its identifier.
             </div>
@@ -60,4 +60,3 @@ export default async function TechportPage() {
     </div>
   );
 }
-

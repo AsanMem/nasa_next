@@ -9,9 +9,8 @@ import { ROUTES } from "@/app/lib/constants/routes";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const VIDEO_URL =
-    "https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fvideos%2FISS071-E-226528-227449-20240625-Night.mp4?alt=media&token=b1936d11-9e58-471b-b4a7-df92c16653f9";
-const SAFE_VIDEO_URL = VIDEO_URL.replace(/\\\?/g, "?");
+const VIDEO_URL = "/media/stack_videos/ISS071-E-226528-227449-20240625-Night.optimized.mp4";
+const POSTER_URL = "/media/stack_videos/ISS071-E-226528-227449-20240625-Night.poster.jpg";
 
 type Layer = {
     id: string;
@@ -299,15 +298,16 @@ export default function HeroParallax(): JSX.Element {
 
                     }}
                 >
+                 
                     <video
                         ref={videoRef}
                         className="h-full w-full object-cover"
-                        src={SAFE_VIDEO_URL}
-                        poster="/media/main/1.jpg"
+                        src={VIDEO_URL}
+                        poster={POSTER_URL}
                         playsInline
                         muted
                         loop
-                        preload="auto"
+                        preload="metadata"
                         controls={false}
                         disablePictureInPicture
                         onLoadedData={() => {
@@ -338,7 +338,16 @@ export default function HeroParallax(): JSX.Element {
                             transition: "opacity 600ms ease",
                         }}
                     />
+
                 </div>
+
+                <div
+                    className="pointer-events-none absolute inset-x-0 bottom-[-1px] h-[280px] max-h-[55%]"
+                    style={{
+                        background:
+                            "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.65) 55%, #000 100%)",
+                    }}
+                />
 
                 <div
                     className="pointer-events-none absolute inset-0"

@@ -1,37 +1,53 @@
 interface BackgroundVideoProps {
     src?: string;
+    poster?: string;
     className?: string;
     loop?: boolean;
     autoPlay?: boolean;
 }
 
 const DEFAULT_VIDEO =
-    "https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fvideos%2FISS071-E-226528-227449-20240625-Night.mp4?alt=media&token=b1936d11-9e58-471b-b4a7-df92c16653f9";
+    "/media/stack_videos/ISS071-E-226528-227449-20240625-Night.optimized.mp4";
+const DEFAULT_POSTER =
+    "/media/stack_videos/ISS071-E-226528-227449-20240625-Night.poster.jpg";
 
 export default function BackgroundVideo({
     src,
+    poster,
     className = "",
     loop = true,
     autoPlay = true,
 }: BackgroundVideoProps) {
     return (
-        <video
-            className={
-                "fixed w-full left-1/2 top-1/2 h-full object-cover transform -translate-x-1/2 -translate-y-1/2 z-0 " +
-                className
-            }
-            autoPlay={autoPlay}
-            loop={loop}
-            muted
-            playsInline
-            style={{ zIndex: -1 }}
-            rel="preload"
+        <div
+            aria-hidden
+            className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black"
         >
-            <source
-                src={src || DEFAULT_VIDEO}
-                type="video/mp4"
+            <video
+                className={
+                    "absolute inset-0 h-full w-full object-cover " +
+                    className
+                }
+                autoPlay={autoPlay}
+                loop={loop}
+                muted
+                playsInline
+                poster={poster || DEFAULT_POSTER}
+                preload="metadata"
+            >
+                <source
+                    src={src || DEFAULT_VIDEO}
+                    type="video/mp4"
+                />
+                Your browser does not support the video tag.
+            </video>
+            <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-[260px] max-h-[45vh]"
+                style={{
+                    background:
+                        "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.65) 55%, #000 100%)",
+                }}
             />
-            Your browser does not support the video tag.
-        </video>
+        </div>
     );
 }

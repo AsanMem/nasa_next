@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ROUTES } from "@/app/lib/constants/routes";
 import { fetchTechportProject } from "@/app/lib/nasa/techport";
+import { sanitizePlainText } from "@/app/lib/utils/text";
 
 type TechportProjectPageProps = {
   params: {
@@ -34,6 +35,10 @@ export default async function TechportProjectPage({ params }: TechportProjectPag
     notFound();
   }
 
+  const description =
+    sanitizePlainText(project.description) ?? "This project does not have a public description yet.";
+  const benefits = sanitizePlainText(project.benefits);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-black to-slate-950 text-white">
       <div className="mx-auto flex max-w-4xl flex-col gap-8 px-6 py-16">
@@ -57,15 +62,15 @@ export default async function TechportProjectPage({ params }: TechportProjectPag
 
         <section className={CARD_CLASS}>
           <h2 className="text-xl font-semibold tracking-tight text-white">Overview</h2>
-          <p className="mt-3 whitespace-pre-line text-sm text-white/70">
-            {project.description ?? "This project does not have a public description yet."}
+          <p className="text-readable mt-3 whitespace-pre-line text-sm leading-relaxed text-white/70">
+            {description}
           </p>
-          {project.benefits ? (
+          {benefits ? (
             <div className="mt-6 border-t border-white/10 pt-4">
               <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
                 Benefits
               </h3>
-              <p className="mt-2 whitespace-pre-line text-sm text-white/70">{project.benefits}</p>
+              <p className="text-readable mt-2 whitespace-pre-line text-sm leading-relaxed text-white/70">{benefits}</p>
             </div>
           ) : null}
         </section>
@@ -74,7 +79,7 @@ export default async function TechportProjectPage({ params }: TechportProjectPag
           <section className={CARD_CLASS}>
             <h2 className="text-lg font-semibold tracking-tight text-white">Lead Organization</h2>
             {project.leadOrganization ? (
-              <div className="mt-3 text-sm text-white/70">
+              <div className="text-readable mt-3 text-sm text-white/70">
                 <p className="font-semibold text-white">{project.leadOrganization.name}</p>
                 {project.leadOrganization.type ? (
                   <p className="mt-1 text-xs uppercase tracking-[0.4em] text-white/40">
@@ -83,14 +88,14 @@ export default async function TechportProjectPage({ params }: TechportProjectPag
                 ) : null}
               </div>
             ) : (
-              <p className="mt-3 text-sm text-white/60">No lead organization data available.</p>
+              <p className="text-readable mt-3 text-sm text-white/60">No lead organization data available.</p>
             )}
           </section>
 
           <section className={CARD_CLASS}>
             <h2 className="text-lg font-semibold tracking-tight text-white">Supporting Teams</h2>
             {project.supportingOrganizations && project.supportingOrganizations.length > 0 ? (
-              <ul className="mt-3 flex flex-col gap-3 text-sm text-white/70">
+              <ul className="text-readable mt-3 flex flex-col gap-3 text-sm text-white/70">
                 {project.supportingOrganizations.map((org, index) => (
                   <li
                     key={`${org?.name ?? "support"}-${index}`}
@@ -104,7 +109,7 @@ export default async function TechportProjectPage({ params }: TechportProjectPag
                 ))}
               </ul>
             ) : (
-              <p className="mt-3 text-sm text-white/60">
+              <p className="text-readable mt-3 text-sm text-white/60">
                 No supporting organizations listed for this project.
               </p>
             )}

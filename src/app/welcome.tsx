@@ -12,25 +12,25 @@ const SECTIONS = [
         title: "Galaxies",
         description: "Chart luminous clusters, swirling nebulae, and the stories written across distant light-years.",
         href: "/gallery?page=1&query=galaxies",
-        background: "/media/main/4.jpg"
+        background: "/media/main/4.optimized.webp"
     },
     {
         title: "Asteroids",
         description: "Navigate through rugged celestial fragments and uncover data from the asteroid belt.",
         href: "/asteroids",
-        background: "/media/main/1.png"
+        background: "/media/main/1.optimized.webp"
     },
     {
         title: "Missions",
         description: "Follow the critical missions propelling humanity further into the unknown cosmos.",
         href: "/video",
-        background: "/media/main/3.jpg"
+        background: "/media/main/3.optimized.webp"
     },
     {
         title: "Gallery",
         description: "Immerse yourself in curated imagery direct from NASA archives and beyond.",
         href: "/gallery",
-        background: "/media/main/2.jpg"
+        background: "/media/main/2.optimized.webp"
     }
 ] as const;
 

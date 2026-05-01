@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { sanitizePlainText } from "@/app/lib/utils/text";
 import { BUTTON_CLASS, SECTION_CARD_CLASS } from "./constants";
 
 export type RubricCardItem = {
@@ -49,15 +50,9 @@ export function RubricCard({ title, description, href, items }: RubricCardProps)
                                 </div>
                             ) : null}
                             {item.detail ? (
-                                <div
-                                    className={`
-                    text-readable mt-2 text-white/70 text-sm
-                    prose prose-invert prose-sm max-w-none
-                    [&_.highlight]:text-amber-300
-                    [&_.highlight]:font-semibold
-                  `}
-                                    dangerouslySetInnerHTML={{ __html: item.detail }}
-                                />
+                                <p className="text-readable mt-2 text-sm leading-relaxed text-white/70">
+                                    {sanitizePlainText(item.detail)}
+                                </p>
                             ) : null}
 
                             {item.meta ? (
