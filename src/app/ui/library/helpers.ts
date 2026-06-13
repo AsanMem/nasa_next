@@ -9,6 +9,7 @@ import { TechTransferItem } from "@/app/lib/nasa/techtransfer";
 import { RubricCardItem } from "./rubric-сard";
 import { sanitizePlainText, truncatePlainText } from "@/app/lib/utils/text";
 import { getNasaUtcDate } from "@/app/lib/nasa/api";
+import { resolveEonetLocation } from "@/app/lib/nasa/eonet-location";
 
 export async function buildNewsFeed(
   donki: DonkiNotificationItem[],
@@ -38,6 +39,8 @@ export async function buildNewsFeed(
     title: sanitizePlainText(event.title) ?? "Earth observation update",
     summary: event.categories?.map((category) => category.title).join(", "),
     timestamp: event.formattedDate,
+    category: event.categories?.[0]?.title,
+    location: resolveEonetLocation(event.geometry),
   }));
 
   const neoItems: NewsItem[] = neos.map((neo) => ({

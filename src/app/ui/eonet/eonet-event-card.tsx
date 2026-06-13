@@ -1,24 +1,35 @@
 "use client";
 
 import type { EonetEvent } from "@/app/lib/nasa/eonet";
+import { resolveEonetLocation } from "@/app/lib/nasa/eonet-location";
 import { CARD_CLASS } from "./constants";
 import { EventVisual } from "./event-visual";
+import { LocationPreview } from "./location-preview";
 
 type Props = {
   event: EonetEvent;
 };
 
 export default function EonetEventCard({ event }: Props) {
-  const coordinates = event.geometry?.[0]?.coordinates;
+  const location = resolveEonetLocation(event.geometry);
   const mainCategory = event.categories?.[0]?.title;
 
   return (
-    <article className={CARD_CLASS}>
-      <div className="flex gap-4">
+    <article className={`${CARD_CLASS} flex min-h-[430px] flex-col`}>
+      <div className="flex min-h-[178px] gap-4">
         <div className="flex flex-1 flex-col gap-2">
           <p className="text-xs uppercase tracking-[0.4em] text-white/40">Event</p>
 
-          <h2 className="text-lg font-semibold leading-snug">
+          <h2
+            className="min-h-[4.25rem] text-lg font-semibold leading-snug"
+            title={event.title}
+            style={{
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
             {event.title}
           </h2>
 
@@ -29,8 +40,8 @@ export default function EonetEventCard({ event }: Props) {
           )}
 
           {event.categories?.length ? (
-            <ul className="mt-2 flex flex-wrap gap-2 text-xs uppercase tracking-[0.3em] text-white/50">
-              {event.categories.map((category) => (
+            <ul className="mt-auto flex max-h-16 flex-wrap gap-2 overflow-hidden text-xs uppercase tracking-[0.3em] text-white/50">
+              {event.categories.slice(0, 3).map((category) => (
                 <li
                   key={`${event.id}-${category.id}`}
                   className="rounded-full bg-white/10 px-3 py-1"
@@ -45,16 +56,9 @@ export default function EonetEventCard({ event }: Props) {
         <EventVisual category={mainCategory} compact />
       </div>
 
-      <div className="text-readable mt-4 flex flex-col gap-2 text-sm text-white/70">
-        {coordinates && (
-          <p>
-            Coordinates:{" "}
-            {coordinates
-              .map((v) => (typeof v === "number" ? v.toFixed(2) : v))
-              .join(", ")}
-          </p>
-        )}
+      {location ? <LocationPreview location={location} /> : null}
 
+      <div className="text-readable mt-4 flex flex-col gap-2 text-sm text-white/70">
         {event.sources?.length ? (
           <p className="text-xs uppercase tracking-[0.3em] text-white/40">
             Sources: {event.sources.map((s) => s.id).join(", ")}

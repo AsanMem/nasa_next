@@ -22,6 +22,8 @@ import { BUTTON_CLASS, PREVIEW_SECTIONS, PreviewContent } from "../ui/library/co
 import { RubricCard, RubricCardItem } from "../ui/library/rubric-сard";
 import { buildNewsFeed, formatNasaSummaryText, getApodPreview, getDailyKeyword, getEpicPreview, getFirstAssetPreview, getNeoPreview, mapTechTransferItemToRubricItem } from "../ui/library/helpers";
 import { PreviewCard } from "../ui/library/preview-card";
+import { CATEGORY_ICON_MAP } from "../ui/eonet/constants";
+import { LocationBadge } from "../ui/eonet/location-badge";
 
 export const revalidate = 43200;
 
@@ -198,43 +200,75 @@ export default async function LibraryPage() {
           </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {newsFeed.length > 0 ? (
-              newsFeed.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex flex-col gap-3 rounded-3xl bg-white/5 p-5 ring-1 ring-white/10 backdrop-blur"
-                >
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.4em]">
-                    <span className="text-white/60">{item.type}</span>
-                    <span className="text-white/40">{item.source}</span>
-                  </div>
-                  <h3 className="text-lg font-semibold tracking-tight text-white">{item.title}</h3>
-                  {item.imageUrls && item.imageUrls.length > 0 && (
-                    <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
-                      {item.imageUrls.slice(0, 2).map((url) => (
-                        <div
-                          key={url}
-                          className="relative h-24 w-32 flex-shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/5"
-                        >
-                          <img
-                            src={url}
-                            alt={item.title}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                      ))}
+              newsFeed.map((item) => {
+                const isEonet = item.source === "EONET";
+                const eonetCategory = isEonet ? item.category : undefined;
+                const eonetLocation = isEonet ? item.location : undefined;
+                const eonetIcon = eonetCategory ? CATEGORY_ICON_MAP[eonetCategory] : undefined;
+
+                return (
+                  <div
+                    key={item.id}
+                    className="flex flex-col gap-3 rounded-3xl bg-white/5 p-5 ring-1 ring-white/10 backdrop-blur"
+                  >
+                    <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.4em]">
+                      <span className="text-white/60">{item.type}</span>
+                      <span className="text-white/40">{item.source}</span>
                     </div>
-                  )}
-                  {item.summary ? <p className="text-readable text-sm text-white/70">{item.summary}</p> : null}
-                  <div className="text-readable mt-auto flex items-center justify-between text-xs text-white/40">
-                    <span>{item.timestamp ?? "Recent"}</span>
-                    <span>
-                      {item.source === "DONKI" && "Space Weather"}
-                      {item.source === "EONET" && "Earth Watch"}
-                      {item.source === "NeoWS" && "Asteroids"}
-                    </span>
+
+                    <div className="flex min-h-[4.5rem] items-start gap-3">
+                      {eonetIcon ? (
+                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/10">
+                          <img
+                            src={eonetIcon}
+                            alt={eonetCategory ?? "Earth event"}
+                            className="h-6 w-6 opacity-80"
+                          />
+                        </span>
+                      ) : null}
+                      <h3
+                        className="text-lg font-semibold tracking-tight text-white"
+                        title={item.title}
+                        style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {item.title}
+                      </h3>
+                    </div>
+
+                    {item.imageUrls && item.imageUrls.length > 0 && (
+                      <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+                        {item.imageUrls.slice(0, 2).map((url) => (
+                          <div
+                            key={url}
+                            className="relative h-24 w-32 flex-shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/5"
+                          >
+                            <img
+                              src={url}
+                              alt={item.title}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {item.summary ? <p className="text-readable text-sm text-white/70">{item.summary}</p> : null}
+                    {eonetLocation ? <LocationBadge location={eonetLocation} /> : null}
+                    <div className="text-readable mt-auto flex items-center justify-between text-xs text-white/40">
+                      <span>{item.timestamp ?? "Recent"}</span>
+                      <span>
+                        {item.source === "DONKI" && "Space Weather"}
+                        {item.source === "EONET" && "Earth Watch"}
+                        {item.source === "NeoWS" && "Asteroids"}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-readable rounded-3xl bg-white/5 p-6 text-sm text-white/60 ring-1 ring-white/10">
                 Space weather feed is cooling off right now. Revisit in a few moments.

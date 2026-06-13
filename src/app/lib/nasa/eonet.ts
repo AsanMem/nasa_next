@@ -11,7 +11,7 @@ export type EonetEventCategory = {
 export type EonetGeometry = {
   date: string;
   type: string;
-  coordinates: number[];
+  coordinates: unknown;
 };
 
 export type EonetEvent = {

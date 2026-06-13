@@ -1,4 +1,5 @@
 import { ROUTES } from "@/app/lib/constants/routes";
+import type { EonetLocation } from "@/app/lib/nasa/eonet-location";
 
 export type NewsItem =
   | {
@@ -18,6 +19,8 @@ export type NewsItem =
     summary?: string;
     timestamp?: string;
     imageUrls?: string[];
+    category?: string;
+    location?: EonetLocation;
   }
   | {
     id: string;
