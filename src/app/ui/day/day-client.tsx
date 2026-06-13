@@ -147,8 +147,8 @@ export default function DayClient({ photoData }: DayClientProps) {
 
                     <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
                         {hasData
-                            ? (title ? `Today is ${title}` : "Today is NASA highlight")
-                            : "Today’s NASA highlight is updating"}
+                            ? (title ? `NASA highlight: ${title}` : "NASA media highlight")
+                            : "NASA highlight is updating"}
                     </h1>
 
                     <p className="text-readable max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
@@ -181,7 +181,7 @@ export default function DayClient({ photoData }: DayClientProps) {
                         style={{
                             aspectRatio: String(containerAspect),
                             maxHeight: isImage ? "85vh" : "70vh",
-                            minHeight: isImage ? "420px" : "240px",
+                            minHeight: isImage ? undefined : "240px",
                         }}
                     >
 
@@ -243,9 +243,16 @@ export default function DayClient({ photoData }: DayClientProps) {
                                 )}
 
                                 <img
+                                    aria-hidden="true"
+                                    src={imageUrl}
+                                    alt=""
+                                    className="absolute inset-0 h-full w-full scale-110 object-cover opacity-45 blur-xl"
+                                />
+
+                                <img
                                     src={imageUrl}
                                     alt={title ?? "APOD image"}
-                                    className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${imgReady ? "opacity-100" : "opacity-0"
+                                    className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-500 ${imgReady ? "opacity-100" : "opacity-0"
                                         }`}
                                     onLoad={(e) => {
                                         const el = e.currentTarget;
@@ -279,7 +286,7 @@ export default function DayClient({ photoData }: DayClientProps) {
                                 <div className="max-w-md">
                                     <p className="text-xs uppercase tracking-[0.4em] text-white/40">Media of the day</p>
                                     <h3 className="mt-2 text-lg font-semibold text-white">
-                                        Today’s highlight is updating
+                                        NASA highlight is updating
                                     </h3>
                                     <p className="text-readable mt-2 text-sm text-white/70">
                                         NASA’s daily feed is temporarily unavailable. Please check back soon.

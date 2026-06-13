@@ -13,20 +13,19 @@ const MONTH_SHORT = [
     "Dec",
 ];
 
-export function formatMetadataDate(raw?: string | null): string | undefined {
+export function formatMetadataDate(
+    raw?: string | null,
+    { includeTime = false }: { includeTime?: boolean } = {},
+): string | undefined {
     if (!raw || !raw.trim()) {
-        const date = new Date();
-        const day = String(date.getUTCDate()).padStart(2, "0");
-        const month = MONTH_SHORT[date.getUTCMonth()];
-        const year = date.getUTCFullYear();
-        return `${day} ${month} ${year}`;
+        return undefined;
     }
     const value = raw.trim();
 
    
-    const targetPattern = /^\d{2} [A-Za-z]{3} \d{4}, \d{2}:\d{2}$/;
+    const targetPattern = /^\d{2} [A-Za-z]{3} \d{4}(?:, \d{2}:\d{2})?$/;
     if (targetPattern.test(value)) {
-        return value;
+        return includeTime ? value : value.replace(/,\s*\d{2}:\d{2}$/, "");
     }
 
     let date: Date | null = null;
@@ -62,8 +61,11 @@ export function formatMetadataDate(raw?: string | null): string | undefined {
     const day = String(date.getUTCDate()).padStart(2, "0");
     const month = MONTH_SHORT[date.getUTCMonth()];
     const year = date.getUTCFullYear();
+    if (!includeTime) {
+        return `${day} ${month} ${year}`;
+    }
+
     const hours = String(date.getUTCHours()).padStart(2, "0");
     const minutes = String(date.getUTCMinutes()).padStart(2, "0");
-
     return `${day} ${month} ${year}, ${hours}:${minutes}`;
 }

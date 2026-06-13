@@ -21,6 +21,9 @@ export function PreviewCard({
         section.key === "images" || section.key === "videos";
     const isEpicSection = section.key === "epic";
     const isAsteroid = section.key === "neos";
+    const metadata = formatMetadataDate(content?.metadata, {
+        includeTime: isEpicSection || isAsteroid,
+    });
 
     const isEonetSection = section.key === "eonet";
     const href =
@@ -62,9 +65,11 @@ export function PreviewCard({
                     {content?.description ?? section.description}
                 </p>
 
-                <p className="text-xs uppercase tracking-[0.4em] text-white/40">
-                    {formatMetadataDate(content?.metadata)}
-                </p>
+                {metadata ? (
+                    <p className="text-xs uppercase tracking-[0.4em] text-white/40">
+                        {metadata}
+                    </p>
+                ) : null}
             </div>
 
             <div className="flex-1" />

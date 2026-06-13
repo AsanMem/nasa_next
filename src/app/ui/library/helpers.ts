@@ -8,6 +8,7 @@ import { EpicImage } from "@/app/lib/nasa/epic";
 import { TechTransferItem } from "@/app/lib/nasa/techtransfer";
 import { RubricCardItem } from "./rubric-сard";
 import { sanitizePlainText, truncatePlainText } from "@/app/lib/utils/text";
+import { getNasaUtcDate } from "@/app/lib/nasa/api";
 
 export async function buildNewsFeed(
   donki: DonkiNotificationItem[],
@@ -24,7 +25,7 @@ export async function buildNewsFeed(
       type: "Space Weather",
       source: "DONKI",
       title: sanitizePlainText(item.messageTitle) ?? item.messageType ?? "Space weather alert",
-      summary: truncatePlainText(item.messageBody, 200),
+      summary: formatNasaSummaryText(item.messageBody, 200),
       timestamp: item.formattedTime,
       imageUrls,
     };
@@ -248,7 +249,33 @@ export function extractImageUrlsFromText(text?: string): string[] {
   const regex = /(https?:\/\/[^\s'"]+\.(?:png|jpe?g|gif|webp))/gi;
   const matches = text.match(regex);
   if (!matches) return [];
-  return Array.from(new Set(matches));
+  return Array.from(new Set(matches.map(cleanUrlToken)));
+}
+
+export function extractSourceUrlsFromText(text?: string): string[] {
+  if (!text) return [];
+  const matches = text.match(/https?:\/\/[^\s'")\]]+/gi);
+  if (!matches) return [];
+
+  return Array.from(new Set(matches.map(cleanUrlToken))).filter(
+    (url) => !/\.(?:png|jpe?g|gif|webp)$/i.test(url),
+  );
+}
+
+export function formatNasaSummaryText(text?: string | null, maxLength = 360): string | undefined {
+  if (!text) return undefined;
+
+  const withoutMarkdownLinks = text.replace(/\[([^\]]+)\]\(https?:\/\/[^)]+\)/gi, "$1");
+  const withoutUrls = withoutMarkdownLinks.replace(/https?:\/\/[^\s'")\]]+/gi, " ");
+  const withoutCoordinates = withoutUrls.replace(
+    /\b(?:lat(?:itude)?|lon(?:gitude)?|coordinates?|coord)\b\s*[:=]?\s*[-+\d.,\s]+/gi,
+    " ",
+  );
+  const withoutMarkdown = withoutCoordinates
+    .replace(/[*_`#>]+/g, " ")
+    .replace(/\s*[-=]{3,}\s*/g, " ");
+
+  return truncatePlainText(withoutMarkdown, maxLength);
 }
 
 export function extractImageUrlFromRaw(raw: Array<string | null>): string | undefined {
@@ -259,12 +286,15 @@ export function extractImageUrlFromRaw(raw: Array<string | null>): string | unde
   return match ? match[0] : undefined;
 }
 
+function cleanUrlToken(url: string) {
+  return url.replace(/[),.;\]]+$/g, "");
+}
+
 
 
 export function getDailyKeyword(offset: number = 0): string {
-  const now = new Date();
-
-  const dayIndex = Math.floor(now.getTime() / (1000 * 60 * 60 * 24));
+  const todayUtc = Date.parse(`${getNasaUtcDate()}T00:00:00Z`);
+  const dayIndex = Math.floor(todayUtc / (1000 * 60 * 60 * 24));
 
   const index = (dayIndex + offset) % SPACE_KEYWORDS.length;
 

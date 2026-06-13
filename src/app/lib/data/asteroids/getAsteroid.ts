@@ -12,7 +12,17 @@ export async function getAsteroid(id: string): Promise<any> {
 
     const response = await retryFetch(
       url,
-      { debugLabel: "asteroid-detail" },
+      {
+        debugLabel: "asteroid-detail",
+        fetchInit: {
+          headers: {
+            Accept: "application/json",
+          },
+          next: {
+            revalidate: 43200,
+          },
+        },
+      },
     );
     return await response.json();
   } catch (error) {

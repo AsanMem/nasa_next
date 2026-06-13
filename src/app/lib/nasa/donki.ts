@@ -1,8 +1,7 @@
-import { fetchNasaJson, formatDubaiDateTime } from "./api";
-import { formatDate } from "../utils";
+import { fetchNasaJson, formatDubaiDateTime, getNasaUtcDate } from "./api";
 
 const DONKI_ENDPOINT = "https://api.nasa.gov/DONKI/notifications";
-const DONKI_REVALIDATE_SECONDS = 60 * 30; // 30 minutes
+const DONKI_REVALIDATE_SECONDS = 43200;
 
 export type DonkiNotification = {
   messageType?: string;
@@ -43,14 +42,13 @@ export async function fetchDonkiNotifications({
   type?: string;
   limit?: number;
 } = {}): Promise<DonkiNotificationItem[]> {
-  const today = formatDate();
-  const defaultStart = new Date();
-  defaultStart.setDate(defaultStart.getDate() - 7);
+  const today = getNasaUtcDate();
+  const defaultStart = getNasaUtcDate(-7);
 
   const response = await fetchNasaJson<DonkiApiResponse>(DONKI_ENDPOINT, {
     revalidate: DONKI_REVALIDATE_SECONDS,
     query: {
-      startDate: startDate ?? formatDate(defaultStart),
+      startDate: startDate ?? defaultStart,
       endDate: endDate ?? today,
       type,
     },

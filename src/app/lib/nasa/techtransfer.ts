@@ -4,7 +4,7 @@ import { sanitizePlainText } from "../utils/text";
 const TECHTRANSFER_PATENT_ENDPOINT = "https://technology.nasa.gov/api/api/patent/rocket";
 const TECHTRANSFER_SOFTWARE_ENDPOINT =
   "https://technology.nasa.gov/api/api/software/visualization";
-const TECHTRANSFER_REVALIDATE_SECONDS = 60 * 60 * 24; // 24 hours
+const TECHTRANSFER_REVALIDATE_SECONDS = 86400;
 
 export type TechTransferRawItem = Array<string | null>;
 

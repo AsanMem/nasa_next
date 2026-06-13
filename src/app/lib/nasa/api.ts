@@ -1,4 +1,4 @@
-const DEFAULT_REVALIDATE_SECONDS = 60 * 60; // 1 hour fallback
+const DEFAULT_REVALIDATE_SECONDS = 43200;
 const DUBAI_TIME_ZONE = "Asia/Dubai";
 
 let warnedAboutMissingNasaKey = false;
@@ -83,13 +83,16 @@ export async function fetchJsonSafe<T>(
     }
 
     const contentType = response.headers.get("content-type") ?? "";
-    if (!contentType.toLowerCase().includes("application/json")) {
+    const rawText = await response.text();
+    const looksLikeJson = /^[\s]*[\[{]/.test(rawText);
+
+    if (!contentType.toLowerCase().includes("json") && !looksLikeJson) {
       console.error(`Unexpected content-type "${contentType}" for ${url}`);
       return null;
     }
 
     try {
-      const json =  (await response.json()) as T;
+      const json = JSON.parse(rawText) as T;
       return json
     } catch (parseError) {
       console.error(`Failed to parse JSON from ${url}`, parseError);
@@ -99,6 +102,17 @@ export async function fetchJsonSafe<T>(
     console.error(`Request failed for ${url}`, error);
     return null;
   }
+}
+
+export function getNasaUtcDate(daysFromToday = 0) {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + daysFromToday);
+
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 

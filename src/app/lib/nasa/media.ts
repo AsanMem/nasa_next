@@ -1,7 +1,7 @@
 import { fetchJsonSafe } from "./api";
 
 const MEDIA_ENDPOINT = "https://images-api.nasa.gov/search";
-const MEDIA_REVALIDATE_SECONDS = 60 * 60 * 6; // 6 hours
+const MEDIA_REVALIDATE_SECONDS = 43200;
 
 type NasaMediaAsset = {
   href?: string;

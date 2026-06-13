@@ -1,7 +1,7 @@
 import { fetchNasaJson } from "./api";
 
 const EPIC_ENDPOINT = "https://epic.gsfc.nasa.gov/api/natural";
-const EPIC_REVALIDATE_SECONDS = 60 * 60 * 6; // 6 hours
+const EPIC_REVALIDATE_SECONDS = 43200;
 
 export type EpicImage = {
   identifier?: string;

@@ -2,7 +2,11 @@ import Link from "next/link";
 import { ROUTES } from "@/app/lib/constants/routes";
 import { fetchDonkiNotifications } from "@/app/lib/nasa/donki";
 import { sanitizePlainText } from "@/app/lib/utils/text";
-import { extractImageUrlsFromText } from "../ui/library/helpers";
+import {
+  extractImageUrlsFromText,
+  extractSourceUrlsFromText,
+  formatNasaSummaryText,
+} from "../ui/library/helpers";
 
 
 const CARD_CLASS =
@@ -10,8 +14,10 @@ const CARD_CLASS =
 
 export const metadata = {
   title: "NASA Space Weather (DONKI)",
-  description: "Live DONKI notifications rendered server-side and cached every 30 minutes.",
+  description: "Get the latest space weather alerts from NASA’s DONKI service.",
 };
+
+export const revalidate = 43200;
 
 export default async function SpaceWeatherPage() {
   const notifications = await fetchDonkiNotifications({ limit: 20 });
@@ -25,8 +31,7 @@ export default async function SpaceWeatherPage() {
             Space weather alerts from NASA DONKI
           </h1>
           <p className="text-readable max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
-            These notifications are refreshed every 30 minutes using incremental static regeneration.
-            Keep an eye on solar activity, geomagnetic storms, and more—without client-side fetching.
+            Keep an eye on solar activity, geomagnetic storms.
           </p>
           <Link
             href={ROUTES.library}
@@ -39,8 +44,9 @@ export default async function SpaceWeatherPage() {
         <section className="flex flex-col gap-6">
           {notifications.length > 0 ? (
             notifications.map((notification) => {
-              const imageUrls = extractImageUrlsFromText(notification.messageBody);
-              const messageBody = sanitizePlainText(notification.messageBody);
+              const imageUrls = extractImageUrlsFromText(notification.messageBody).slice(0, 2);
+              const sourceUrls = extractSourceUrlsFromText(notification.messageBody).slice(0, 4);
+              const messageBody = formatNasaSummaryText(notification.messageBody, 520);
               const messageTitle = sanitizePlainText(notification.messageTitle);
 
               return (
@@ -62,7 +68,6 @@ export default async function SpaceWeatherPage() {
                     ) : null}
                   </div>
 
-                  {/* ВСЕ найденные гифки / картинки */}
                   {imageUrls.length > 0 && (
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       {imageUrls.map((url) => (
@@ -87,6 +92,22 @@ export default async function SpaceWeatherPage() {
                   <p className="text-readable mt-4 whitespace-pre-line text-sm leading-relaxed text-white/70">
                     {messageBody ?? "Details are not available for this notification."}
                   </p>
+
+                  {sourceUrls.length > 0 ? (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {sourceUrls.map((url, index) => (
+                        <a
+                          key={url}
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/70 transition hover:bg-white/20"
+                        >
+                          Source {index + 1}
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
 
                   {notification.messageURL ? (
                     <a

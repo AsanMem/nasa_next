@@ -4,6 +4,8 @@ import { ROUTES } from "../lib/constants/routes";
 import ImageSlideshow from "../ui/main/image-component";
 import { fetchEpicImages } from "../lib/nasa/epic";
 
+export const revalidate = 43200;
+
 export default async function Main() {
     const images = await fetchEpicImages(10);
     return (

@@ -1,6 +1,3 @@
-
-"use server";
-
 import React from "react";
 import ThreeScene from "@/app/ui/treejs/scene/AsteroidScene";
 import BackgroundImage from "@/app/ui/shared/background-image";
@@ -10,6 +7,8 @@ import { getTextureUrls } from "@/app/lib/utils/getTextureUrls";
 import Header from "@/app/ui/header/Header";
 import Link from "next/link";
 import { ROUTES } from "@/app/lib/constants/routes";
+
+export const revalidate = 43200;
 
 export default async function Page({
   params,

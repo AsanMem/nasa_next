@@ -2,10 +2,19 @@
 const ITEMS_PER_PAGE = 12;
 export async function fetchFilteredVideos(query: string, currentPage: number) {
     const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+    const searchParams = new URLSearchParams({
+        q: query,
+        media_type: "video",
+    });
 
     try {
         const response = await fetch(
-            `https://images-api.nasa.gov/search?q=${query}&media_type=video`
+            `https://images-api.nasa.gov/search?${searchParams.toString()}`,
+            {
+                next: {
+                    revalidate: 43200,
+                },
+            },
         );
 
         if (!response.ok) {
@@ -20,7 +29,12 @@ export async function fetchFilteredVideos(query: string, currentPage: number) {
                 const nasa_id = video?.data?.[0]?.nasa_id;
                 if (!nasa_id) return null;
                 const assetResponse = await fetch(
-                    `https://images-api.nasa.gov/asset/${nasa_id}`
+                    `https://images-api.nasa.gov/asset/${nasa_id}`,
+                    {
+                        next: {
+                            revalidate: 43200,
+                        },
+                    },
                 );
                 if (!assetResponse.ok) return null;
 
@@ -49,4 +63,3 @@ export async function fetchFilteredVideos(query: string, currentPage: number) {
         return { videos: [], totalPages: 0 };
     }
 }
-

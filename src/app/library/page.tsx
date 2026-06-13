@@ -21,9 +21,10 @@ import type { TechTransferItem } from "@/app/lib/nasa/techtransfer";
 
 import { BUTTON_CLASS, PREVIEW_SECTIONS, PreviewContent } from "../ui/library/constants";
 import { RubricCard, RubricCardItem } from "../ui/library/rubric-сard";
-import { buildNewsFeed, getApodPreview, getDailyKeyword, getEpicPreview, getFirstAssetPreview, getNeoPreview, mapTechTransferItemToRubricItem } from "../ui/library/helpers";
+import { buildNewsFeed, formatNasaSummaryText, getApodPreview, getDailyKeyword, getEpicPreview, getFirstAssetPreview, getNeoPreview, mapTechTransferItemToRubricItem } from "../ui/library/helpers";
 import { PreviewCard } from "../ui/library/preview-card";
 
+export const revalidate = 43200;
 
 export default async function LibraryPage() {
 
@@ -248,7 +249,7 @@ export default async function LibraryPage() {
             href={ROUTES.spaceWeather}
             items={liveDonki.map((item) => ({
               title: item.messageTitle ?? item.messageType ?? "Space weather alert",
-              detail: item.messageBody?.slice(0, 120),
+              detail: formatNasaSummaryText(item.messageBody, 120),
               meta: item.formattedTime,
             }))}
           />

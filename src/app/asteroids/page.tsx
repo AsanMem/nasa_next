@@ -1,19 +1,21 @@
-
-"use server";
-
-import { fetchAsteroids } from "../lib/data/asteroids/fetchAsteroids";
-import { formatDate } from "../lib/utils";
+import { fetchAsteroids, resolveAsteroidFeedDate } from "../lib/data/asteroids/fetchAsteroids";
+import { getNasaUtcDate } from "../lib/nasa/api";
 import BackgroundVideo from "../ui/shared/background-video";
 import Header from "../ui/header/Header";
 import ListAsteroids from "../ui/asteroids/list-asteroids";
 import AsteroidsLayout from "../ui/asteroids/asteroids-layout";
 import { formatFriendlyDate } from "../lib/utils/formatFriendlyDate";
 
+export const revalidate = 43200;
+
 export default async function Asteroids() {
-  const today = formatDate();
+  const today = getNasaUtcDate();
   const asteroidsData = await fetchAsteroids();
-  const asteroidsObjects = asteroidsData?.near_earth_objects?.[today] ?? [];
-  const count = asteroidsData?.element_count ?? 0;
+  const feed = asteroidsData?.near_earth_objects;
+  const dataDate = resolveAsteroidFeedDate(feed, today);
+  const isTodayData = dataDate === today;
+  const asteroidsObjects = feed?.[dataDate] ?? [];
+  const count = asteroidsObjects.length;
 
   const hazardousCount = asteroidsObjects.filter(
     (a: any) => a.is_potentially_hazardous_asteroid
@@ -35,17 +37,19 @@ export default async function Asteroids() {
               Hazardous NEOs
             </p>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-              Near-Earth Objects passing by today
+              {isTodayData
+                ? "Near-Earth Objects passing by today"
+                : "Near-Earth Objects from the latest NASA feed"}
             </h1>
             <p className="text-readable max-w-2xl text-base text-white/70 sm:text-lg">
-              A live snapshot of asteroids passing near our planet today. Explore
+              A live snapshot of asteroids passing near our planet. Explore
               their size, speed, and potential risk before taking a closer look in 3D.
             </p>
 
             <p className="text-readable max-w-2xl text-sm sm:text-base text-white/70">
-              Today,{" "}
+              {isTodayData ? "Today" : "On"}{" "}
               <span className="font-semibold text-white/90">
-                {formatFriendlyDate(today)}
+                {formatFriendlyDate(dataDate)}
               </span>{" "}
               our scanners picked up{" "}
               <span className="font-semibold text-red-300">
@@ -68,7 +72,7 @@ export default async function Asteroids() {
           {/* Блок со списком астероидов */}
           <section className="mt-10 rounded-3xl bg-white/5 p-4 sm:p-6 ring-1 ring-white/10 backdrop-blur">
             <h2 className="mb-4 text-lg sm:text-xl font-semibold tracking-tight">
-              Today&apos;s close approaches
+              {isTodayData ? "Today's close approaches" : "Latest close approaches"}
             </h2>
             <p className="text-readable mb-4 text-sm text-white/60">
               Each object is sized and ranked by its average diameter and relative

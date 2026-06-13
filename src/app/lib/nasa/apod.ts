@@ -1,7 +1,7 @@
 import { fetchNasaJson, getNasaApiKeySource } from "./api";
 
 const APOD_ENDPOINT = "https://api.nasa.gov/planetary/apod";
-const APOD_REVALIDATE_SECONDS = 60 * 60 * 6; // 6 hours
+const APOD_REVALIDATE_SECONDS = 43200;
 
 export type ApodItem = {
   date?: string;
@@ -60,5 +60,3 @@ export async function fetchApod(): Promise<ApodItem | null> {
   logApod("NASA APOD fetch failed or returned invalid data; using static fallback.");
   return APOD_FALLBACK;
 }
-
-

@@ -10,6 +10,8 @@ export const metadata = {
   description: "Stay updated with ongoing natural events tracked by NASA’s EONET service.",
 };
 
+export const revalidate = 43200;
+
 export default async function EonetPage() {
   const events = await fetchOngoingEonetEvents(24);
 
@@ -23,7 +25,6 @@ export default async function EonetPage() {
           </h1>
           <p className="text-readable max-w-3xl text-base text-white/70 sm:text-lg">
             This feed highlights live geophysical phenomena captured by NASA and agency partners.
-            Data is fetched server-side and revalidated every 30 minutes to keep the view current.
           </p>
           <Link
             href={ROUTES.library}

@@ -1,7 +1,7 @@
 import { fetchNasaJson, formatDubaiDate } from "./api";
 
 const EONET_ENDPOINT = "https://eonet.gsfc.nasa.gov/api/v3/events";
-const EONET_REVALIDATE_SECONDS = 60 * 30; // 30 minutes
+const EONET_REVALIDATE_SECONDS = 43200;
 
 export type EonetEventCategory = {
   id: number;

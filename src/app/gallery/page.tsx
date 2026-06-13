@@ -13,6 +13,8 @@ interface IProps {
   };
 }
 
+export const revalidate = 43200;
+
 export default async function Page({ searchParams }: IProps) {
   const query = searchParams?.query || "";
   const currentPage = Number(searchParams?.page) || 1;

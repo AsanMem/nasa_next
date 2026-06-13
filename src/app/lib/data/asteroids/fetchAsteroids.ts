@@ -1,13 +1,10 @@
-'use server'
 import { retryFetch } from "../fetchWithRetry";
-import { buildNasaUrl } from "../../nasa/api";
+import { buildNasaUrl, getNasaUtcDate } from "../../nasa/api";
 
-
-import { formatDate } from "../../utils";
 
 export async function fetchAsteroids({
-  START_DATE = formatDate(),
-  END_DATE = formatDate(),
+  START_DATE = getNasaUtcDate(-1),
+  END_DATE = getNasaUtcDate(),
 } = {}) {
   try {
     const url = buildNasaUrl("https://api.nasa.gov/neo/rest/v1/feed", {
@@ -17,11 +14,34 @@ export async function fetchAsteroids({
 
     const response = await retryFetch(
       url,
-      { debugLabel: "asteroids-feed" },
+      {
+        debugLabel: "asteroids-feed",
+        fetchInit: {
+          headers: {
+            Accept: "application/json",
+          },
+          next: {
+            revalidate: 43200,
+          },
+        },
+      },
     );
     return await response.json();
   } catch (error) {
     console.error("Response Error:", error);
     return null;
   }
+}
+
+export function resolveAsteroidFeedDate(
+  feed: Record<string, unknown[] | undefined> | undefined,
+  preferredDate = getNasaUtcDate(),
+) {
+  const fallbackDate =
+    Object.keys(feed ?? {})
+      .sort()
+      .reverse()
+      .find((date) => (feed?.[date]?.length ?? 0) > 0) ?? preferredDate;
+
+  return (feed?.[preferredDate]?.length ?? 0) > 0 ? preferredDate : fallbackDate;
 }

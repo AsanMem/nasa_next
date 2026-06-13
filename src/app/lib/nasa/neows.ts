@@ -1,8 +1,7 @@
-import { fetchNasaJson, formatDubaiDateTime } from "./api";
-import { formatDate } from "../utils";
+import { fetchNasaJson, formatDubaiDateTime, getNasaUtcDate } from "./api";
 
 const NEOWS_ENDPOINT = "https://api.nasa.gov/neo/rest/v1/feed";
-const NEOWS_REVALIDATE_SECONDS = 60 * 30; // 30 minutes
+const NEOWS_REVALIDATE_SECONDS = 43200;
 
 export type NeoCloseApproachData = {
   close_approach_date: string;
@@ -44,15 +43,17 @@ export type NeoFeedItem = {
   missDistanceKm?: string;
   url?: string;
   summary?: string;
+  dataDate?: string;
 };
 
 export async function fetchTodayNeoFeed(): Promise<NeoFeedItem[]> {
-  const today = formatDate();
+  const today = getNasaUtcDate();
+  const yesterday = getNasaUtcDate(-1);
 
   const response = await fetchNasaJson<NeoFeedResponse>(NEOWS_ENDPOINT, {
     revalidate: NEOWS_REVALIDATE_SECONDS,
     query: {
-      start_date: today,
+      start_date: yesterday,
       end_date: today,
     },
   });
@@ -61,7 +62,10 @@ export async function fetchTodayNeoFeed(): Promise<NeoFeedItem[]> {
     return [];
   }
 
-  const objects = response.near_earth_objects?.[today] ?? [];
+  const feed = response.near_earth_objects ?? {};
+  const dataDate =
+    feed[today]?.length ? today : Object.keys(feed).sort().reverse().find((date) => feed[date]?.length) ?? today;
+  const objects = feed[dataDate] ?? [];
 
   return objects
     .filter((object) => object.is_potentially_hazardous_asteroid)
@@ -96,6 +100,7 @@ export async function fetchTodayNeoFeed(): Promise<NeoFeedItem[]> {
         missDistanceKm: closeApproach?.miss_distance?.kilometers,
         url: object.nasa_jpl_url,
         summary,
+        dataDate,
       };
     });
 }
