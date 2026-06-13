@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type MouseEvent, useState } from "react";
 import ModalPortal from "../shared/modal-portal";
 import { freezeBodyScroll, unfreezeBodyScroll } from "@/app/lib/utils/scrollUtils";
 
@@ -10,7 +10,6 @@ interface IProps {
 
 export default function CardTopic({ topic }: IProps) {
   const [showModal, setShowModal] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
 
   const toggleModal = () => {
     if (!showModal) {
@@ -27,47 +26,13 @@ export default function CardTopic({ topic }: IProps) {
   };
 
   const nasaPicture = topic?.links?.[0]?.href;
+  const originalAssetUrl = topic?.originalAssetUrl ?? nasaPicture;
   const title = topic?.data?.[0]?.title ?? "NASA asset";
   const description = topic?.data?.[0]?.description;
   const keywords = topic?.data?.[0]?.keywords;
 
-  const handleDownload = async () => {
-    setIsDownloading(true);
-    try {
-      const nasaId = topic?.data?.[0]?.nasa_id;
-      if (!nasaId) {
-        throw new Error("NASA ID is missing");
-      }
-      const apiUrl = `https://images-api.nasa.gov/asset/${nasaId}`;
-
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error("Unable to download asset");
-      }
-      const data = await response.json();
-      const imageUrl = data.collection.items.find((item: any) =>
-        item?.href?.includes("~orig.jpg"),
-      )?.href;
-
-      if (!imageUrl) {
-        throw new Error("Original image URL not found");
-      }
-
-      const imageResponse = await fetch(imageUrl);
-      const blob = await imageResponse.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = title || "nasa_image.jpg";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setIsDownloading(false);
-    }
+  const stopCardClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.stopPropagation();
   };
 
   return (
@@ -99,39 +64,15 @@ export default function CardTopic({ topic }: IProps) {
             >
               {title}
             </h5>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isDownloading) {
-                  void handleDownload();
-                }
-              }}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
-              disabled={isDownloading}
-            >
-              {isDownloading ? (
-                <svg
-                  className="h-5 w-5 animate-spin text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              ) : (
+            {originalAssetUrl ? (
+              <a
+                href={originalAssetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open original NASA image"
+                onClick={stopCardClick}
+                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+              >
                 <svg
                   className="h-5 w-5"
                   fill="none"
@@ -143,11 +84,11 @@ export default function CardTopic({ topic }: IProps) {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    d="M7 17L17 7M9 7h8v8"
                   ></path>
                 </svg>
-              )}
-            </button>
+              </a>
+            ) : null}
           </div>
           {description ? (
             <p
@@ -205,6 +146,16 @@ export default function CardTopic({ topic }: IProps) {
                         </span>
                       ))}
                     </div>
+                  ) : null}
+                  {originalAssetUrl ? (
+                    <a
+                      href={originalAssetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-gray-800 transition hover:bg-gray-200"
+                    >
+                      Open original
+                    </a>
                   ) : null}
                 </div>
               </div>

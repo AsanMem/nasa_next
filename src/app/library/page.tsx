@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ROUTES } from "@/app/lib/constants/routes";
 import { fetchDonkiNotifications } from "@/app/lib/nasa/donki";
