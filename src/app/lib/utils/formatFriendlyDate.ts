@@ -7,9 +7,9 @@ export function formatFriendlyDate(input?: string | Date): string {
       ? new Date(input)
       : new Date();
 
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = date.toLocaleString("en-US", { month: "short" });
-  const year = date.getFullYear();
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = date.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  const year = date.getUTCFullYear();
 
   return `${day} ${month} ${year}`;
 }

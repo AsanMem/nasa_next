@@ -4,7 +4,7 @@ import { buildNasaUrl, getNasaUtcDate } from "../../nasa/api";
 
 export async function fetchAsteroids({
   START_DATE = getNasaUtcDate(-1),
-  END_DATE = getNasaUtcDate(),
+  END_DATE = getNasaUtcDate(1),
 } = {}) {
   try {
     const url = buildNasaUrl("https://api.nasa.gov/neo/rest/v1/feed", {
@@ -21,7 +21,7 @@ export async function fetchAsteroids({
             Accept: "application/json",
           },
           next: {
-            revalidate: 43200,
+            revalidate: 3600,
           },
         },
       },
@@ -33,15 +33,38 @@ export async function fetchAsteroids({
   }
 }
 
-export function resolveAsteroidFeedDate(
+export function resolveAsteroidFeedSelection(
   feed: Record<string, unknown[] | undefined> | undefined,
   preferredDate = getNasaUtcDate(),
 ) {
+  if (!feed) {
+    return {
+      resolvedDate: preferredDate,
+      objects: [],
+      fallbackUsed: false,
+      sourceDateAvailable: false,
+    };
+  }
+
+  if (Object.prototype.hasOwnProperty.call(feed, preferredDate)) {
+    return {
+      resolvedDate: preferredDate,
+      objects: feed[preferredDate] ?? [],
+      fallbackUsed: false,
+      sourceDateAvailable: true,
+    };
+  }
+
   const fallbackDate =
     Object.keys(feed ?? {})
       .sort()
       .reverse()
-      .find((date) => (feed?.[date]?.length ?? 0) > 0) ?? preferredDate;
+      .find((date) => Array.isArray(feed[date])) ?? preferredDate;
 
-  return (feed?.[preferredDate]?.length ?? 0) > 0 ? preferredDate : fallbackDate;
+  return {
+    resolvedDate: fallbackDate,
+    objects: feed[fallbackDate] ?? [],
+    fallbackUsed: fallbackDate !== preferredDate,
+    sourceDateAvailable: false,
+  };
 }

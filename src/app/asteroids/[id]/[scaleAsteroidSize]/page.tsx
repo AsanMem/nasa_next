@@ -8,7 +8,7 @@ import Header from "@/app/ui/header/Header";
 import Link from "next/link";
 import { ROUTES } from "@/app/lib/constants/routes";
 
-export const revalidate = 43200;
+export const revalidate = 3600;
 
 export default async function Page({
   params,

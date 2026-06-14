@@ -1,21 +1,22 @@
-import { fetchAsteroids, resolveAsteroidFeedDate } from "../lib/data/asteroids/fetchAsteroids";
+import { fetchAsteroids, resolveAsteroidFeedSelection } from "../lib/data/asteroids/fetchAsteroids";
 import { getNasaUtcDate } from "../lib/nasa/api";
+import { getBuildMarker } from "../lib/build-marker";
 import BackgroundVideo from "../ui/shared/background-video";
 import Header from "../ui/header/Header";
 import ListAsteroids from "../ui/asteroids/list-asteroids";
 import AsteroidsLayout from "../ui/asteroids/asteroids-layout";
 import { formatFriendlyDate } from "../lib/utils/formatFriendlyDate";
 
-export const revalidate = 43200;
+export const revalidate = 3600;
 
 export default async function Asteroids() {
-  const today = getNasaUtcDate();
+  const sourceDate = getNasaUtcDate();
   const asteroidsData = await fetchAsteroids();
   const feed = asteroidsData?.near_earth_objects;
-  const dataDate = resolveAsteroidFeedDate(feed, today);
-  const isTodayData = dataDate === today;
-  const asteroidsObjects = feed?.[dataDate] ?? [];
+  const selection = resolveAsteroidFeedSelection(feed, sourceDate);
+  const asteroidsObjects = selection.objects as any[];
   const count = asteroidsObjects.length;
+  const marker = getBuildMarker();
 
   const hazardousCount = asteroidsObjects.filter(
     (a: any) => a.is_potentially_hazardous_asteroid
@@ -37,25 +38,31 @@ export default async function Asteroids() {
               Hazardous NEOs
             </p>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-              {isTodayData
-                ? "Near-Earth Objects passing by today"
-                : "Near-Earth Objects from the latest NASA feed"}
+              Near-Earth Objects Passing Near Earth
             </h1>
             <p className="text-readable max-w-2xl text-base text-white/70 sm:text-lg">
-              A live snapshot of asteroids passing near our planet. Explore
-              their size, speed, and potential risk before taking a closer look in 3D.
+              NASA close approaches for{" "}
+              <span className="font-semibold text-white/90">
+                {formatFriendlyDate(sourceDate)}
+              </span>
+              . Explore their size, speed, and potential risk before taking a closer look in 3D.
             </p>
 
             <p className="text-readable max-w-2xl text-sm sm:text-base text-white/70">
-              {isTodayData ? "Today" : "On"}{" "}
-              <span className="font-semibold text-white/90">
-                {formatFriendlyDate(dataDate)}
-              </span>{" "}
-              our scanners picked up{" "}
+              {selection.fallbackUsed ? (
+                <>
+                  Latest available NeoWS data:{" "}
+                  <span className="font-semibold text-white/90">
+                    {formatFriendlyDate(selection.resolvedDate)}
+                  </span>
+                  .{" "}
+                </>
+              ) : null}
               <span className="font-semibold text-red-300">
                 {new Intl.NumberFormat("en-US").format(count)} objects
               </span>{" "}
-              flying past Earth.
+              listed by NASA
+              {selection.fallbackUsed ? " for the fallback date" : " for the source date"}.
               {hazardousCount > 0 && (
                 <>
                   {" "}
@@ -67,12 +74,14 @@ export default async function Asteroids() {
                 </>
               )}
             </p>
+
+          
           </section>
 
           {/* Блок со списком астероидов */}
           <section className="mt-10 rounded-3xl bg-white/5 p-4 sm:p-6 ring-1 ring-white/10 backdrop-blur">
             <h2 className="mb-4 text-lg sm:text-xl font-semibold tracking-tight">
-              {isTodayData ? "Today's close approaches" : "Latest close approaches"}
+              NASA close approaches for {formatFriendlyDate(selection.resolvedDate)}
             </h2>
             <p className="text-readable mb-4 text-sm text-white/60">
               Each object is sized and ranked by its average diameter and relative

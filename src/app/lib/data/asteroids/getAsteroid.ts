@@ -19,7 +19,7 @@ export async function getAsteroid(id: string): Promise<any> {
             Accept: "application/json",
           },
           next: {
-            revalidate: 43200,
+            revalidate: 3600,
           },
         },
       },

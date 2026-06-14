@@ -14,10 +14,19 @@ interface PhotoData {
     title?: string;
     explanation?: string;
     media_type?: string;
+    date?: string;
 }
 
 interface DayClientProps {
     photoData: PhotoData | null;
+    marker: {
+        buildTime: string;
+        commit: string;
+        generatedAt: string;
+        nasaDate?: string;
+        fallbackUsed: boolean;
+        revalidateSeconds: number;
+    };
 }
 
 function toYouTubeEmbedUrl(url?: string) {
@@ -43,7 +52,19 @@ function isExternalMediaUrl(url?: string) {
     return /^https?:\/\//i.test(url ?? "");
 }
 
-export default function DayClient({ photoData }: DayClientProps) {
+function formatNasaDate(date?: string) {
+    if (!date) return "unavailable";
+    const parsed = new Date(`${date}T00:00:00Z`);
+    if (Number.isNaN(parsed.getTime())) return date;
+
+    const day = String(parsed.getUTCDate()).padStart(2, "0");
+    const month = parsed.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+    const year = parsed.getUTCFullYear();
+
+    return `${day} ${month} ${year}`;
+}
+
+export default function DayClient({ photoData, marker }: DayClientProps) {
     const defaultImageUrl = "/media/starfield/2.png";
     const hasData = Boolean(photoData);
     const validApodUrl = useValidImageUrl(photoData?.url, photoData?.hdurl);
@@ -102,9 +123,36 @@ export default function DayClient({ photoData }: DayClientProps) {
 
                     <p className="text-readable max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
                         {hasData
-                            ? "Daily highlights from the cosmos with NASA’s featured media."
+                            ? `Latest available from NASA · NASA date: ${formatNasaDate(marker.nasaDate)}`
                             : "The daily feed is temporarily unavailable. Please check back soon — meanwhile you can explore the Library."}
                     </p>
+
+                    <dl className="grid max-w-3xl grid-cols-2 gap-2 rounded-2xl bg-white/5 p-3 text-xs text-white/45 ring-1 ring-white/10 sm:grid-cols-3">
+                        <div>
+                            <dt className="uppercase tracking-[0.25em]">nasa date</dt>
+                            <dd className="mt-1 text-white/70">{marker.nasaDate ?? "unavailable"}</dd>
+                        </div>
+                        <div>
+                            <dt className="uppercase tracking-[0.25em]">generated</dt>
+                            <dd className="mt-1 text-white/70">{marker.generatedAt}</dd>
+                        </div>
+                        <div>
+                            <dt className="uppercase tracking-[0.25em]">revalidate</dt>
+                            <dd className="mt-1 text-white/70">{marker.revalidateSeconds}s</dd>
+                        </div>
+                        <div>
+                            <dt className="uppercase tracking-[0.25em]">fallback</dt>
+                            <dd className="mt-1 text-white/70">{marker.fallbackUsed ? "yes" : "no"}</dd>
+                        </div>
+                        <div>
+                            <dt className="uppercase tracking-[0.25em]">commit</dt>
+                            <dd className="mt-1 text-white/70">{marker.commit}</dd>
+                        </div>
+                        <div>
+                            <dt className="uppercase tracking-[0.25em]">build</dt>
+                            <dd className="mt-1 text-white/70">{marker.buildTime}</dd>
+                        </div>
+                    </dl>
 
                     <Link
                         href={ROUTES.library}

@@ -47,7 +47,7 @@ export default async function LibraryPage() {
     fetchDonkiNotifications(),
     fetchOngoingEonetEvents(6),
     fetchTodayNeoFeed(),
-    fetchApod(),
+    fetchApod(43200),
     fetchNasaImages(imageKeyword, 6),
     fetchNasaVideos(videoKeyword, 6),
     fetchEpicImages(6),

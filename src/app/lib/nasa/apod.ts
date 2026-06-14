@@ -1,7 +1,7 @@
 import { fetchNasaJson, getNasaApiKeySource } from "./api";
 
 const APOD_ENDPOINT = "https://api.nasa.gov/planetary/apod";
-const APOD_REVALIDATE_SECONDS = 43200;
+const APOD_REVALIDATE_SECONDS = 3600;
 
 export type ApodItem = {
   date?: string;
@@ -33,7 +33,7 @@ function isValidApodItem(item: ApodItem | null): item is ApodItem {
   return Boolean(item?.title && item?.media_type && (item?.url || item?.thumbnail_url));
 }
 
-export async function fetchApod(): Promise<ApodItem | null> {
+export async function fetchApod(revalidate = APOD_REVALIDATE_SECONDS): Promise<ApodItem | null> {
   const keySource = getNasaApiKeySource();
 
   if (!keySource) {
@@ -42,7 +42,7 @@ export async function fetchApod(): Promise<ApodItem | null> {
   }
 
   const response = await fetchNasaJson<ApodItem>(APOD_ENDPOINT, {
-    revalidate: APOD_REVALIDATE_SECONDS,
+    revalidate,
     query: {
       thumbs: "true",
     },
