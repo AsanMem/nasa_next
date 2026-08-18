@@ -10,29 +10,25 @@ type Props = {
   event: EonetEvent;
 };
 
-function getValidExternalUrl(url?: string) {
-  if (!url) return undefined;
-
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.toString() : undefined;
-  } catch {
-    return undefined;
-  }
-}
 
 export default function EonetEventCard({ event }: Props) {
   const location = resolveEonetLocation(event.geometry);
   const mainCategory = event.categories?.[0]?.title;
-  const validSources =
-    event.sources?.filter((source) => getValidExternalUrl(source.url)) ?? [];
-  const primarySource = validSources[0];
-  const sourceActionUrl = getValidExternalUrl(primarySource?.url);
-  const apiRecordUrl = sourceActionUrl ? undefined : getValidExternalUrl(event.link);
-  const sourceIds = (event.sources ?? [])
-    .map((source) => source.id)
-    .filter(Boolean)
-    .slice(0, 3);
+
+  const mapsUrl = location
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      `${location.latitude},${location.longitude}`
+    )}`
+    : undefined;
+
+
+  const sourceUrl = event.sources?.find((source) => {
+    try {
+      return Boolean(source.url) && new URL(source.url).protocol === "https:";
+    } catch {
+      return false;
+    }
+  })?.url;
 
   return (
     <article className={`${CARD_CLASS} flex min-h-[430px] flex-col`}>
@@ -78,38 +74,39 @@ export default function EonetEventCard({ event }: Props) {
 
       {location ? <LocationPreview location={location} /> : null}
 
-      <div className="text-readable mt-4 flex flex-col gap-2 text-sm text-white/70">
-        {sourceIds.length ? (
-          <p className="text-xs uppercase tracking-[0.3em] text-white/40">
-            Sources: {sourceIds.join(", ")}
-          </p>
-        ) : null}
-      </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {sourceActionUrl ? (
-          <a
-            href={sourceActionUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white/85 transition hover:border-white/40 hover:bg-white/20 hover:text-white"
-          >
-            View source report
-          </a>
-        ) : null}
 
-        {apiRecordUrl ? (
-          <a
-            href={apiRecordUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex w-fit rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-white/45 transition hover:border-white/20 hover:bg-white/10 hover:text-white/70"
-          >
-            NASA API record
-          </a>
-        ) : null}
-      </div>
-    </article>
+      {mapsUrl ? (
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-4 inline-flex w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
+        >
+          Open in Maps
+        </a>
+      ) : null}
+
+      {sourceUrl ? (
+        <a
+          href={sourceUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-4 inline-flex w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
+        >
+          View source report
+        </a>
+      ) : event.link ? (
+        <a
+          href={event.link}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-4 inline-flex w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
+        >
+          NASA API record
+        </a>
+      ) : null}
+    </article >
 
   );
 }

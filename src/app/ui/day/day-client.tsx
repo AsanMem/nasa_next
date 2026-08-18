@@ -9,24 +9,17 @@ import { useMemo, useState } from "react";
 import { sanitizePlainText } from "@/app/lib/utils/text";
 
 interface PhotoData {
+    date?: string;
     url?: string;
     hdurl?: string;
     title?: string;
     explanation?: string;
     media_type?: string;
-    date?: string;
 }
 
 interface DayClientProps {
     photoData: PhotoData | null;
-    marker: {
-        buildTime: string;
-        commit: string;
-        generatedAt: string;
-        nasaDate?: string;
-        fallbackUsed: boolean;
-        revalidateSeconds: number;
-    };
+    build: { time: string; commit?: string };
 }
 
 function toYouTubeEmbedUrl(url?: string) {
@@ -64,8 +57,9 @@ function formatNasaDate(date?: string) {
     return `${day} ${month} ${year}`;
 }
 
-export default function DayClient({ photoData, marker }: DayClientProps) {
-    const defaultImageUrl = "/media/starfield/2.png";
+export default function DayClient({ photoData, build }: DayClientProps) {
+    const defaultImageUrl =
+        "/media/main/4.jpg";
     const hasData = Boolean(photoData);
     const validApodUrl = useValidImageUrl(photoData?.url, photoData?.hdurl);
 
@@ -121,38 +115,8 @@ export default function DayClient({ photoData, marker }: DayClientProps) {
                             : "NASA highlight is updating"}
                     </h1>
 
-                    <p className="text-readable max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
-                        {hasData
-                            ? `Latest available from NASA · NASA date: ${formatNasaDate(marker.nasaDate)}`
-                            : "The daily feed is temporarily unavailable. Please check back soon — meanwhile you can explore the Library."}
-                    </p>
 
-                    <dl className="grid max-w-3xl grid-cols-2 gap-2 rounded-2xl bg-white/5 p-3 text-xs text-white/45 ring-1 ring-white/10 sm:grid-cols-3">
-                        <div>
-                            <dt className="uppercase tracking-[0.25em]">nasa date</dt>
-                            <dd className="mt-1 text-white/70">{marker.nasaDate ?? "unavailable"}</dd>
-                        </div>
-                        <div>
-                            <dt className="uppercase tracking-[0.25em]">generated</dt>
-                            <dd className="mt-1 text-white/70">{marker.generatedAt}</dd>
-                        </div>
-                        <div>
-                            <dt className="uppercase tracking-[0.25em]">revalidate</dt>
-                            <dd className="mt-1 text-white/70">{marker.revalidateSeconds}s</dd>
-                        </div>
-                        <div>
-                            <dt className="uppercase tracking-[0.25em]">fallback</dt>
-                            <dd className="mt-1 text-white/70">{marker.fallbackUsed ? "yes" : "no"}</dd>
-                        </div>
-                        <div>
-                            <dt className="uppercase tracking-[0.25em]">commit</dt>
-                            <dd className="mt-1 text-white/70">{marker.commit}</dd>
-                        </div>
-                        <div>
-                            <dt className="uppercase tracking-[0.25em]">build</dt>
-                            <dd className="mt-1 text-white/70">{marker.buildTime}</dd>
-                        </div>
-                    </dl>
+
 
                     <Link
                         href={ROUTES.library}
@@ -160,6 +124,13 @@ export default function DayClient({ photoData, marker }: DayClientProps) {
                     >
                         Back to Library
                     </Link>
+                    <p className="text-xs text-white/50">
+                        {photoData?.date
+                            ? `Latest available from NASA · NASA date: ${photoData.date}`
+                            : "NASA data temporarily unavailable"}
+                        {` · Updated ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(build.time))} UTC`}
+                        {build.commit ? ` · Build ${build.commit}` : ""}
+                    </p>
                 </header>
 
                 <section className="rounded-3xl bg-white/5 p-6 ring-1 ring-white/10 backdrop-blur-lg">

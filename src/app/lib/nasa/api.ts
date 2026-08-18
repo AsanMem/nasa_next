@@ -78,16 +78,20 @@ export async function fetchJsonSafe<T>(
     });
 
     if (!response.ok) {
-      console.error(`JSON fetch failed (${response.status}): ${url}`);
+      console.error(`NASA JSON fetch failed (${response.status}).`);
       return null;
     }
 
     const contentType = response.headers.get("content-type") ?? "";
+   
+   
     const rawText = await response.text();
     const looksLikeJson = /^[\s]*[\[{]/.test(rawText);
 
     if (!contentType.toLowerCase().includes("json") && !looksLikeJson) {
       console.error(`Unexpected content-type "${contentType}" for ${url}`);
+   
+  
       return null;
     }
 
@@ -95,11 +99,11 @@ export async function fetchJsonSafe<T>(
       const json = JSON.parse(rawText) as T;
       return json
     } catch (parseError) {
-      console.error(`Failed to parse JSON from ${url}`, parseError);
+      console.error("Failed to parse NASA JSON response.", parseError);
       return null;
     }
   } catch (error) {
-    console.error(`Request failed for ${url}`, error);
+    console.error("NASA JSON request failed.", error);
     return null;
   }
 }

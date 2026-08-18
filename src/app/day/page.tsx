@@ -12,12 +12,7 @@ export default async function Day() {
   return (
     <DayClient
       photoData={photoData}
-      marker={{
-        ...marker,
-        nasaDate: photoData?.date,
-        fallbackUsed,
-        revalidateSeconds: 3600,
-      }}
+      build={{ time: new Date().toISOString(), commit: process.env.GITHUB_SHA?.slice(0, 7) }}
     />
   );
 }

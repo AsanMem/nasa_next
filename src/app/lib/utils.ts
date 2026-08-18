@@ -38,8 +38,12 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
 
 
   export function formatDate(date = new Date()) {
-    const year = date.getFullYear();
+    const year = date.getUTCFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // добавляем ведущий ноль, если месяц состоит из одной цифры
     const day = String(date.getDate()).padStart(2, '0'); // добавляем ведущий ноль, если день состоит из одной цифры
     return `${year}-${month}-${day}`;
+  }
+
+  export function formatUtcDate(date = new Date()) {
+    return date.toISOString().slice(0, 10);
   }

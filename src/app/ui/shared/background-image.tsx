@@ -6,8 +6,7 @@ interface BackgroundImageProps {
     className?: string;
 }
 
-const FALLBACK =
-    "/media/starfield/2.png";
+const FALLBACK = "/media/main/1.jpg";
 
 const BackgroundImage: React.FC<BackgroundImageProps> = ({ src, className = "" }) => {
     return (
