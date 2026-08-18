@@ -6,6 +6,8 @@ import Header from "../ui/header/Header";
 import { fetchWikipediaArticles } from "@/app/lib/wiki";
 import WikiSidebar from "../ui/wiki/wiki-sidebar";
 
+export const revalidate = 43200;
+
 interface IProps {
   searchParams?: {
     query?: string;

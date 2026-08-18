@@ -12,6 +12,8 @@ export const metadata = {
   description: "Live DONKI notifications rendered server-side and cached every 30 minutes.",
 };
 
+export const revalidate = 43200;
+
 export default async function SpaceWeatherPage() {
   const notifications = await fetchDonkiNotifications({ limit: 20 });
 
@@ -112,4 +114,3 @@ export default async function SpaceWeatherPage() {
     </div>
   );
 }
-

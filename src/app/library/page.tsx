@@ -24,6 +24,7 @@ import { RubricCard, RubricCardItem } from "../ui/library/rubric-сard";
 import { buildNewsFeed, getApodPreview, getDailyKeyword, getEpicPreview, getFirstAssetPreview, getNeoPreview, mapTechTransferItemToRubricItem } from "../ui/library/helpers";
 import { PreviewCard } from "../ui/library/preview-card";
 
+export const revalidate = 43200;
 
 export default async function LibraryPage() {
 

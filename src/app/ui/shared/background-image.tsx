@@ -6,8 +6,7 @@ interface BackgroundImageProps {
     className?: string;
 }
 
-const FALLBACK =
-    "https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2Fearth_back.jpg?alt=media&token=be33b27e-78ef-492e-8c2a-b0cd504c8fa6";
+const FALLBACK = "/media/main/1.jpg";
 
 const BackgroundImage: React.FC<BackgroundImageProps> = ({ src, className = "" }) => {
     return (

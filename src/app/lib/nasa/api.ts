@@ -56,13 +56,13 @@ export async function fetchJsonSafe<T>(
     });
 
     if (!response.ok) {
-      console.error(`JSON fetch failed (${response.status}): ${url}`);
+      console.error(`NASA JSON fetch failed (${response.status}).`);
       return null;
     }
 
     const contentType = response.headers.get("content-type") ?? "";
     if (!contentType.toLowerCase().includes("application/json")) {
-      console.error(`Unexpected content-type "${contentType}" for ${url}`);
+      console.error(`NASA JSON fetch returned unexpected content-type "${contentType}".`);
       return null;
     }
 
@@ -70,11 +70,11 @@ export async function fetchJsonSafe<T>(
       const json =  (await response.json()) as T;
       return json
     } catch (parseError) {
-      console.error(`Failed to parse JSON from ${url}`, parseError);
+      console.error("Failed to parse NASA JSON response.", parseError);
       return null;
     }
   } catch (error) {
-    console.error(`Request failed for ${url}`, error);
+    console.error("NASA JSON request failed.", error);
     return null;
   }
 }

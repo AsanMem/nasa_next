@@ -10,6 +10,8 @@ export const metadata = {
   description: "Stay updated with ongoing natural events tracked by NASA’s EONET service.",
 };
 
+export const revalidate = 43200;
+
 export default async function EonetPage() {
   const events = await fetchOngoingEonetEvents(24);
 

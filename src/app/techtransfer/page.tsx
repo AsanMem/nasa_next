@@ -13,6 +13,8 @@ export const metadata = {
   description: "Browse NASA’s TechTransfer patents and software ready for adoption.",
 };
 
+export const revalidate = 86400;
+
 function AssetList({
   items,
   emptyLabel,

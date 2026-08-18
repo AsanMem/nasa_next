@@ -1,7 +1,7 @@
 import { fetchNasaJson } from "./api";
 
 const APOD_ENDPOINT = "https://api.nasa.gov/planetary/apod";
-const APOD_REVALIDATE_SECONDS = 60 * 60 * 6; // 6 hours
+export const APOD_REVALIDATE_SECONDS = 60 * 60;
 
 export type ApodItem = {
   date?: string;
@@ -21,7 +21,6 @@ export async function fetchApod(): Promise<ApodItem | null> {
     },
   });
 }
-
 
 
 

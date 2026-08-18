@@ -9,6 +9,7 @@ import Header from "../header/Header";
 import { useMemo, useState } from "react";
 
 interface PhotoData {
+    date?: string;
     url?: string;
     hdurl?: string;
     title?: string;
@@ -18,6 +19,7 @@ interface PhotoData {
 
 interface DayClientProps {
     photoData: PhotoData | null;
+    build: { time: string; commit?: string };
 }
 
 function toYouTubeEmbedUrl(url?: string) {
@@ -63,9 +65,9 @@ function getExtFromUrl(url?: string) {
     }
 }
 
-export default function DayClient({ photoData }: DayClientProps) {
+export default function DayClient({ photoData, build }: DayClientProps) {
     const defaultImageUrl =
-        "https://firebasestorage.googleapis.com/v0/b/nasa-odisey.appspot.com/o/media%2Fbg%2F4.jpg?alt=media&token=95f397e8-b32c-46f1-aa44-beabb28dc15c";
+        "/media/main/4.jpg";
     const hasData = Boolean(photoData);
     const validApodUrl = useValidImageUrl(photoData?.url, photoData?.hdurl);
 
@@ -156,6 +158,13 @@ export default function DayClient({ photoData }: DayClientProps) {
                     >
                         Back to Library
                     </Link>
+                    <p className="text-xs text-white/50">
+                        {photoData?.date
+                            ? `Latest available from NASA · NASA date: ${photoData.date}`
+                            : "NASA data temporarily unavailable"}
+                        {` · Updated ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(build.time))} UTC`}
+                        {build.commit ? ` · Build ${build.commit}` : ""}
+                    </p>
                 </header>
 
                 <section className="rounded-3xl bg-white/5 p-6 ring-1 ring-white/10 backdrop-blur-lg">
