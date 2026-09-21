@@ -1,8 +1,4 @@
 .console {
-  --space: #030609;
-  --ink: #f1f4f6;
-  --muted: #a8b3bf;
-  --accent: #edc18c;
   position: relative;
   isolation: isolate;
   background: var(--space);
@@ -145,3 +141,7 @@
 @media(prefers-reduced-motion: reduce) {
   .console *, .console *::before, .console *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+.description, .expeditionIntro > p:not(.sectionLabel), .missionCopy p { font-size: 16px; }
+.category, .earthCaption, .scrollLink, .footer > p { font-size: 12px; }
+.primaryButton, .quietButton { font-size: 16px; }

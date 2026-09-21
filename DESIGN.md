@@ -30,3 +30,27 @@ Use existing Three.js with deferred import, local textures, capped device pixel 
 ## Validation
 
 Verify desktop and mobile composition, all six route links, keyboard focus, pause/resume and reduced motion. Run TypeScript, focused lint and production build. Record actual results in docs/PROJECT_CONTEXT.md; do not equate compilation with visual approval by the user.
+
+## Asteroid chapter: approved extension
+
+The observer is freely exploring realistic space, not sitting inside a cockpit. Continue the homepage's lighting, typography and calm controls. Shared Orbital tokens live in ui/orbital/orbital.module.css; destinations and the accessible fullscreen content map are shared with the homepage. Space Grotesk body copy is at least 16 px; auxiliary labels at least 12 px on updated screens.
+
+The catalog is a selected-object scene followed by a legible NASA list, name search and distance/diameter/speed sorting. Default to the smallest known miss distance. The encounter journey moves from the illuminated object to human scale, then to Earth–Moon distance, followed by selectable approach history and expandable source data.
+
+One desktop scene is sticky during the first three chapters. ScrollTrigger controls the camera pullback and chapter changes while document scrolling remains native. An orthographic scale view compares the same reconstructed rock with a 1.8 m silhouette: the rock's exact vertical extent is normalized to the midpoint of the estimated diameter range. This is a representative dimension, not a measured physical shape. The scale ruler has the same physical extent. On mobile and with reduced motion, sections run sequentially with proportional static diagrams. Never enlarge the human independently to make it easier to see.
+
+All surface geometry is seeded by asteroid ID. Label it as an artistic reconstruction. The Earth–Moon diagram is explicitly not to scale and never implies a computed orbit or trajectory. A lunar distance is approximately 384,400 km. Non-Earth history entries identify their actual encounter body.
+
+Catalog links carry ?date=YYYY-MM-DD. Profile data must refer to the selected event, not the first array item. With no valid requested event choose the next Earth encounter relative to UTC today, otherwise the latest known Earth encounter; missing Earth history remains unknown. Keep legacy /asteroids/[id]/[scaleAsteroidSize] URLs working while ignoring their old size/speed payload. Do not invent absent measurements.
+
+No added dependencies, sound, planet pages, Firebase changes or deployment belong to this phase. The next content phase is Media of the Day.
+
+## Living asteroids and continuous flight
+
+The accepted refinement keeps the expedition composition and makes each object recognizable. Visual generator v2 is a pure NASA-ID-derived descriptor with independent shape/material seeds, four silhouette families (rubble, elongated, shard, bilobed), broad asymmetric volumes, local depressions and small surface detail. Its named material slots and version are fixed. Date, ordering, encounter velocity and updated diameter estimates never alter identity. These are artistic surfaces, not claims about an object's measured shape or composition. Shape references: https://science.nasa.gov/solar-system/asteroids/25143-itokawa/ and https://science.nasa.gov/solar-system/asteroids/101955-bennu/facts/ . Existing stone-2.jpg and stone-8.jpg assets were visually inspected and reused; their original provenance was not newly established.
+
+One deferred renderer belongs to the root OrbitalSceneProvider, above route templates. Scene hosts register home/catalog/profile state. A link-intent flight transfers its canvas into a non-interactive overlay, then into the destination host; Next.js navigation starts immediately. Home-to-catalog flight takes 1.2 s, catalog-to-profile 0.8 s, mobile 0.65 s. Slow data loads do not extend the flight. Back/Forward cancels it, and changes to query parameters do not replay it. Other chapters dispose the renderer; a maximum of two asteroid meshes is retained during chapter navigation.
+
+Stars and reference particles provide depth. Particle travel has one fixed coefficient for every encounter speed, while the 0–100 km ruler shows the exact distance travelled in one second. Spin is artistic and independent of linear velocity. Pause and reduced motion stop automatic motion; controls remain available. The scale comparison fits the actual rock bounds and preserves the 1.8 m person ratio. Static views project the same generated surface. The explanatory distance figure uses local textured Earth/Moon disks, spherical lighting and the selected rock's projection; it remains explicitly not to scale.
+
+Catalog single-click selects without scrolling; double-click and the accessible Show selected object button return to the preview. The profile exposes the next known Earth approach after the selected event and an explicit Past & future encounters link. Past/Upcoming filters use UTC today; unknown future history is never described as no future return.

@@ -1,21 +1,14 @@
 "use client";
 
-import Image from "next/image";
+import OrbitalHeader from "../orbital/orbital-header";
+import { destinations } from "../orbital/destinations";
+import orbital from "../orbital/orbital.module.css";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ROUTES } from "@/app/lib/constants/routes";
 import { ArrowIcon, MissionButton, MissionCard } from "./primitives";
 import PlanetScene from "./planet-scene";
 import styles from "./home-console.module.css";
-
-const destinations = [
-  { title: "Near-Earth objects", description: "Meet the asteroids passing through our corner of space.", href: ROUTES.neos, category: "Our neighborhood", image: "/media/main/1.optimized.webp" },
-  { title: "Image of the day", description: "A new perspective on the universe, selected by NASA.", href: ROUTES.apod, category: "A daily discovery", image: "/media/main/3.optimized.webp" },
-  { title: "Earth events", description: "Follow the fires, storms and natural events shaping our planet.", href: ROUTES.eonet, category: "A changing planet", image: "/media/eonet/1.jpg" },
-  { title: "Space weather", description: "Explore solar activity and its effects beyond the Sun.", href: ROUTES.spaceWeather, category: "The Sun's influence" },
-  { title: "Image gallery", description: "Look closer at the places, people and missions of NASA.", href: ROUTES.images, category: "The photographic archive", image: "/media/main/4.optimized.webp" },
-  { title: "Films from space", description: "Watch exploration unfold, from launchpad to deep space.", href: ROUTES.videos, category: "Missions in motion", image: "/media/stack_videos/ISS071-E-226528-227449-20240625-Night.poster.jpg" },
-];
 
 export default function HomeConsole() {
   const [paused, setPaused] = useState(false);
@@ -29,19 +22,9 @@ export default function HomeConsole() {
   }, []);
 
   return (
-    <main className={styles.console}>
+    <main className={`${orbital.theme} ${styles.console}`}>
       <a className={styles.skipLink} href="#destinations">Skip to destinations</a>
-      <header className={styles.header}>
-        <Link href="/" className={styles.brand} aria-label="Orbital home">
-          <Image src="/media/logo/NASA_logo.png" alt="NASA" width={58} height={48} priority />
-          <span>Orbital<span className={styles.brandSubtitle}>An independent NASA explorer</span></span>
-        </Link>
-        <nav aria-label="Main navigation" className={styles.navigation}>
-          <a href="#destinations">Explore</a>
-          <Link href={ROUTES.apod}>Image of the day</Link>
-          <Link href={ROUTES.library} className={styles.archiveLink}>NASA archive <ArrowIcon /></Link>
-        </nav>
-      </header>
+      <OrbitalHeader />
 
       <section className={styles.hero} aria-labelledby="console-title">
         <div className={styles.starfield} aria-hidden="true" />

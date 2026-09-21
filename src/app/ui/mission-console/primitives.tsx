@@ -2,13 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import styles from "./home-console.module.css";
+import orbital from "../orbital/orbital.module.css";
 
 export function ArrowIcon() {
   return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 export function MissionButton({ href, children, variant = "primary" }: { href: string; children: ReactNode; variant?: "primary" | "quiet" }) {
-  return <Link href={href} className={variant === "primary" ? styles.primaryButton : styles.quietButton}>{children}{variant === "primary" && <ArrowIcon />}</Link>;
+  return <Link href={href} className={variant === "primary" ? `${orbital.button} ${styles.primaryButton}` : styles.quietButton}>{children}{variant === "primary" && <ArrowIcon />}</Link>;
 }
 
 export function MissionCard({ title, description, href, category, image }: { title: string; description: string; href: string; category: string; image?: string }) {
