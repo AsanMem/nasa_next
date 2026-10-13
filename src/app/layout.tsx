@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   description: "Explore NASA observations, near-Earth objects, imagery and the science of our changing universe.",
   manifest: "/manifest.json",
   icons: {
-    icon: '/media/favicon.ico',
+    icon: '/orbital-icon.svg',
   }
 };
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { apodExhibit } from '../lib/observations/apod';
 import MediaImage from '../ui/orbital/media-image';
 import { buildJournal, type JournalEntry } from '../lib/observations/journal';
-import { observationDate } from '../lib/observations/dates';
+import { observationDate, sourceTime } from '../lib/observations/dates';
 import { sanitizePlainText, truncatePlainText } from '../lib/utils/text';
 import { ROUTES } from "@/app/lib/constants/routes";
 import { fetchDonkiNotifications } from "@/app/lib/nasa/donki";
@@ -75,6 +75,7 @@ export default async function LibraryPage() {
   const software: TechTransferItem[] =
     softwareResult.status === "fulfilled" ? softwareResult.value : [];
 
+  const latestEpic = [...epic].sort((a,b)=>(sourceTime(b.date)??-Infinity)-(sourceTime(a.date)??-Infinity))[0];
   const generatedAt = new Date().toISOString();
   const journal = buildJournal(liveDonki,eonet,neos);
   const apodFallback = !apod || Boolean(apod.url?.startsWith('/'));
@@ -106,7 +107,7 @@ export default async function LibraryPage() {
     </section>
     <p className={s.caption}>Page generated {observationDate(generatedAt)}. This records page generation, not a successful NASA update. Source dates appear with each item.</p>
     <section aria-labelledby="observation-feed"><div className={s.sectionHeading}><div><h2 id="observation-feed">Published reports</h2><p>Newest source publication first. Unknown dates remain unknown.</p></div></div>{journal.news.length?renderEntries(journal.news):<EmptyState title="No published reports available"><p>The source is unavailable or returned no bulletins.</p></EmptyState>}</section>
-    <section aria-labelledby="earth-log"><div className={s.sectionHeading}><h2 id="earth-log">Earth observations</h2><Link href="/eonet" className={s.textLink}>Explore event locations</Link></div>{renderEntries(journal.observations)}<p className={s.caption}>Event dates refer to the selected latest reported geometry.</p>{epic[0]&&<p className={s.caption}>{epic[0].identifier==='local-epic-fallback'?'EPIC unavailable; the Earth chapter uses an illustrative fallback.':'Latest available EPIC frame: '+observationDate(epic[0].date)+'. Archived observation sequence.'} <Link className={s.textLink} href="/epic">View Earth frames</Link></p>}</section>
+    <section aria-labelledby="earth-log"><div className={s.sectionHeading}><h2 id="earth-log">Earth observations</h2><div className={s.actions}><Link className={s.textLink} href="/eonet">Explore event locations</Link><Link className={s.textLink} href="/epic">Earth from deep space / EPIC sequence</Link></div></div>{renderEntries(journal.observations)}<p className={s.caption}>Event dates refer to the selected latest reported geometry.</p>{latestEpic&&<p className={s.caption}>{latestEpic.identifier==='local-epic-fallback'?'EPIC unavailable; the Earth chapter uses an illustrative fallback.':'Latest available EPIC frame: '+observationDate(latestEpic.date)+'. Archived observation sequence.'} <Link className={s.textLink} href="/epic">View Earth frames</Link></p>}</section>
     <section aria-labelledby="upcoming-log"><div className={s.sectionHeading}><h2 id="upcoming-log">Today & upcoming encounters</h2></div><p className={s.caption}>Encounter dates, not publication dates. The existing feed covers a limited date window; this is not a complete future calendar.</p>{journal.upcoming.length?renderEntries(journal.upcoming):<p className={s.caption}>No upcoming encounters in the available feed.</p>}{journal.past.length>0&&<details className={s.record}><summary>Earlier encounters and undated entries</summary>{renderEntries(journal.past)}</details>}</section>
     <section aria-labelledby="archive-destinations"><div className={s.sectionHeading}><h2 id="archive-destinations">Continue observing</h2></div><div className={s.archiveGrid}>{PREVIEW_SECTIONS.map(section=><PreviewCard key={section.key} section={section} content={previewContentBySection[section.key]||null} query={section.key==='images'?imageKeyword:section.key==='videos'?videoKeyword:undefined}/>)}</div></section>
     <section aria-labelledby="technology-title"><div className={s.sectionHeading}><div><h2 id="technology-title">Exploration, brought to Earth</h2><p>Research, inventions and software developed through NASA&apos;s work.</p></div><Link href={ROUTES.techport} className={s.textLink}>Technology projects</Link></div><RubricCard title="NASA patents & software" description="Discover technologies available for licensing and software for further exploration." href={ROUTES.techtransfer} items={techTransferRubricItems} /></section>

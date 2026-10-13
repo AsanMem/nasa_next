@@ -3,14 +3,14 @@ import type { ReactNode } from "react";
 import orbital from "./orbital.module.css";
 import s from "./chapters.module.css";
 
-export function Chapter({ children }: { children: ReactNode }) {
-  return <main id="chapter-content" className={`${orbital.theme} ${s.chapter}`}>
+export function Chapter({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <main id="chapter-content" className={`${orbital.theme} ${s.chapter} ${className}`}>
     <div className={s.content}>{children}</div>
-    <footer className={s.footer}><Link href="/">Orbital / Home</Link><p>An independent exploration of NASA&apos;s public data.</p><Link href="/library">Explore the archive</Link></footer>
+    <footer className={s.footer}><Link href="/">Orbital / Home</Link><p>An independent exploration of NASA&apos;s public data.</p><Link href="/library">Explore the archive</Link><Link href="/privacy">Privacy & sources</Link></footer>
   </main>;
 }
-export function ChapterHeading({ label, title, description, children }: { label: string; title: string; description?: string; children?: ReactNode }) {
-  return <header className={s.heading}><p className={s.eyebrow}>{label}</p><h1>{title}</h1>{description && <p className={s.lead}>{description}</p>}{children}</header>;
+export function ChapterHeading({ label, title, description, children, centered = false }: { centered?: boolean; label: string; title: string; description?: string; children?: ReactNode }) {
+  return <header className={`${s.heading} ${centered ? s.centeredHeading : ""}`}><p className={s.eyebrow}>{label}</p><h1>{title}</h1>{description && <p className={s.lead}>{description}</p>}{children}</header>;
 }
 export function EmptyState({ title, children }: { title: string; children: ReactNode }) {
   return <div className={s.empty}><h2>{title}</h2><div>{children}</div></div>;

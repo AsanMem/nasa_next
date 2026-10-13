@@ -12,3 +12,13 @@ test('EONET selected date belongs to its valid geometry, not the first array ent
 test('coordinate validation and date-line polygons do not place Pacific events at Greenwich',()=>{assert.equal(resolveEonetLocation([{type:'Point',coordinates:[30,100]}]),undefined);const point=resolveEonetLocation([{type:'Polygon',coordinates:[[[179,10],[-179,10],[-179,12],[179,12]]]}]);assert.ok(Math.abs(point.longitude)>179);assert.equal(point.latitude,11);});
 test('coincident, nearby, date-line and polar markers cluster while distant events remain separate',()=>{const point=(id,latitude,longitude)=>({id,latitude,longitude,title:id,category:'Storm'});const clusters=clusterPoints([point('a',0,179),point('b',0,-179),point('c',0,179),point('d',0,0)]);assert.equal(clusters.length,2);assert.equal(clusters[0].length,3);assert.equal(clusterPoints([point('p',89,0),point('q',89,180)]).length,1);});
 test('journal sorts source dates, removes duplicate reports, excludes fallback and separates encounters',()=>{const reports=[{messageID:'old',messageIssueTime:'2026-09-01'},{messageID:'new',messageIssueTime:'2026-10-01'},{messageID:'new',messageIssueTime:'2026-10-01'},{messageID:'unknown'},{messageID:'fallback',isFallback:true}];const journal=buildJournal(reports,[{id:'earth',title:'Storm',geometry:[]}],[{id:'future',name:'Future',approachDate:'2026-10-02'},{id:'past',name:'Past',approachDate:'2026-09-01'}],Date.parse('2026-10-01T12:00:00Z'));assert.equal(journal.news.map(item=>item.id).join(','),'new,old,unknown');assert.equal(journal.observations[0].sourceDate,null);assert.equal(journal.upcoming[0].id,'future');assert.equal(journal.past[0].id,'past');});
+
+
+test('event sorting uses newest source observation and puts unknown dates last in every mode',()=>{
+ const {sortEvents}=load('observations/geography.ts');
+ const events=[{id:'u',title:'A unknown'},{id:'b',title:'B old',geometry:[{date:'2026-01-01'}]},{id:'c',title:'C recent',geometry:[{date:'2020-01-01'},{date:'2026-10-13'}]},{id:'x',title:'X invalid',geometry:[{date:'2026-02-30'}]}];
+ assert.equal(sortEvents(events,'latest').map(x=>x.id).join(','),'c,b,u,x');
+ assert.equal(sortEvents(events,'oldest').map(x=>x.id).join(','),'b,c,u,x');
+ assert.equal(sortEvents(events,'title').map(x=>x.id).join(','),'b,c,u,x');
+ assert.equal(events[0].id,'u');
+});

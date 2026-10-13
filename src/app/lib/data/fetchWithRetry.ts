@@ -84,7 +84,7 @@ export async function retryFetch(
 
       const label = debugLabel ? `:${debugLabel}` : "";
       const reason = isAbortError(err) ? "timeout" : "network/error";
-      console.warn(`[retryFetch${label}] attempt ${attempt + 1}/${retries} failed (${reason})`, err);
+      console.warn(`[retryFetch${label}] attempt ${attempt + 1}/${retries} failed (${reason})`);
     }
 
     if (attempt < retries - 1) {

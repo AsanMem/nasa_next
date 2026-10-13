@@ -71,3 +71,11 @@ test('upstream NASA site logo is never presented as an astronomical observation'
  const html=render('src/app/ui/day/day-client.tsx',{build,photoData:{title:'NASA Science',date:'2026-10-01',media_type:'image',url:'https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png',explanation:'A Moon photograph'}});
  assert.match(html,/Illustrative archive image/);assert.doesNotMatch(html,/NASA publication|A Moon photograph|nasa-logo@2x/);
 });
+
+
+test('optional YouTube and Vimeo embeds make no iframe request before an explicit action',()=>{
+ for(const url of ['https://www.youtube.com/watch?v=example','https://player.vimeo.com/video/123']) {
+ const html=render('src/app/ui/day/day-client.tsx',{build,photoData:{title:'Film',media_type:'video',url}});
+ assert.doesNotMatch(html,/<iframe/);assert.match(html,/Load external video/);assert.match(html,/provider receives your IP address/);
+ }
+});

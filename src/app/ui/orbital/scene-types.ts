@@ -2,6 +2,7 @@ import type { MutableRefObject } from "react";
 export type SceneConfig = {
   kind: "home" | "catalog" | "profile" | "events";
   focus?: { latitude:number; longitude:number };
+  focusRevision?: number;
   markers?: { id:string; latitude:number; longitude:number }[];
   projectMarkers?: (points:{ id:string; x:number; y:number; visible:boolean }[])=>void;
   id?: string; paused: boolean; diameter?: number | null; speed?: number | null;

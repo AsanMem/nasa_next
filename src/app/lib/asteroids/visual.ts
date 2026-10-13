@@ -2,7 +2,7 @@ import { createNoise3D } from "simplex-noise";
 
 export type Vec3 = [number, number, number];
 export type AsteroidVisualDescriptor = {
-  version: 2; id: string; seed: number;
+  version: 3; id: string; seed: number;
   family: "rubble" | "elongated" | "shard" | "bilobed";
   proportions: Vec3; rotation: Vec3; texture: string; tint: string;
   roughness: number; relief: number;
@@ -29,8 +29,8 @@ const surfaces = [
   { texture: "stone-8.jpg", tint: "#b7a593" },
 ] as const;
 export function asteroidVisual(id: string): AsteroidVisualDescriptor {
-  const shape = randomStream(hashSeed(`orbital:2:shape:${id}`));
-  const material = randomStream(hashSeed(`orbital:2:material:${id}`));
+  const shape = randomStream(hashSeed(`orbital:3:shape:${id}`));
+  const material = randomStream(hashSeed(`orbital:3:material:${id}`));
   const family = (["rubble", "elongated", "shard", "bilobed"] as const)[Math.floor(shape() * 4)];
   const proportions: Vec3 = family === "elongated" ? [1.5 + shape() * .35, .7 + shape() * .15, .75]
     : family === "shard" ? [1.25, .7, .55 + shape() * .15]
@@ -39,7 +39,7 @@ export function asteroidVisual(id: string): AsteroidVisualDescriptor {
     const z = shape() * 2 - 1, angle = shape() * Math.PI * 2, r = Math.sqrt(1 - z * z);
     return { direction: [r * Math.cos(angle), r * Math.sin(angle), z] as Vec3, width: .12 + shape() * .22, depth: .025 + shape() * .085 };
   });
-  return { version: 2, id, family, seed: hashSeed(`orbital:2:noise:${id}`), proportions,
+  return { version: 3, id, family, seed: hashSeed(`orbital:3:noise:${id}`), proportions,
     rotation: [.16 + shape() * .25, -.5 + shape(), -.6 + shape() * 1.2],
     ...surfaces[Math.floor(material() * 4)], roughness: .86 + material() * .12,
     relief: .065 + shape() * .045, craters };
@@ -49,13 +49,14 @@ export function surfaceSampler(descriptor: AsteroidVisualDescriptor) {
   return (x: number, y: number, z: number): Vec3 => {
     const warp = noise(x * 1.3 + 7, y * 1.3 - 4, z * 1.3 + 2) * .28;
     let radius = 1 + descriptor.relief * noise(x * 1.05 + warp, y * 1.05, z * 1.05)
-      + .018 * noise(x * 3.2, y * 3.2, z * 3.2) + .005 * noise(x * 8, y * 8, z * 8);
+      + .045 * noise(x * 3.2 + 5, y * 3.2, z * 3.2 - 2) + .012 * noise(x * 8, y * 8, z * 8)
+      + .07 * x - .035 * y * z;
     for (const crater of descriptor.craters) {
       const distance = 1 - (x * crater.direction[0] + y * crater.direction[1] + z * crater.direction[2]);
       radius -= crater.depth * Math.exp(-distance / (crater.width * crater.width));
     }
-    if (descriptor.family === "bilobed") radius *= .48 + .8 * Math.abs(x) + .09 * x;
-    if (descriptor.family === "shard") radius = Math.min(radius, .9 / Math.max(.1, Math.abs(x + z * .25)), .72 / Math.max(.1, Math.abs(y - z * .3)), .8 / Math.max(.1, Math.abs(z - x * .2)));
+    if (descriptor.family === "bilobed") radius *= .52 + .7 * Math.abs(x + .12 * y) + .17 * x;
+    if (descriptor.family === "shard") radius = Math.min(radius, .9 / Math.max(.1, Math.abs(x + z * .25 + .12)), .72 / Math.max(.1, Math.abs(y - z * .3 - .09)), .8 / Math.max(.1, Math.abs(z - x * .2 + .07)));
     return [x * radius * descriptor.proportions[0], y * radius * descriptor.proportions[1], z * radius * descriptor.proportions[2]];
   };
 }

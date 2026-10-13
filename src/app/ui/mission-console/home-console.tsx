@@ -65,9 +65,13 @@ export default function HomeConsole() {
         </div>
       </section>
 
+      <section className={styles.observationEntrances} aria-label="More ways to observe">
+        <Link href="/epic"><span>Earth from deep space</span><h2>A day on Earth, frame by frame.</h2><p>Play a sequence of real DSCOVR / EPIC observations.</p></Link>
+        <Link href="/library"><span>Observation journal</span><h2>Follow the latest discoveries.</h2><p>Source-dated reports, imagery and encounters in one journal.</p></Link>
+      </section>
       <footer className={styles.footer}>
         <div><Link href="/" className={styles.footerBrand}>Orbital</Link><p>Space is closer than you think.</p></div>
-        <p>An independent exploration project.<br />Powered by NASA&apos;s public data.</p>
+        <Link href="/privacy">Privacy & sources</Link><p>An independent exploration project.<br />Powered by NASA&apos;s public data.</p>
         <a href="#console-title">Back to the beginning <span className={styles.upArrow}><ArrowIcon /></span></a>
       </footer>
     </main>

@@ -24,3 +24,19 @@ node --test tests/asteroids-view-model.test.cjs tests/asteroid-visual.test.cjs t
 ```
 
 The extra checks cover UTC and explicit offsets, impossible/unknown dates, source ordering and deduplication, separate encounter dates, EONET geometry/date agreement, invalid coordinates, antimeridian polygons, coincident/polar marker clusters, Earth marker projection through the existing renderer, APOD/EPIC fallback labels, upstream site logos, missing media and accessible image triggers. Browser/GPU boundaries in lifecycle tests are simulated.
+
+## Recovery checks (2026-10-13)
+
+After compiling the model as above, run all 53 checks:
+
+```powershell
+node --test tests/asteroids-view-model.test.cjs tests/asteroid-visual.test.cjs tests/asteroid-scene-lifecycle.test.cjs tests/observations.test.cjs tests/presentation.test.cjs tests/nasa-recovery.test.cjs tests/epic-playback.test.cjs
+```
+
+New cases cover authorization, rate limits, service errors, HTML instead of JSON, invalid schema, empty responses, secret-free logs, cancellation/timeouts and unchanged cache intervals; DONKI migration and missing text; EPIC metadata, decode-before-commit, stale-load rejection, 1500 ms opt-in playback, hidden-tab suspension and unmount cancellation; journal encounter selection; event sorting with unknown dates; shortest quaternion focus, interrupted retargeting and reduced motion; and optional video embeds before activation. These tests use network, image and browser/GPU doubles. They do not certify provider availability, actual storage behavior, keyboard operation or desktop/mobile composition in a real browser.
+
+## Current repair checks (13 October 2026)
+
+Run the full suite above plus `tests/eonet-interactions.test.cjs`: 59 tests total. The EONET tests execute the real components with controlled hooks and check group/individual focus, repeated selection, paused/reduced motion controls, eight-item pagination and marker selection across pages. APOD tests now cover the verified NASA Science source, publication date bounds, image/video/credit extraction, midnight-inclusive queries, empty publications and diagnostics without dates. Invalid APOD responses now remain unavailable rather than presenting an invented daily observation.
+
+Production smoke also exercises POST /api/apod with public archive fixtures (image, direct video, embedded video, first date, missing date and invalid dates). Do not log real visitor date input. Actual desktop/mobile, keyboard and OS reduced-motion review remains pending until a browser is connected.

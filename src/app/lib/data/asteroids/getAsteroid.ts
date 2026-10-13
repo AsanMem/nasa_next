@@ -26,7 +26,7 @@ export async function getAsteroid(id: string): Promise<any> {
     );
     return await response.json();
   } catch (error) {
-    console.error("Response Error:", error);
+    console.error("[NASA] NeoWs detail unavailable.");
     return null;
   }
 }

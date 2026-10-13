@@ -14,6 +14,7 @@ export async function fetchAsteroids({
 } = {}): Promise<AsteroidsFeed | null> {
   return fetchNasaJson<AsteroidsFeed>("https://api.nasa.gov/neo/rest/v1/feed", {
     revalidate: ASTEROIDS_REVALIDATE_SECONDS,
+    validate: value => Boolean(value && typeof value === 'object' && 'near_earth_objects' in value && value.near_earth_objects && typeof value.near_earth_objects === 'object' && Object.values(value.near_earth_objects).every(Array.isArray)),
     query: { start_date: START_DATE, end_date: END_DATE },
   });
 }

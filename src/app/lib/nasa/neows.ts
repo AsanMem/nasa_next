@@ -53,6 +53,7 @@ export async function fetchTodayNeoFeed(): Promise<NeoFeedItem[]> {
 
   const response = await fetchNasaJson<NeoFeedResponse>(NEOWS_ENDPOINT, {
     revalidate: NEOWS_REVALIDATE_SECONDS,
+    validate: value => Boolean(value && typeof value === 'object' && 'near_earth_objects' in value && value.near_earth_objects && typeof value.near_earth_objects === 'object' && Object.values(value.near_earth_objects).every(items => Array.isArray(items) && items.every(item => item && typeof item.id === 'string'))),
     query: {
       start_date: yesterday,
       end_date: today,
@@ -71,7 +72,7 @@ export async function fetchTodayNeoFeed(): Promise<NeoFeedItem[]> {
   return objects
     .filter((object) => object.is_potentially_hazardous_asteroid)
     .map((object) => {
-      const closeApproach = object.close_approach_data?.[0];
+      const closeApproach = object.close_approach_data?.find(event => event.close_approach_date === dataDate && event.orbiting_body === "Earth");
       const closeDate =
         closeApproach?.close_approach_date_full ?? closeApproach?.close_approach_date;
       const velocity = closeApproach?.relative_velocity?.kilometers_per_second;

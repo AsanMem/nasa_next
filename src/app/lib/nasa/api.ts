@@ -60,52 +60,74 @@ export function buildNasaUrl(
   return url.toString();
 }
 
-export async function fetchJsonSafe<T>(
+export type NasaOutcome = "ok" | "empty" | "authorization" | "rate-limit" | "unavailable" | "invalid-data";
+export type NasaResult<T> = { data: T | null; outcome: NasaOutcome; status?: number };
+
+function serviceName(url: string) {
+  try {
+    const { hostname, pathname } = new URL(url);
+    if (hostname === "api.nasa.gov" && pathname.startsWith("/planetary/apod")) return "APOD";
+    if (hostname === "science.nasa.gov" && pathname.startsWith("/wp-json/wp/v2/image-article")) return "APOD";
+    if (hostname === "api.nasa.gov" && pathname.startsWith("/neo/")) return "NeoWs";
+    if (hostname === "ccmc.gsfc.nasa.gov" || pathname.startsWith("/DONKI/")) return "DONKI";
+    if (hostname === "epic.gsfc.nasa.gov") return "EPIC";
+    if (hostname === "eonet.gsfc.nasa.gov") return "EONET";
+  } catch { /* Never log untrusted URLs. */ }
+  return "NASA";
+}
+
+export async function fetchJsonResult<T>(
   url: string,
   revalidateSeconds = DEFAULT_REVALIDATE_SECONDS,
   init?: RequestInit,
-): Promise<T | null> {
+  validate?: (value: unknown) => boolean,
+): Promise<NasaResult<T>> {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  const timer = setTimeout(abort, 15000);
+  init?.signal?.addEventListener("abort", abort, { once: true });
+  if (init?.signal?.aborted) abort();
+  const result = (outcome: NasaOutcome, data: T | null = null, status?: number): NasaResult<T> => {
+    // Allowlisted labels only: no URLs, response bodies or raw Error objects.
+    if (outcome !== "ok") console.warn("[NASA]", { service: serviceName(url), outcome, status });
+    return { data, outcome, status };
+  };
   try {
+    const headers = new Headers(init?.headers);
+    if (!headers.has("Accept")) headers.set("Accept", "application/json");
     const response = await fetch(url, {
       ...(init ?? {}),
-      headers: {
-        Accept: "application/json",
-        ...(init?.headers ?? {}),
-      },
+      headers,
+      signal: controller.signal,
       next: {
         revalidate: revalidateSeconds,
       },
     });
 
     if (!response.ok) {
-      console.error(`NASA JSON fetch failed (${response.status}).`);
-      return null;
+      return result(response.status === 401 || response.status === 403 ? "authorization" : response.status === 429 ? "rate-limit" : "unavailable", null, response.status);
     }
 
-    const contentType = response.headers.get("content-type") ?? "";
-   
-   
     const rawText = await response.text();
-    const looksLikeJson = /^[\s]*[\[{]/.test(rawText);
-
-    if (!contentType.toLowerCase().includes("json") && !looksLikeJson) {
-      console.error(`Unexpected content-type "${contentType}" for ${url}`);
-   
-  
-      return null;
-    }
-
+    if (!rawText.trim()) return result("empty", null, response.status);
     try {
-      const json = JSON.parse(rawText) as T;
-      return json
-    } catch (parseError) {
-      console.error("Failed to parse NASA JSON response.", parseError);
-      return null;
+      const json: unknown = JSON.parse(rawText);
+      if (json === null) return result("empty", null, response.status);
+      if (typeof json !== "object" || (validate && !validate(json))) return result("invalid-data", null, response.status);
+      return result(Array.isArray(json) && !json.length ? "empty" : "ok", json as T, response.status);
+    } catch {
+      return result("invalid-data", null, response.status);
     }
-  } catch (error) {
-    console.error("NASA JSON request failed.", error);
-    return null;
+  } catch {
+    return result("unavailable");
+  } finally {
+    clearTimeout(timer);
+    init?.signal?.removeEventListener("abort", abort);
   }
+}
+
+export async function fetchJsonSafe<T>(url: string, revalidateSeconds = DEFAULT_REVALIDATE_SECONDS, init?: RequestInit, validate?: (value: unknown) => boolean): Promise<T | null> {
+  return (await fetchJsonResult<T>(url, revalidateSeconds, init, validate)).data;
 }
 
 export function getNasaUtcDate(daysFromToday = 0) {
@@ -121,6 +143,7 @@ export function getNasaUtcDate(daysFromToday = 0) {
 
 
 type FetchNasaOptions = {
+  validate?: (value: unknown) => boolean;
   revalidate?: number;
   init?: RequestInit;
   signal?: AbortSignal; 
@@ -130,7 +153,7 @@ type FetchNasaOptions = {
 
 export async function fetchNasaJson<T>(
   baseUrl: string,
-  { revalidate, init, signal, includeApiKey = true, query }: FetchNasaOptions = {},
+  { revalidate, init, signal, includeApiKey = true, query, validate }: FetchNasaOptions = {},
 ): Promise<T | null> {
   const url = buildNasaUrl(baseUrl, query, { includeApiKey });
 
@@ -138,7 +161,7 @@ export async function fetchNasaJson<T>(
   const mergedInit: RequestInit | undefined =
     signal ? { ...(init ?? {}), signal } : init;
 
-  return fetchJsonSafe<T>(url, revalidate ?? DEFAULT_REVALIDATE_SECONDS, mergedInit);
+  return fetchJsonSafe<T>(url, revalidate ?? DEFAULT_REVALIDATE_SECONDS, mergedInit, validate);
 }
 
 export function formatDubaiDateTime(

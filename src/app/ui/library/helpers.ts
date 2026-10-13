@@ -200,7 +200,7 @@ export function getNeoPreview(neos: NeoFeedItem[]): PreviewContent | null {
   const neo = neos[0];
 
 
-  const fallbackHazard = "/media/main/1.png.optimized.webp";
+  const fallbackHazard = "/media/main/1.optimized.webp";
   const fallbackNormal = "/media/fallback/neo.jpg";
 
   const mediaUrl = neo.hazard ? fallbackHazard : fallbackNormal;

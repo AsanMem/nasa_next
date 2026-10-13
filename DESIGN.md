@@ -62,3 +62,13 @@ The remaining chapters now share the Orbital background and Space Grotesk. Media
 Earth events use the root scene owner's deferred renderer in an `events` mode, with reported coordinates projected onto the textured Earth. Category icons share one warm color. Nearby observations open a list; selecting a report or its geometry changes the focus and source observation date together. No affected areas or trajectories are inferred. Mobile and failed WebGL use the same events on an equirectangular reference image. Rotation is opt-in, pausable and suspended offscreen; reduced motion leaves selection available.
 
 EPIC is an archived observation sequence with manual frames and opt-in playback. `/library` is an observation journal: an issue image, available-data summary, source-dated publications, Earth observations and a separate encounter section. Source dates, observation times and page generation are distinct. Unknown dates remain unknown; local images and upstream failures are labelled. API requests, cache intervals and scheduled workflows are unchanged.
+
+## Recovery and polish — 2026-10-13
+
+The current brief authorizes repairs and final polish across these existing chapters. Gallery and Videos use centered introductions and one soft search surface; the viewer gives the image the full width with compact expandable context. EONET has one category/count/sort panel; selection moves Earth along a 700 ms shortest quaternion arc with interruptible targeting and synchronized pins. EPIC uses a pure-black uncropped image area and decoded-frame playback. The homepage keeps its composition and uses its existing Earth texture for the small expedition diagram.
+
+Asteroid generator v3 supersedes v2: versioned ID seeds, asymmetric clipping and lobes, and stronger local relief reduce mirrored/smooth surfaces. Physical normalization and the artistic-reconstruction labels remain. The original Orbital mark replaces the NASA insignia as application identity; NASA remains credited as the source. Optional third-party video players require an explicit load action.
+
+## Current chapter repairs - 13 October 2026
+
+Keep the established home hero and six destination rows. Below them, two calm, prominent links introduce EPIC and Observation journal. EPIC's entire chapter is pure black, joining the real uncropped frame to its surroundings. EONET keeps the shared globe and all filtered map locations while its list paginates by eight. Space Weather pairs real publication dates with a quiet conceptual Sun-Earth diagram; no quantitative telemetry or event trajectory is implied. The navigable Birthday chapter searches actual APOD publications by a transient date. Privacy remains a short, explicitly unfinished preview notice.

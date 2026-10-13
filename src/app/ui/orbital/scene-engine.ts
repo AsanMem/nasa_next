@@ -48,7 +48,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   const home = new THREE.Group(); scene.add(home);
   const earthGeometry = new THREE.SphereGeometry(1.38, 64, 48);
   const earthMaterial = new THREE.MeshPhongMaterial({ shininess: 6, specular: 0x27333b });
-  const earth = new THREE.Mesh(earthGeometry, earthMaterial); earth.rotation.set(.12, 3.9, -.12); home.add(earth);
+  const earth = new THREE.Mesh(earthGeometry, earthMaterial); earth.name = 'reference-earth'; earth.rotation.set(.12, 3.9, -.12); home.add(earth);
   const atmosphereGeometry = new THREE.SphereGeometry(1.414, 48, 32);
   const atmosphereMaterial = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.BackSide,
     vertexShader: "varying vec3 n; varying vec3 v; void main(){vec4 p=modelViewMatrix*vec4(position,1.0);n=normalize(normalMatrix*normal);v=normalize(-p.xyz);gl_Position=projectionMatrix*p;}",
@@ -65,7 +65,13 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   let disposed = false, lost = false, frame = 0, lastTime = 0, visible = false, orbitTime = .68;
   let binding: SceneBinding | null = null, controls: OrbitControls | undefined, observer: IntersectionObserver | undefined, resizeObserver: ResizeObserver | undefined;
   let activeRock: Rock | undefined;
-  let eventTurn = 0;
+  let eventFocus: { from: THREE.Quaternion; to: THREE.Quaternion; elapsed: number } | undefined;
+  function focusEarth(config: SceneConfig, instant = false) {
+    if (config.kind !== 'events') { eventFocus = undefined; return; }
+    const to = new THREE.Quaternion().setFromEuler(new THREE.Euler((config.focus?.latitude ?? 0) * Math.PI / 180, -Math.PI / 2 - (config.focus?.longitude ?? 0) * Math.PI / 180, 0, 'XYZ'));
+    if (instant || preference.matches) { earth.quaternion.copy(to); eventFocus = undefined; }
+    else eventFocus = { from: earth.quaternion.clone(), to, elapsed: 0 };
+  }
   const rocks = new Map<string, Rock>();
   const textures: THREE.Texture[] = [];
   let planetMapsReady = 0, planetMapFailed = false;
@@ -157,10 +163,12 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     moon.position.set(Math.cos(orbitTime) * 2.35, Math.sin(orbitTime) * .9, Math.sin(orbitTime) * 2.17198);
     moon.rotation.y = -orbitTime;
     if (isEvents) {
-      const latitude = (config.focus?.latitude ?? 0)*Math.PI/180;
-      const longitude = (config.focus?.longitude ?? 0)*Math.PI/180;
-      if (moving) eventTurn += delta * .035;
-      earth.rotation.set(latitude,-Math.PI/2-longitude+eventTurn,0,'XYZ');
+      if (eventFocus) {
+        eventFocus.elapsed += delta;
+        const t = preference.matches ? 1 : Math.min(1, eventFocus.elapsed / .7);
+        earth.quaternion.slerpQuaternions(eventFocus.from, eventFocus.to, t * t * (3 - 2 * t));
+        if (t === 1) eventFocus = undefined;
+      } else if (moving) earth.rotation.y += delta * .035;
     }
     stars.visible = !comparing; particles.visible = !isHome && !comparing || !!flight;
     const speed = config?.speed;
@@ -211,13 +219,14 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
         return {id:point.id,x:(projected.x+1)*50,y:(1-projected.y)*50,visible:facing};
       }));
     }
-    if (moving || flight || entrance.t < 1) frame = requestAnimationFrame(draw);
+    if (moving || flight || entrance.t < 1 || eventFocus) frame = requestAnimationFrame(draw);
   }
   function releaseObservers() { observer?.disconnect(); resizeObserver?.disconnect(); controls?.dispose(); controls = undefined; }
   function attach(next: SceneBinding) {
     if (disposed || lost) { next.status("failed"); return; }
     const oldId = binding?.config.id;
     releaseObservers(); binding = next; visible = true;
+    focusEarth(next.config, true);
     if (next.config.id) selectRock(next.config.id);
     if (!flight) next.host.appendChild(renderer.domElement);
     controls = new OrbitControls(camera, next.host); controls.enableZoom = false; controls.enablePan = false; controls.enableDamping = false; controls.rotateSpeed = .6;
@@ -236,7 +245,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   function update(config: SceneConfig) {
     if (!binding || disposed || lost) return;
     if (config.id && binding.config.id !== config.id) { selectRock(config.id); enter(); }
-    if (config.focus?.latitude !== binding.config.focus?.latitude || config.focus?.longitude !== binding.config.focus?.longitude) eventTurn = 0;
+    if (config.focus?.latitude !== binding.config.focus?.latitude || config.focus?.longitude !== binding.config.focus?.longitude || config.focusRevision !== binding.config.focusRevision) focusEarth(config);
     binding.config = config; wake();
   }
   function depart(destination: string) {

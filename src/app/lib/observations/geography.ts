@@ -6,6 +6,16 @@ export function eventObservations(event: EonetEvent) {
     .sort((a,b) => (b.time ?? -Infinity)-(a.time ?? -Infinity));
 }
 export function latestObservation(event: EonetEvent) { const observations=eventObservations(event); return observations.find(item=>item.location)||observations[0]; }
+export type EventSort = 'latest' | 'oldest' | 'title';
+export function sortEvents(events: EonetEvent[], sort: EventSort) {
+  return [...events].sort((a, b) => {
+    const first = eventObservations(a)[0]?.time ?? null, second = eventObservations(b)[0]?.time ?? null;
+    if (first === null && second !== null) return 1;
+    if (second === null && first !== null) return -1;
+    if (sort !== 'title' && first !== null && second !== null && first !== second) return sort === 'oldest' ? first - second : second - first;
+    return a.title.localeCompare(b.title, 'en') || a.id.localeCompare(b.id);
+  });
+}
 export type MapPoint = { id:string; latitude:number; longitude:number; title:string; category:string };
 export function angularDistance(a:MapPoint,b:MapPoint) {
   const r=Math.PI/180;

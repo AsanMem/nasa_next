@@ -16,7 +16,7 @@ export default async function PageVideos({ searchParams }: { searchParams?: { qu
     (async () => (await fetchFilteredVideos(effectiveQuery, currentPage)) || { videos: [], totalPages: 0 })(),
     fetchWikipediaArticles(effectiveQuery, 8),
   ]);
-  return <Chapter><ChapterHeading label="Missions in motion" title="See exploration unfold." description="Launches, life in orbit and stories from deep space. Find a film and take a closer look at the work of exploration." />
+  return <Chapter><ChapterHeading centered label="Missions in motion" title="See exploration unfold." description="Launches, life in orbit and stories from deep space. Find a film and take a closer look at the work of exploration." />
     <SearchData /><div className={s.archiveLayout}><section aria-label="NASA video results"><ListVideos videos={videos} totalPages={totalPages} query={query} /></section><WikiSidebar articles={wikiArticles} /></div>
   </Chapter>;
 }

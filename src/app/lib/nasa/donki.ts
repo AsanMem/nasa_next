@@ -1,6 +1,7 @@
+import { sourceTime } from "../observations/dates";
 import { fetchNasaJson, formatDubaiDateTime, getNasaUtcDate } from "./api";
 
-const DONKI_ENDPOINT = "https://api.nasa.gov/DONKI/notifications";
+const DONKI_ENDPOINT = "https://ccmc.gsfc.nasa.gov/DONKI-API/get/notifications";
 const DONKI_REVALIDATE_SECONDS = 43200;
 
 export type DonkiNotification = {
@@ -47,6 +48,8 @@ export async function fetchDonkiNotifications({
 
   const response = await fetchNasaJson<DonkiApiResponse>(DONKI_ENDPOINT, {
     revalidate: DONKI_REVALIDATE_SECONDS,
+    includeApiKey: false,
+    validate: value => Array.isArray(value) && value.every(item => item && typeof item.messageID === "string" && typeof item.messageBody === "string"),
     query: {
       startDate: startDate ?? defaultStart,
       endDate: endDate ?? today,
@@ -63,13 +66,14 @@ export async function fetchDonkiNotifications({
 
   return response
     .sort((a, b) => {
-      const timeA = a.messageIssueTime ? new Date(a.messageIssueTime).getTime() : 0;
-      const timeB = b.messageIssueTime ? new Date(b.messageIssueTime).getTime() : 0;
+      const timeA = sourceTime(a.messageIssueTime) ?? -Infinity;
+      const timeB = sourceTime(b.messageIssueTime) ?? -Infinity;
       return timeB - timeA;
     })
     .slice(0, limit)
     .map((item) => ({
       ...item,
+      messageBody: item.messageBody?.replace(/[#*\s]/g, "") ? item.messageBody : undefined,
       formattedTime: item.messageIssueTime
         ? formatDubaiDateTime(item.messageIssueTime)
         : undefined,

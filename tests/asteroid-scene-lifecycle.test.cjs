@@ -88,3 +88,30 @@ test('event mode reuses the Earth renderer, projects selected geography to the f
  await settle();app.tick();assert.equal(binding.state,'ready');assert.equal(app.stats.renderers,1);assert.equal(points[0].visible,true);assert.equal(points[1].visible,false);assert.ok(Math.abs(points[0].x-50)<1);assert.ok(Math.abs(points[0].y-50)<3);assert.equal(app.frames.size,0);
  engine.update({...binding.config,focus:{latitude:-30,longitude:-120},markers:[{id:'new',latitude:-30,longitude:-120}]});app.tick();assert.equal(points[0].visible,true);assert.ok(Math.abs(points[0].x-50)<1);engine.dispose();assert.equal(app.frames.size,0);assert.equal(app.stats.disposed,1);
 });
+
+
+test('Earth focus follows a shortest 700ms arc, retargets without a jump and projects intermediate markers',async()=>{
+ const app=setup(),engine=app.engine();let projections;
+ const binding=bind(app,engine,{kind:'events',id:undefined,paused:true,focus:{latitude:0,longitude:179},markers:[{id:'p',latitude:0,longitude:-150}],projectMarkers:value=>projections=value});
+ await settle();app.finish();app.tick(100);
+ const earth=app.stats.scene.getObjectByName('reference-earth'),start=earth.quaternion.clone();
+ engine.update({...binding.config,focus:{latitude:0,longitude:-179}});
+ for(let t=120;t<=440;t+=20)app.tick(t);
+ assert.ok(start.angleTo(earth.quaternion)<2*Math.PI/180);
+ assert.ok(start.angleTo(earth.quaternion)>0);
+ const middle=earth.quaternion.clone(),markerX=projections[0].x;
+ engine.update({...binding.config,focus:{latitude:35,longitude:-80}});
+ assert.ok(middle.angleTo(earth.quaternion)<1e-7);
+ app.tick(460);assert.ok(middle.angleTo(earth.quaternion)<.02);
+ assert.notEqual(projections[0].x,markerX);
+ for(let t=480;t<=1180;t+=20)app.tick(t);
+ const target=new THREE.Quaternion().setFromEuler(new THREE.Euler(35*Math.PI/180,-Math.PI/2+80*Math.PI/180,0,'XYZ'));
+ assert.ok(target.angleTo(earth.quaternion)<1e-7);assert.equal(app.frames.size,0);
+ engine.dispose();
+});
+test('reduced-motion Earth selection is immediate and keeps no animation queued',async()=>{
+ const app=setup({reduced:true}),engine=app.engine(),binding=bind(app,engine,{kind:'events',id:undefined,paused:true,focus:{latitude:0,longitude:0}});
+ await settle();app.tick();engine.update({...binding.config,focus:{latitude:40,longitude:90}});app.tick();
+ const earth=app.stats.scene.getObjectByName('reference-earth'),target=new THREE.Quaternion().setFromEuler(new THREE.Euler(40*Math.PI/180,-Math.PI,0,'XYZ'));
+ assert.ok(target.angleTo(earth.quaternion)<1e-7);assert.equal(app.frames.size,0);engine.dispose();
+});

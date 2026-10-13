@@ -1,3 +1,4 @@
+import { sourceTime } from "../observations/dates";
 import { fetchNasaJson } from "./api";
 
 const EPIC_ENDPOINT = "https://epic.gsfc.nasa.gov/api/natural";
@@ -22,7 +23,7 @@ const EPIC_FALLBACK_IMAGE: EpicImage = {
   identifier: "local-epic-fallback",
   caption: "EPIC Earth image temporarily unavailable",
   image: "local-epic-fallback",
-  date: "2024-01-01 00:00:00",
+
   imageUrl: "/media/main/1.optimized.webp",
 };
 
@@ -32,7 +33,9 @@ function buildEpicEndpoint(date?: string) {
 
 function buildEpicImageUrl(image: string, date: string) {
   // date: "2025-07-15 03:48:07"
-  const d = new Date(date.replace(" ", "T") + "Z"); // безопасно в UTC
+  const time = sourceTime(date);
+  if (time === null || !/^[a-zA-Z0-9_-]+$/.test(image)) return undefined;
+  const d = new Date(time);
 
   if (Number.isNaN(d.getTime())) {
     return undefined;
@@ -49,6 +52,7 @@ export async function fetchEpicImages(limit = 4, date?: string): Promise<EpicIma
   const response = await fetchNasaJson<EpicImage[]>(buildEpicEndpoint(date), {
     revalidate: EPIC_REVALIDATE_SECONDS,
     includeApiKey: false,
+    validate: value => Array.isArray(value) && value.every(item => item && typeof item.image === "string" && typeof item.date === "string" && Boolean(buildEpicImageUrl(item.image, item.date))),
     init: {
       headers: {
         Accept: "application/json",
@@ -56,7 +60,8 @@ export async function fetchEpicImages(limit = 4, date?: string): Promise<EpicIma
     },
   });
 
-  if (!Array.isArray(response) || response.length === 0) {
+  if (Array.isArray(response) && response.length === 0) return [];
+  if (!Array.isArray(response)) {
     if (process.env.NODE_ENV !== "production") {
       console.warn("[EPIC] Metadata fetch failed or returned no images; using static fallback.");
     }

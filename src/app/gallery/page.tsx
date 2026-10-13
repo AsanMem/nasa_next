@@ -15,7 +15,7 @@ export default async function Page({ searchParams }: { searchParams?: { query?: 
     (async () => (await fetchFilteredImages(query, currentPage)) || { gallery: [], totalPages: 0 })(),
     fetchWikipediaArticles(query, 8),
   ]);
-  return <Chapter><ChapterHeading label="The photographic archive" title="A universe of perspectives." description="From a first step on the Moon to the faintest distant galaxy. Explore the places, people and discoveries in NASA's image archive." />
+  return <Chapter><ChapterHeading centered label="The photographic archive" title="A universe of perspectives." description="From a first step on the Moon to the faintest distant galaxy. Explore the places, people and discoveries in NASA's image archive." />
     <SearchData /><div className={s.archiveLayout}><section aria-label="NASA image results"><ListImages gallery={gallery} totalPages={totalPages} /></section><WikiSidebar articles={wikiArticles} /></div>
   </Chapter>;
 }
