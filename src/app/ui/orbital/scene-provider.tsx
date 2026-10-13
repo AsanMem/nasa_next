@@ -49,7 +49,7 @@ export default function OrbitalSceneProvider({ children }: { children: ReactNode
     return () => { alive.current = false; document.removeEventListener("click", click, true); window.removeEventListener("popstate", pop); clearTimeout(cleanupTimer.current); engine.current?.dispose(); engine.current = null; };
   }, []);
   useEffect(() => {
-    if (pathname === "/eonet" || pathname === "/" || pathname === "/asteroids" || /^\/asteroids\/[^/]+\/[^/]+$/.test(pathname)) return;
+    if (pathname === "/space-weather" || pathname === "/eonet" || pathname === "/" || pathname === "/asteroids" || /^\/asteroids\/[^/]+\/[^/]+$/.test(pathname)) return;
     engine.current?.dispose(); engine.current = null;
   }, [pathname]);
   return <SceneContext.Provider value={api}>{children}<div ref={layer} data-orbital-flight="true" aria-hidden="true" style={{ display: "none", position: "fixed", pointerEvents: "none", zIndex: 30, overflow: "hidden" }} /></SceneContext.Provider>;

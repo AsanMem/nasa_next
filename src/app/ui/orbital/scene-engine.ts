@@ -1,3 +1,4 @@
+import { createSolarModel } from "./solar-model";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
@@ -45,6 +46,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   scene.add(new THREE.AmbientLight(0xb9cbe0, .5));
   const sun = new THREE.DirectionalLight(0xffe9d0, 3.5); sun.position.set(-3, 4, 5); scene.add(sun);
   const rim = new THREE.DirectionalLight(0x9ab7d9, 1.25); rim.position.set(3, 1, -3); scene.add(rim);
+  let solarModel: ReturnType<typeof createSolarModel> | undefined;
   const home = new THREE.Group(); scene.add(home);
   const earthGeometry = new THREE.SphereGeometry(1.38, 64, 48);
   const earthMaterial = new THREE.MeshPhongMaterial({ shininess: 6, specular: 0x27333b });
@@ -110,8 +112,8 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     const texture = loader.load(url, map => {
       if (disposed) { map.dispose(); return; }
       map.colorSpace = THREE.SRGBColorSpace; material.map = map; material.needsUpdate = true; planetMapsReady++;
-      if ((binding?.config.kind === "home" || binding?.config.kind === "events") && planetMapsReady === 2 && !planetMapFailed) binding.status("ready"); wake();
-    }, undefined, () => { planetMapFailed = true; if ((binding?.config.kind === "home" || binding?.config.kind === "events")) binding.status("failed"); }); textures.push(texture);
+      if ((binding?.config.kind === "home" || binding?.config.kind === "events" || binding?.config.kind === "solar") && planetMapsReady === 2 && !planetMapFailed) binding.status("ready"); wake();
+    }, undefined, () => { planetMapFailed = true; if ((binding?.config.kind === "home" || binding?.config.kind === "events" || binding?.config.kind === "solar")) binding.status("failed"); }); textures.push(texture);
   }
   loadPlanet("/media/orbital/earth.jpg", earthMaterial); loadPlanet("/media/orbital/moon.jpg", moonMaterial);
   function selectRock(id: string) {
@@ -151,15 +153,18 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
       Object.assign(flightHost.style, { display: "block", left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px` });
       resize(width, height);
     } else if (rect) resize(rect.width, rect.height);
+    const isSolar = config?.kind === "solar";
     const isEvents = config?.kind === "events";
-    const isHome = config?.kind === "home" || isEvents;
+    const isHome = config?.kind === "home" || isEvents || isSolar;
+    if (solarModel) { solarModel.group.visible = isSolar && planetMapsReady === 2 && !planetMapFailed; if (isSolar && moving && solarModel.group.visible) solarModel.update(delta); }
+    sun.position.set(-3, isSolar ? 1 : 4, isSolar ? 2 : 5); sun.intensity = isSolar ? 2.5 : 3.5; rim.intensity = isSolar ? .3 : 1.25;
     orbitalPlane.visible = !isEvents;
     const fromHome = flight?.from === "home";
     const comparing = !flight && config?.mode === "size" && !!config.diameter && activeRock;
-    home.visible = (!!isHome || !!fromHome) && planetMapsReady === 2 && !planetMapFailed;
+    home.visible = ((!!isHome && !isSolar) || !!fromHome) && planetMapsReady === 2 && !planetMapFailed;
     home.scale.setScalar(fromHome ? Math.max(.02, 1 - flight!.t * 1.5) : 1);
     home.position.set(fromHome ? -flight!.t * 3 : 0, fromHome ? flight!.t : 0, fromHome ? -flight!.t * 16 : 0);
-    if (moving && !isEvents) { earth.rotation.y += delta * .023; orbitTime += delta * .025; }
+    if (moving && !isEvents && !isSolar && planetMapsReady === 2) { earth.rotation.y += delta * .023; orbitTime += delta * .025; }
     moon.position.set(Math.cos(orbitTime) * 2.35, Math.sin(orbitTime) * .9, Math.sin(orbitTime) * 2.17198);
     moon.rotation.y = -orbitTime;
     if (isEvents) {
@@ -204,7 +209,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
       }
     }
     if (controls) controls.enabled = !isHome && !comparing && !flight;
-    const distance = isHome ? camera.aspect < 1.1 ? 8.6 : 7.6 : Math.max(flight?.from === "catalog" ? 4.6 - flight.t * .5 : config?.kind === "catalog" ? 4.6 : 4.1, 3.5 / camera.aspect);
+    const distance = isSolar ? Math.max(8.8, 14 / camera.aspect) : isHome ? camera.aspect < 1.1 ? 8.6 : 7.6 : Math.max(flight?.from === "catalog" ? 4.6 - flight.t * .5 : config?.kind === "catalog" ? 4.6 : 4.1, 3.5 / camera.aspect);
     const flightDistance = fromHome ? (camera.aspect < 1.1 ? 8.6 : 7.6) * (1 - flight!.t) + distance * flight!.t : distance;
     if (!controls || !controls.enabled || flight) { camera.position.set(0, .15, flightDistance); camera.lookAt(0, 0, 0); }
     else if (Math.abs(camera.position.length() - distance - (config?.progress?.current ?? 0) * .65) > .05) camera.position.setLength(distance + (config?.progress?.current ?? 0) * .65);
@@ -227,6 +232,8 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     const oldId = binding?.config.id;
     releaseObservers(); binding = next; visible = true;
     focusEarth(next.config, true);
+    if (next.config.kind === "home") { earth.rotation.set(.12, 3.9, -.12); orbitTime = .68; }
+    if (next.config.kind === "solar" && !solarModel) { solarModel = createSolarModel(earthGeometry, earthMaterial); scene.add(solarModel.group); }
     if (next.config.id) selectRock(next.config.id);
     if (!flight) next.host.appendChild(renderer.domElement);
     controls = new OrbitControls(camera, next.host); controls.enableZoom = false; controls.enablePan = false; controls.enableDamping = false; controls.rotateSpeed = .6;
@@ -234,7 +241,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     camera.position.set(0, .15, next.config.kind === "home" ? 7.6 : 4.6); controls.update();
     observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; wake(); }); observer.observe(next.host);
     resizeObserver = new ResizeObserver(wake); resizeObserver.observe(next.host);
-    next.status((next.config.kind === "home" || next.config.kind === "events") ? planetMapFailed ? "failed" : planetMapsReady === 2 ? "ready" : "loading" : "ready");
+    next.status((next.config.kind === "home" || next.config.kind === "events" || next.config.kind === "solar") ? planetMapFailed ? "failed" : planetMapsReady === 2 ? "ready" : "loading" : "ready");
     if (!flight && oldId !== next.config.id) enter();
     wake();
   }
@@ -271,6 +278,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     dispose() {
       if (disposed) return; disposed = true; transition?.kill(); switchTween?.kill(); cancelAnimationFrame(frame); releaseObservers();
       preference.removeEventListener("change", changePreference); document.removeEventListener("visibilitychange", wake); renderer.domElement.removeEventListener("webglcontextlost", lostContext);
+      solarModel?.dispose();
       rocks.forEach(rock => rock.dispose()); rocks.clear(); textures.forEach(texture => texture.dispose());
       [earthGeometry, atmosphereGeometry, orbitGeometry, moonGeometry, starGeometry, particleGeometry, humanGeometry, headGeometry, rulerGeometry].forEach(item => item.dispose());
       [earthMaterial, atmosphereMaterial, orbitMaterial, moonMaterial, starMaterial, particleMaterial, humanMaterial, rulerMaterial].forEach(item => item.dispose());

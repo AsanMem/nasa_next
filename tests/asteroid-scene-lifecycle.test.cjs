@@ -34,6 +34,28 @@ function setup({reduced=false,webglFailure=false,textureFailure=false}={}) {
  };
 }
 function bind(app,engine,config={}){const binding={host:app.element(),config:{kind:'catalog',id:'3477703',paused:false,speed:9.17,...config},status(value){binding.state=value;}};engine.attach(binding);return binding;}
+test('solar scene shares the existing Earth assets and renderer; pause and visibility suspend plasma time',async()=>{
+ const app=setup(),engine=app.engine(),binding=bind(app,engine,{kind:'solar',id:undefined});await settle();app.tick(100);
+ const solar=app.stats.scene.getObjectByName('illustrative-solar-environment');
+ const earth=app.stats.scene.getObjectByName('reference-earth'),solarEarth=app.stats.scene.getObjectByName('solar-reference-earth');
+ assert.equal(binding.state,'ready');assert.equal(solar.visible,true);assert.equal(solarEarth.geometry,earth.geometry);assert.equal(solarEarth.material,earth.material);
+ const clock=solar.children.find(child=>child.material?.uniforms?.time).material.uniforms.time;
+ app.tick(120);assert.ok(clock.value>0);const before=clock.value;
+ engine.update({...binding.config,paused:true});app.tick(140);assert.equal(clock.value,before);assert.equal(app.frames.size,0);
+ engine.update({...binding.config,paused:false});app.document.hidden=true;app.listeners.get('visibilitychange')();app.tick(160);assert.equal(clock.value,before);assert.equal(app.frames.size,0);
+ app.document.hidden=false;app.listeners.get('visibilitychange')();engine.detach(binding.host);bind(app,engine,{kind:'home',id:undefined,paused:true});app.tick(180);
+ assert.equal(solar.visible,false);assert.equal(earth.parent.visible,true);assert.equal(app.stats.renderers,1);engine.dispose();assert.equal(app.frames.size,0);
+});
+test('solar reduced motion is static and missing planet textures expose the fallback',async()=>{
+ const app=setup({reduced:true}),engine=app.engine();bind(app,engine,{kind:'solar',id:undefined});await settle();app.tick();assert.equal(app.frames.size,0);
+ const solar=app.stats.scene.getObjectByName('illustrative-solar-environment');assert.equal(solar.children.find(c=>c.material?.uniforms?.time).material.uniforms.time.value,0);engine.dispose();
+ const failed=setup({textureFailure:true}),failedEngine=failed.engine(),binding=bind(failed,failedEngine,{kind:'solar',id:undefined});await settle();assert.equal(binding.state,'failed');failedEngine.dispose();
+});
+test('home restores its initial sphere orientation after an event focus',async()=>{
+ const app=setup({reduced:true}),engine=app.engine(),events=bind(app,engine,{kind:'events',id:undefined,focus:{latitude:80,longitude:-45}});await settle();app.tick();
+ engine.detach(events.host);bind(app,engine,{kind:'home',id:undefined,paused:true});app.tick();
+ const earth=app.stats.scene.getObjectByName('reference-earth');assert.ok(Math.abs(earth.rotation.x-.12)<1e-8);assert.ok(Math.abs(earth.rotation.y-3.9)<1e-8);assert.ok(Math.abs(earth.rotation.z+.12)<1e-8);engine.dispose();
+});
 test('one renderer is retained through home, catalog, profile and fully disposed',async()=>{
  const app=setup(),engine=app.engine();const home=bind(app,engine,{kind:'home',id:undefined});await settle();app.finish();app.tick();
  engine.depart('/asteroids');engine.detach(home.host);const catalog=bind(app,engine);app.finish();app.tick();

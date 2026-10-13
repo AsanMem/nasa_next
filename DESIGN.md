@@ -72,3 +72,7 @@ Asteroid generator v3 supersedes v2: versioned ID seeds, asymmetric clipping and
 ## Current chapter repairs - 13 October 2026
 
 Keep the established home hero and six destination rows. Below them, two calm, prominent links introduce EPIC and Observation journal. EPIC's entire chapter is pure black, joining the real uncropped frame to its surroundings. EONET keeps the shared globe and all filtered map locations while its list paginates by eight. Space Weather pairs real publication dates with a quiet conceptual Sun-Earth diagram; no quantitative telemetry or event trajectory is implied. The navigable Birthday chapter searches actual APOD publications by a transient date. Privacy remains a short, explicitly unfinished preview notice.
+
+## Animated solar environment
+
+The user requested the Space Weather illustration to share the dimensional character of the homepage Earth. Use the same texture and shared renderer for Earth, a procedural warm solar surface/corona, braided plasma loops and flowing particles. Motion is explanatory, never a claim about current space weather; retain the not-to-scale caption, pause and static reduced-motion mode. Home must not switch between an equirectangular map clipped to a disk and a true sphere: reveal the loaded sphere directly, retaining the static image only on rendering failure.

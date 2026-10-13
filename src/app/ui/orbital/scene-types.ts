@@ -1,6 +1,6 @@
 import type { MutableRefObject } from "react";
 export type SceneConfig = {
-  kind: "home" | "catalog" | "profile" | "events";
+  kind: "home" | "catalog" | "profile" | "events" | "solar";
   focus?: { latitude:number; longitude:number };
   focusRevision?: number;
   markers?: { id:string; latitude:number; longitude:number }[];

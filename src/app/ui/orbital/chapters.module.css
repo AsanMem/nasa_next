@@ -192,3 +192,16 @@
 
 .epicChapter { background: #000; }
 .artwork video { width: 100%; max-height: 78vh; }
+.solarViewport { position: relative; width: 100%; aspect-ratio: 2.4; min-height: 260px; overflow: hidden; }
+.solarCanvas { position: absolute; inset: 0; opacity: 0; transition: opacity .7s ease; }
+.solarCanvas[data-ready="true"] { opacity: 1; }
+.solarStatus { position: absolute; inset: 45% 0 auto; text-align: center; color: #a8b3bf; font-size: 14px; }
+.solarSceneFooter { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; margin: 0 0 28px; }
+.solarLabels { display: flex; justify-content: space-between; flex: 1; min-width: 250px; gap: 24px; color: #a8b3bf; font-size: 14px; }
+.solarStatic { position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-around; }
+.staticSun { width: 23%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 38% 38%, #ffdb89, #d97019 60%, #a53105); box-shadow: 0 0 30px #e7751522; }
+.staticSolarEarth { width: 13%; aspect-ratio: 1; border-radius: 50%; background: url('/media/orbital/earth.jpg') 55% center / auto 100%; box-shadow: inset -20px -5px 24px #000; }
+.staticStream { width: 25%; height: 20%; border-block: 1px solid #edc18c55; border-radius: 50%; }
+.solarStatic p { position: absolute; bottom: 0; font-size: 13px; color: #a8b3bf; }
+@media(max-width: 760px) { .solarViewport { aspect-ratio: 1.65; min-height: 220px; } .solarLabels { font-size: 12px; } }
+@media(prefers-reduced-motion: reduce) { .solarCanvas { transition: none; } }

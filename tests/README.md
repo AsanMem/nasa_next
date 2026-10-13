@@ -40,3 +40,7 @@ New cases cover authorization, rate limits, service errors, HTML instead of JSON
 Run the full suite above plus `tests/eonet-interactions.test.cjs`: 59 tests total. The EONET tests execute the real components with controlled hooks and check group/individual focus, repeated selection, paused/reduced motion controls, eight-item pagination and marker selection across pages. APOD tests now cover the verified NASA Science source, publication date bounds, image/video/credit extraction, midnight-inclusive queries, empty publications and diagnostics without dates. Invalid APOD responses now remain unavailable rather than presenting an invented daily observation.
 
 Production smoke also exercises POST /api/apod with public archive fixtures (image, direct video, embedded video, first date, missing date and invalid dates). Do not log real visitor date input. Actual desktop/mobile, keyboard and OS reduced-motion review remains pending until a browser is connected.
+
+## Earth / solar-scene checks
+
+The full suite now has 62 tests. The shared-engine suite includes solar geometry/material and renderer reuse, animation time stopping on pause/hidden tabs, reduced-motion static rendering, failed planet textures, and restoring the home orientation after EONET. Actual GLSL/GPU presentation still requires a connected browser.
