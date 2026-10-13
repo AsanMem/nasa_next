@@ -101,7 +101,7 @@ export const PREVIEW_SECTIONS: Array<{
     {
       key: "eonet",
       title: "EONET Earth Events",
-      description: "Live geophysical events from NASA and international partners.",
+      description: "Reported geophysical events from NASA and international partners.",
       href: ROUTES.eonet,
     },
   ];

@@ -1,105 +1,33 @@
 "use client";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
+import orbital from "../orbital/orbital.module.css";
+import s from "../orbital/chapters.module.css";
 
 export default function SearchData() {
-    const searchParams = useSearchParams();
-    const pathname = usePathname();
-    const { replace } = useRouter();
-
-    const handleSearch = useDebouncedCallback((term: string) => {
-        const params = new URLSearchParams(searchParams as any);
-        params.set("page", "1");
-
-        if (term?.trim()) params.set("query", term.trim());
-        else params.delete("query");
-
-        replace(`${pathname}?${params.toString()}`);
-    }, 300);
-
-    const handleKeyDown = (e: any) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            handleSearch(e?.target?.value);
-        }
-    };
-
-    const handleSubmit = (e: any) => {
-        e.preventDefault();
-        handleSearch(e?.target?.query?.value);
-    };
-
-    const tips = ["nebula", "earth night lights", "galaxy", 'andromeda'];
-
-    return (
-        <div className="flex justify-center">
-            <form
-                onSubmit={handleSubmit}
-                className="w-full max-w-2xl"
-            >
-                <div
-                    className="
-            flex items-center gap-2
-            rounded-full bg-white/5 p-2
-            ring-1 ring-white/10 backdrop-blur
-            transition
-            focus-within:ring-white/20
-          "
-                >
-                    <input
-                        name="query"
-                        placeholder="Search the NASA library…"
-                        className="
-              h-11 w-full bg-transparent px-4
-              text-readable text-sm text-white placeholder:text-white/40
-              outline-none
-            "
-                        onChange={(e) => handleSearch(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        defaultValue={searchParams.get("query")?.toString()}
-                        autoComplete="off"
-                        spellCheck={false}
-                    />
-
-                    <button
-                        className="
-              h-11 shrink-0 rounded-full
-              border border-white/20 bg-white/10
-              px-5 text-xs font-semibold uppercase tracking-[0.35em] text-white
-              transition
-              hover:border-white/40 hover:bg-white/20
-              focus:outline-none
-            "
-                        type="submit"
-                    >
-                        Search
-                    </button>
-                </div>
-
-                {!searchParams.get("query") && (
-                    <div className="mt-3 flex flex-wrap justify-center gap-2">
-                        <span className="text-readable text-xs text-white/40  py-1">Try:</span>
-
-                        {tips.map((t) => (
-                            <button
-                                key={t}
-                                type="button"
-                                onClick={() => handleSearch(t)}
-                                className="
-          rounded-full bg-white/5 px-3 py-1
-          text-readable text-xs text-white/60
-          ring-1 ring-white/10 backdrop-blur
-          transition
-          hover:bg-white/10 hover:text-white hover:ring-white/20
-        "
-                            >
-                                {t}
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-            </form>
-        </div>
-    );
+  const params = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const query = params.get("query") || "";
+  const [term, setTerm] = useState(query);
+  const [pending, startTransition] = useTransition();
+  useEffect(() => setTerm(query), [query]);
+  function navigate(value: string) {
+    const next = new URLSearchParams(params.toString());
+    next.set("page", "1");
+    if (value.trim()) next.set("query", value.trim()); else next.delete("query");
+    startTransition(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }));
+  }
+  const search = useDebouncedCallback(navigate, 400);
+  useEffect(() => () => search.cancel(), [search]);
+  return <form role="search" className={s.search} onSubmit={event => { event.preventDefault(); search.cancel(); navigate(term); }}>
+    <label htmlFor="nasa-search">Find a mission, a place, a discovery</label>
+    <div className={s.searchField}><input id="nasa-search" name="query" type="search" autoComplete="off" value={term} placeholder="What are you curious about?" onChange={event => { setTerm(event.target.value); search(event.target.value); }} />
+      <button className={orbital.button} type="submit">Search</button>
+      {term && <button className={`${orbital.button} ${orbital.quiet}`} type="button" onClick={() => { search.cancel(); setTerm(""); navigate(""); }}>Clear</button>}
+    </div>
+    <div className={s.suggestions}><span>Try a subject</span>{["Earth", "Apollo", "James Webb", "nebula"].map(value => <button className={s.chip} key={value} type="button" onClick={() => { search.cancel(); setTerm(value); navigate(value); }}>{value}</button>)}</div>
+    <p className={s.caption} role="status">{pending ? "Searching the NASA archive…" : query ? `Showing results for “${query}”.` : "Explore NASA's image and video library."}</p>
+  </form>;
 }

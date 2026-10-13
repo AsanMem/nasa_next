@@ -1,4 +1,11 @@
+import { Chapter, ChapterHeading, EmptyState } from "../ui/orbital/chapter";
+import s from "../ui/orbital/chapters.module.css";
 import Link from "next/link";
+import { apodExhibit } from '../lib/observations/apod';
+import MediaImage from '../ui/orbital/media-image';
+import { buildJournal, type JournalEntry } from '../lib/observations/journal';
+import { observationDate } from '../lib/observations/dates';
+import { sanitizePlainText, truncatePlainText } from '../lib/utils/text';
 import { ROUTES } from "@/app/lib/constants/routes";
 import { fetchDonkiNotifications } from "@/app/lib/nasa/donki";
 import { fetchOngoingEonetEvents } from "@/app/lib/nasa/eonet";
@@ -6,7 +13,6 @@ import { fetchTodayNeoFeed } from "@/app/lib/nasa/neows";
 import { fetchApod } from "@/app/lib/nasa/apod";
 import { fetchNasaImages, fetchNasaVideos } from "@/app/lib/nasa/media";
 import { fetchEpicImages } from "@/app/lib/nasa/epic";
-import { fetchTechportProjects } from "@/app/lib/nasa/techport";
 import {
   fetchTechTransferPatents,
   fetchTechTransferSoftware,
@@ -18,12 +24,10 @@ import type { ApodItem } from "@/app/lib/nasa/apod";
 import type { EpicImage } from "@/app/lib/nasa/epic";
 import type { TechTransferItem } from "@/app/lib/nasa/techtransfer";
 
-import { BUTTON_CLASS, PREVIEW_SECTIONS, PreviewContent } from "../ui/library/constants";
+import { PREVIEW_SECTIONS, PreviewContent } from "../ui/library/constants";
 import { RubricCard, RubricCardItem } from "../ui/library/rubric-сard";
-import { buildNewsFeed, formatNasaSummaryText, getApodPreview, getDailyKeyword, getEpicPreview, getFirstAssetPreview, getNeoPreview, mapTechTransferItemToRubricItem } from "../ui/library/helpers";
+import { getApodPreview, getDailyKeyword, getEpicPreview, getFirstAssetPreview, getNeoPreview, mapTechTransferItemToRubricItem } from "../ui/library/helpers";
 import { PreviewCard } from "../ui/library/preview-card";
-import { CATEGORY_ICON_MAP } from "../ui/eonet/constants";
-import { LocationBadge } from "../ui/eonet/location-badge";
 
 export const revalidate = 43200;
 
@@ -60,7 +64,7 @@ export default async function LibraryPage() {
   const liveDonki = donki.filter((item) => !item.isFallback);
   const eonet: EonetEvent[] = eonetResult.status === "fulfilled" ? eonetResult.value : [];
   const neos: NeoFeedItem[] = neosResult.status === "fulfilled" ? neosResult.value : [];
-  const apod: ApodItem | null = apodResult.status === "fulfilled" ? apodResult.value : null;
+  const apod: ApodItem | null = apodExhibit(apodResult.status === "fulfilled" ? apodResult.value : null);
   const images = imagesResult.status === "fulfilled" ? imagesResult.value : [];
   const videos = videosResult.status === "fulfilled" ? videosResult.value : [];
 
@@ -71,7 +75,12 @@ export default async function LibraryPage() {
   const software: TechTransferItem[] =
     softwareResult.status === "fulfilled" ? softwareResult.value : [];
 
-  const newsFeed = await buildNewsFeed(liveDonki, eonet, neos);
+  const generatedAt = new Date().toISOString();
+  const journal = buildJournal(liveDonki,eonet,neos);
+  const apodFallback = !apod || Boolean(apod.url?.startsWith('/'));
+  const archiveImage = getFirstAssetPreview(images, 'NASA archive image');
+  const issueImage = apodFallback ? archiveImage?.media?.url || apod?.url : apod?.media_type === 'image' ? apod.url : apod?.thumbnail_url;
+  const renderEntries = (items: JournalEntry[]) => <div className={s.recordGrid}>{items.map(item=><article key={item.source+item.id+item.sourceDate} className={s.record}><div className={s.meta}><span>{item.source}</span><span>{item.kind==='publication'?'Published':item.kind==='encounter'?'Encounter date':'Observed'}: {observationDate(item.sourceDate)}</span></div><h3>{sanitizePlainText(item.title)}</h3>{item.summary&&<p>{truncatePlainText(item.summary,320)}</p>}<div className={s.actions}><Link className={s.textLink} href={item.href}>Explore this section</Link>{item.sourceUrl&&/^https?:\/\//.test(item.sourceUrl)&&<a className={s.textLink} href={item.sourceUrl} target="_blank" rel="noopener noreferrer">Original source</a>}</div></article>)}</div>;
 
 
   const techTransferRubricItems: RubricCardItem[] = [
@@ -89,205 +98,18 @@ export default async function LibraryPage() {
     neos: getNeoPreview(neos),
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-black to-slate-950 text-white">
-      <div className="mx-auto flex max-w-7xl flex-col gap-16 px-6 py-16">
-        <header className="flex flex-col gap-4">
-          <p className="text-sm uppercase tracking-[0.6em] text-white/50">NASA Library</p>
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-            Your personal doorway into NASA’s universe
-          </h1>
-          <p className="text-readable max-w-3xl text-base text-white/70 sm:text-lg">
-            Explore mission stories, Earth’s moments, and discoveries—simple, clear, and inspiring.
-          </p>
-        </header>
-
-
-
-        <section className="flex flex-col gap-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-white/50">Explore</p>
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Your favorite corners of the cosmos
-            </h2>
-            <p className="text-readable mt-2 text-sm text-white/60">
-              Quick previews of the sections you explore most—everything right where you need it.
-            </p>
-          </div>
-          <div className="grid items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {PREVIEW_SECTIONS.map((section) => {
-              let query: string | undefined;
-
-              if (section.key === "images") {
-                query = imageKeyword;
-              } else if (section.key === "videos") {
-                query = videoKeyword;
-              }
-
-              return (
-                <PreviewCard
-                  key={section.key}
-                  section={section}
-                  content={previewContentBySection[section.key] ?? null}
-                  query={query}
-                />
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="flex flex-col gap-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-white/50">Deep Dives</p>
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Fresh NASA topics waiting for your curiosity
-            </h2>
-            <p className="text-readable mt-2 text-sm text-white/60">
-              Dive into new ideas, discoveries, and stories shaping tomorrow.
-            </p>
-          </div>
-
-          <div className="grid gap-6">
-
-            <RubricCard
-              title="TechTransfer Patents & Software"
-              description="Flight heritage tools and innovations available for industry adoption."
-              href={ROUTES.techtransfer}
-              items={techTransferRubricItems}
-            />
-
-          </div>
-
-
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* <RubricCard
-              title="Techport Projects"
-              description="NASA’s technology portfolio, from early concepts to flight-ready initiatives."
-              href={ROUTES.techport}
-              items={techport.map((project: TechportProjectSummary) => ({
-                title: project.title ?? `Project ${project.projectId}`,
-                detail: project.formattedLastUpdated
-                  ? `Last updated ${project.formattedLastUpdated}`
-                  : undefined,
-                meta: project.projectId,
-              }))}
-            /> */}
-            {/* <RubricCard
-              title="EONET Earth Events"
-              description="Live geophysical events from NASA and international partners."
-              href={ROUTES.eonet}
-              items={eonet.map((event) => ({
-                title: event.title ?? "Earth event",
-                detail: event.categories?.map((c) => c.title).join(", "),
-                meta: event.formattedDate,
-              }))}
-            /> */}
-          </div>
-
-        </section>
-
-        <section className="flex flex-col gap-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-white/50">Live Feed</p>
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                Space weather & planetary alerts
-              </h2>
-            </div>
-            <Link href={ROUTES.spaceWeather} className={BUTTON_CLASS}>
-              Space Weather Hub
-            </Link>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {newsFeed.length > 0 ? (
-              newsFeed.map((item) => {
-                const isEonet = item.source === "EONET";
-                const eonetCategory = isEonet ? item.category : undefined;
-                const eonetLocation = isEonet ? item.location : undefined;
-                const eonetIcon = eonetCategory ? CATEGORY_ICON_MAP[eonetCategory] : undefined;
-
-                return (
-                  <div
-                    key={item.id}
-                    className="flex flex-col gap-3 rounded-3xl bg-white/5 p-5 ring-1 ring-white/10 backdrop-blur"
-                  >
-                    <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.4em]">
-                      <span className="text-white/60">{item.type}</span>
-                      <span className="text-white/40">{item.source}</span>
-                    </div>
-
-                    <div className="flex min-h-[4.5rem] items-start gap-3">
-                      {eonetIcon ? (
-                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/10">
-                          <img
-                            src={eonetIcon}
-                            alt={eonetCategory ?? "Earth event"}
-                            className="h-6 w-6 opacity-80"
-                          />
-                        </span>
-                      ) : null}
-                      <h3
-                        className="text-lg font-semibold tracking-tight text-white"
-                        title={item.title}
-                        style={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {item.title}
-                      </h3>
-                    </div>
-
-                    {item.imageUrls && item.imageUrls.length > 0 && (
-                      <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
-                        {item.imageUrls.slice(0, 2).map((url) => (
-                          <div
-                            key={url}
-                            className="relative h-24 w-32 flex-shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/5"
-                          >
-                            <img
-                              src={url}
-                              alt={item.title}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {item.summary ? <p className="text-readable text-sm text-white/70">{item.summary}</p> : null}
-                    {eonetLocation ? <LocationBadge location={eonetLocation} /> : null}
-                    <div className="text-readable mt-auto flex items-center justify-between text-xs text-white/40">
-                      <span>{item.timestamp ?? "Recent"}</span>
-                      <span>
-                        {item.source === "DONKI" && "Space Weather"}
-                        {item.source === "EONET" && "Earth Watch"}
-                        {item.source === "NeoWS" && "Asteroids"}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="text-readable rounded-3xl bg-white/5 p-6 text-sm text-white/60 ring-1 ring-white/10">
-                Space weather feed is cooling off right now. Revisit in a few moments.
-              </div>
-            )}
-          </div>
-
-          <RubricCard
-            title="Space Weather Monitor"
-            description="DONKI notifications curated for quick situational awareness."
-            href={ROUTES.spaceWeather}
-            items={liveDonki.map((item) => ({
-              title: item.messageTitle ?? item.messageType ?? "Space weather alert",
-              detail: formatNasaSummaryText(item.messageBody, 120),
-              meta: item.formattedTime,
-            }))}
-          />
-        </section>
-      </div>
-    </div>
-  );
+  return <Chapter>
+    <ChapterHeading label="Orbital journal" title="Observation journal." description="A dated issue of available NASA reports, Earth observations and mission imagery." />
+    <section className={s.issue} aria-label="This issue">
+      <figure><MediaImage src={issueImage} alt={(apodFallback?archiveImage?.title:apod?.title)||'Issue image unavailable'} loading="eager"/><figcaption className={s.caption}>{apodFallback?(archiveImage?.media?'Archive selection: '+archiveImage.title+'. Published '+observationDate(archiveImage.metadata):'Illustrative local archive image; NASA media unavailable.'):'Issue image: '+(apod?.title||'NASA APOD')+'. Published '+observationDate(apod?.date)}{apod?.copyright?' / '+apod.copyright:''}</figcaption></figure>
+      <div><h2>{apodFallback?'Available in this issue':sanitizePlainText(apod?.title)}</h2><p>{apodFallback?'The daily image source is unavailable. Other source reports are listed below.':truncatePlainText(apod?.explanation,360)}</p><p>{journal.news.length} published bulletins and {journal.observations.length} Earth events are available in this snapshot.</p><Link className={s.textLink} href="/day">Read the image story</Link></div>
+    </section>
+    <p className={s.caption}>Page generated {observationDate(generatedAt)}. This records page generation, not a successful NASA update. Source dates appear with each item.</p>
+    <section aria-labelledby="observation-feed"><div className={s.sectionHeading}><div><h2 id="observation-feed">Published reports</h2><p>Newest source publication first. Unknown dates remain unknown.</p></div></div>{journal.news.length?renderEntries(journal.news):<EmptyState title="No published reports available"><p>The source is unavailable or returned no bulletins.</p></EmptyState>}</section>
+    <section aria-labelledby="earth-log"><div className={s.sectionHeading}><h2 id="earth-log">Earth observations</h2><Link href="/eonet" className={s.textLink}>Explore event locations</Link></div>{renderEntries(journal.observations)}<p className={s.caption}>Event dates refer to the selected latest reported geometry.</p>{epic[0]&&<p className={s.caption}>{epic[0].identifier==='local-epic-fallback'?'EPIC unavailable; the Earth chapter uses an illustrative fallback.':'Latest available EPIC frame: '+observationDate(epic[0].date)+'. Archived observation sequence.'} <Link className={s.textLink} href="/epic">View Earth frames</Link></p>}</section>
+    <section aria-labelledby="upcoming-log"><div className={s.sectionHeading}><h2 id="upcoming-log">Today & upcoming encounters</h2></div><p className={s.caption}>Encounter dates, not publication dates. The existing feed covers a limited date window; this is not a complete future calendar.</p>{journal.upcoming.length?renderEntries(journal.upcoming):<p className={s.caption}>No upcoming encounters in the available feed.</p>}{journal.past.length>0&&<details className={s.record}><summary>Earlier encounters and undated entries</summary>{renderEntries(journal.past)}</details>}</section>
+    <section aria-labelledby="archive-destinations"><div className={s.sectionHeading}><h2 id="archive-destinations">Continue observing</h2></div><div className={s.archiveGrid}>{PREVIEW_SECTIONS.map(section=><PreviewCard key={section.key} section={section} content={previewContentBySection[section.key]||null} query={section.key==='images'?imageKeyword:section.key==='videos'?videoKeyword:undefined}/>)}</div></section>
+    <section aria-labelledby="technology-title"><div className={s.sectionHeading}><div><h2 id="technology-title">Exploration, brought to Earth</h2><p>Research, inventions and software developed through NASA&apos;s work.</p></div><Link href={ROUTES.techport} className={s.textLink}>Technology projects</Link></div><RubricCard title="NASA patents & software" description="Discover technologies available for licensing and software for further exploration." href={ROUTES.techtransfer} items={techTransferRubricItems} /></section>
+    <div className={s.actions}><Link href="/publics" className={s.textLink}>About these sources</Link></div>
+  </Chapter>;
 }

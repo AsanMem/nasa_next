@@ -14,3 +14,13 @@ The data suite checks date selection, the 1913/2026 regression, next Earth encou
 These tests do not replace real-browser visual review or GPU testing. For the rendered review, check desktop and mobile, catalog search/sorts/selection, direct and legacy links, selected encounters, map focus/Escape, Back/Forward, and canvas count after repeated navigation.
 
 Run `npx tsc --noEmit --incremental false` and a production build. Stop every dev server for this checkout before `npm run build`: simultaneous Next processes can corrupt the shared `.next` manifests. Start exactly one preview afterward.
+
+## Complete interface checks (2026-10-01)
+
+After the model compilation above, run the complete 38-check suite:
+
+```powershell
+node --test tests/asteroids-view-model.test.cjs tests/asteroid-visual.test.cjs tests/asteroid-scene-lifecycle.test.cjs tests/observations.test.cjs tests/presentation.test.cjs
+```
+
+The extra checks cover UTC and explicit offsets, impossible/unknown dates, source ordering and deduplication, separate encounter dates, EONET geometry/date agreement, invalid coordinates, antimeridian polygons, coincident/polar marker clusters, Earth marker projection through the existing renderer, APOD/EPIC fallback labels, upstream site logos, missing media and accessible image triggers. Browser/GPU boundaries in lifecycle tests are simulated.

@@ -39,6 +39,7 @@ export type NeoFeedItem = {
   name: string;
   hazard: boolean;
   closeApproachTime?: string;
+  approachDate?: string;
   velocityKmPerSec?: string;
   missDistanceKm?: string;
   url?: string;
@@ -90,6 +91,7 @@ export async function fetchTodayNeoFeed(): Promise<NeoFeedItem[]> {
         id: object.id,
         name: object.name,
         hazard: Boolean(object.is_potentially_hazardous_asteroid),
+        approachDate: closeApproach?.close_approach_date,
         closeApproachTime: closeDate
           ? formatDubaiDateTime(closeDate, {
               hour: "2-digit",

@@ -81,3 +81,10 @@ test('particle travel uses the same speed coefficient for every encounter; missi
  assert.ok(Math.abs(fast/slow-3)<.001);
  engine.update({...binding.config,speed:null});before=z();app.tick(160);assert.equal(z(),before);engine.dispose();
 });
+
+test('event mode reuses the Earth renderer, projects selected geography to the front and disposes it',async()=>{
+ const app=setup({reduced:true}),engine=app.engine();let points=[];
+ const binding=bind(app,engine,{kind:'events',id:undefined,paused:true,focus:{latitude:40,longitude:70},markers:[{id:'selected',latitude:40,longitude:70},{id:'opposite',latitude:-40,longitude:-110}],projectMarkers:value=>points=value});
+ await settle();app.tick();assert.equal(binding.state,'ready');assert.equal(app.stats.renderers,1);assert.equal(points[0].visible,true);assert.equal(points[1].visible,false);assert.ok(Math.abs(points[0].x-50)<1);assert.ok(Math.abs(points[0].y-50)<3);assert.equal(app.frames.size,0);
+ engine.update({...binding.config,focus:{latitude:-30,longitude:-120},markers:[{id:'new',latitude:-30,longitude:-120}]});app.tick();assert.equal(points[0].visible,true);assert.ok(Math.abs(points[0].x-50)<1);engine.dispose();assert.equal(app.frames.size,0);assert.equal(app.stats.disposed,1);
+});

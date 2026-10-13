@@ -15,14 +15,14 @@
 
 html {
   min-height: 100%;
-  background: #000;
+  background: #030609;
   overflow-x: hidden;
 }
 
 body {
-  font-family: var(--font-bungee), sans-serif;
+  font-family: var(--font-space-grotesk), Arial, sans-serif;
   min-height: 100%;
-  background: #000;
+  background: #030609;
   color: #fff;
   overflow-x: hidden;
   scrollbar-width: thin;

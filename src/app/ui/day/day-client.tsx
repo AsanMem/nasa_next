@@ -1,263 +1,53 @@
 "use client";
-
 import Link from "next/link";
-import MainTittle from "../shared/main-tittle";
-import { useValidImageUrl } from "@/app/hooks/useValidImageUrl";
-import { ROUTES } from "@/app/lib/constants/routes";
-import Header from "../header/Header";
-import { useMemo, useState } from "react";
+import { apodExhibit } from '../../lib/observations/apod';
+import { useState } from "react";
+import type { ApodItem } from "@/app/lib/nasa/apod";
 import { sanitizePlainText } from "@/app/lib/utils/text";
+import { Chapter, ChapterHeading, EmptyState } from "../orbital/chapter";
+import MediaImage from "../orbital/media-image";
+import MediaViewer from "../orbital/media-viewer";
+import orbital from "../orbital/orbital.module.css";
+import s from "../orbital/chapters.module.css";
 
-interface PhotoData {
-    date?: string;
-    url?: string;
-    hdurl?: string;
-    title?: string;
-    explanation?: string;
-    media_type?: string;
-}
-
-interface DayClientProps {
-    photoData: PhotoData | null;
-    build: { time: string; commit?: string };
-}
-
-function toYouTubeEmbedUrl(url?: string) {
-    if (!url) return undefined;
-    try {
-        const u = new URL(url);
-        if (u.hostname.includes("youtu.be")) {
-            const id = u.pathname.replace("/", "");
-            return id ? `https://www.youtube.com/embed/${id}` : url;
-        }
-        if (u.hostname.includes("youtube.com")) {
-            const id = u.searchParams.get("v");
-            if (id) return `https://www.youtube.com/embed/${id}`;
-            return url;
-        }
-        return url;
-    } catch {
-        return url;
+function embedUrl(raw?: string) {
+  if (!raw) return undefined;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:") return undefined;
+    if (url.hostname === "youtu.be") return `https://www.youtube.com/embed/${encodeURIComponent(url.pathname.slice(1))}`;
+    if (["youtube.com", "www.youtube.com", "www.youtube-nocookie.com"].includes(url.hostname)) {
+      const id = url.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${encodeURIComponent(id)}` : url.pathname.startsWith("/embed/") ? url.href : undefined;
     }
+    if (url.hostname === "player.vimeo.com" && url.pathname.startsWith("/video/")) return url.href;
+  } catch { return undefined; }
 }
-
-function isExternalMediaUrl(url?: string) {
-    return /^https?:\/\//i.test(url ?? "");
-}
-
-function formatNasaDate(date?: string) {
-    if (!date) return "unavailable";
-    const parsed = new Date(`${date}T00:00:00Z`);
-    if (Number.isNaN(parsed.getTime())) return date;
-
-    const day = String(parsed.getUTCDate()).padStart(2, "0");
-    const month = parsed.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
-    const year = parsed.getUTCFullYear();
-
-    return `${day} ${month} ${year}`;
-}
-
-export default function DayClient({ photoData, build }: DayClientProps) {
-    const defaultImageUrl =
-        "/media/main/4.jpg";
-    const hasData = Boolean(photoData);
-    const validApodUrl = useValidImageUrl(photoData?.url, photoData?.hdurl);
-
-    const isImage = photoData?.media_type === "image";
-    const isVideo = photoData?.media_type === "video";
-
-    const imageUrl = isImage && validApodUrl ? validApodUrl : defaultImageUrl;
-    const videoUrl = isVideo ? toYouTubeEmbedUrl(photoData?.url) : undefined;
-    const [backgroundFailed, setBackgroundFailed] = useState(false);
-
-    const backgroundUrl = useMemo(() => {
-        if (backgroundFailed) return defaultImageUrl;
-        if (isImage && photoData?.url) return photoData.url;
-        return defaultImageUrl;
-    }, [backgroundFailed, isImage, photoData?.url]);
-
-    const explanation = sanitizePlainText(photoData?.explanation);
-    const title = sanitizePlainText(photoData?.title);
-
-    const [imgReady, setImgReady] = useState(false);
-    const [imgRatio, setImgRatio] = useState<number | null>(null);
-
-    const originalImageUrl = isImage ? photoData?.hdurl ?? photoData?.url : undefined;
-    const sourceMediaUrl = isVideo ? photoData?.url : originalImageUrl;
-    const externalSourceMediaUrl = isExternalMediaUrl(sourceMediaUrl) ? sourceMediaUrl : undefined;
-
-    const containerAspect = useMemo(() => {
-        if (!imgRatio) return 16 / 9;
-        return Math.max(0.5, Math.min(imgRatio, 2.0));
-    }, [imgRatio]);
-
-    return (
-        <div className="relative min-h-screen bg-gradient-to-b from-black via-black to-slate-950 text-white">
-            <Header />
-
-            <img
-                aria-hidden="true"
-                alt=""
-                src={backgroundUrl}
-                className="pointer-events-none fixed inset-0 z-0 h-full w-full scale-110 object-cover blur-2xl opacity-50"
-                onError={() => setBackgroundFailed(true)}
-            />
-
-            <div className="pointer-events-none fixed inset-0 z-10 bg-[radial-gradient(80%_60%_at_50%_30%,rgba(0,0,0,0.12)_0%,rgba(0,0,0,0.62)_60%,rgba(0,0,0,0.9)_100%)]" />
-
-            <div className="relative z-20 mx-auto flex max-w-7xl flex-col gap-6 px-6 py-16">
-                <header className="flex flex-col gap-4">
-                    <p className="text-sm uppercase tracking-[0.6em] text-white/50">MEDIA OF THE DAY</p>
-
-                    <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-                        {hasData
-                            ? (title ? `NASA highlight: ${title}` : "NASA media highlight")
-                            : "NASA highlight is updating"}
-                    </h1>
-
-
-
-
-                    <Link
-                        href={ROUTES.library}
-                        className="inline-flex items-center justify-center self-start rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
-                    >
-                        Back to Library
-                    </Link>
-                    <p className="text-xs text-white/50">
-                        {photoData?.date
-                            ? `Latest available from NASA · NASA date: ${photoData.date}`
-                            : "NASA data temporarily unavailable"}
-                        {` · Updated ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(build.time))} UTC`}
-                        {build.commit ? ` · Build ${build.commit}` : ""}
-                    </p>
-                </header>
-
-                <section className="rounded-3xl bg-white/5 p-6 ring-1 ring-white/10 backdrop-blur-lg">
-                    <div
-                        className={`
-    mb-6 w-full overflow-hidden rounded-2xl
-    bg-black/30 ring-1 ring-white/10
-    shadow-[0_10px_30px_rgba(0,0,0,0.35)]
-    transition-all
-
-    ${isImage
-                                ? "lg:float-none lg:mx-auto lg:w-[min(90vw,1100px)]"
-                                : "lg:float-left lg:mr-8 lg:mb-4 lg:w-[540px]"
-                            }
-  `}
-                        style={{
-                            aspectRatio: String(containerAspect),
-                            maxHeight: isImage ? "85vh" : "70vh",
-                            minHeight: isImage ? undefined : "240px",
-                        }}
-                    >
-
-                        {isImage && (
-                            <div className="relative h-full w-full">
-                                {externalSourceMediaUrl ? (
-                                    <a
-                                        href={externalSourceMediaUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        aria-label={photoData?.hdurl ? "View HD APOD image" : "Open APOD image source"}
-                                        className="absolute right-3 top-3 z-10 inline-flex items-center justify-center rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white backdrop-blur transition hover:bg-white/20"
-                                    >
-                                        {photoData?.hdurl ? "View HD" : "Open source"}
-                                    </a>
-                                ) : null}
-
-                                {!imgReady && (
-                                    <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-800/60 via-slate-700/40 to-slate-800/60" />
-                                )}
-
-                                <img
-                                    aria-hidden="true"
-                                    src={imageUrl}
-                                    alt=""
-                                    className="absolute inset-0 h-full w-full scale-110 object-cover opacity-45 blur-xl"
-                                />
-
-                                <img
-                                    src={imageUrl}
-                                    alt={title ?? "APOD image"}
-                                    className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-500 ${imgReady ? "opacity-100" : "opacity-0"
-                                        }`}
-                                    onLoad={(e) => {
-                                        const el = e.currentTarget;
-                                        const w = (el as HTMLImageElement).naturalWidth || 0;
-                                        const h = (el as HTMLImageElement).naturalHeight || 0;
-                                        if (w && h) setImgRatio(w / h);
-                                        setImgReady(true);
-                                    }}
-                                    onError={() => setImgReady(true)}
-                                />
-                            </div>
-                        )}
-
-                        {isVideo && (
-                            <div className="relative h-full w-full">
-                                {externalSourceMediaUrl ? (
-                                    <a
-                                        href={externalSourceMediaUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="absolute right-3 top-3 z-10 inline-flex items-center justify-center rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white backdrop-blur transition hover:bg-white/20"
-                                    >
-                                        Open source
-                                    </a>
-                                ) : null}
-                                <div className="relative aspect-video h-full w-full">
-                                    <iframe
-                                        className="absolute inset-0 h-full w-full"
-                                        src={videoUrl}
-                                        title={title ?? "APOD video"}
-                                        frameBorder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                        allowFullScreen
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {!hasData && (
-                            <div className="grid h-full place-items-center px-6 text-center">
-                                <div className="max-w-md">
-                                    <p className="text-xs uppercase tracking-[0.4em] text-white/40">Media of the day</p>
-                                    <h3 className="mt-2 text-lg font-semibold text-white">
-                                        NASA highlight is updating
-                                    </h3>
-                                    <p className="text-readable mt-2 text-sm text-white/70">
-                                        NASA’s daily feed is temporarily unavailable. Please check back soon.
-                                    </p>
-
-                                    <div className="mt-5 flex flex-wrap justify-center gap-3">
-                                        <Link
-                                            href={ROUTES.library}
-                                            className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
-                                        >
-                                            Explore the Library
-                                        </Link>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => window.location.reload()}
-                                            className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:border-white/40 hover:bg-white/10"
-                                        >
-                                            Refresh
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <MainTittle title="" description="" classes="" />
-                    <p className="text-readable text-justify text-sm leading-relaxed text-gray-100">{explanation}</p>
-
-                    <div className="clear-both hidden lg:block" />
-                </section>
-            </div>
-        </div>
-    );
+export default function DayClient({ photoData, build }: { photoData: ApodItem | null; build: { time: string; commit?: string } }) {
+  const [open, setOpen] = useState(false);
+  photoData = apodExhibit(photoData);
+  const title = sanitizePlainText(photoData?.title) || "A new perspective awaits.";
+  const explanation = sanitizePlainText(photoData?.explanation);
+  const fallback = Boolean(photoData?.url?.startsWith("/"));
+  const source = photoData?.media_type === "image" ? photoData.hdurl || photoData.url : photoData?.url;
+  const external = /^https?:\/\//i.test(source || "") ? source : undefined;
+  const video = embedUrl(photoData?.url);
+  const image = photoData?.media_type === "image";
+  return <Chapter>
+    <ChapterHeading label="Media of the day" title={fallback ? "Our universe, one discovery at a time." : title}>
+      <div className={s.meta}>{!fallback && photoData?.date && <span>NASA publication · <time dateTime={photoData.date}>{photoData.date}</time></span>}<span>{fallback ? "NASA feed unavailable · Illustrative archive image" : photoData?.media_type === "video" ? "Astronomy video" : "Astronomy Picture of the Day"}</span></div>
+    </ChapterHeading>
+    {!photoData ? <EmptyState title="The daily observation is unavailable"><p>NASA did not return this observation. You can try again or explore the image archive.</p><div className={s.actions}><button className={orbital.button} onClick={() => window.location.reload()}>Try again</button><Link className={s.textLink} href="/gallery">Explore images</Link></div></EmptyState> : <>
+      <figure>
+        <div className={s.artwork}>{image ? <MediaImage src={photoData.url} fallbackSrc={photoData.hdurl} alt={title} loading="eager" /> : video ? <iframe src={video} title={title} allow="fullscreen; picture-in-picture" allowFullScreen /> : <EmptyState title="Watch at the original source"><p>This media cannot be embedded here.</p>{external && <a href={external} target="_blank" rel="noopener noreferrer">Open NASA&apos;s selected video</a>}</EmptyState>}</div>
+        <figcaption className={s.caption}>{fallback ? "Illustrative image from the local archive; not today's NASA observation." : photoData.copyright ? `Image credit: ${photoData.copyright}` : "NASA Astronomy Picture of the Day"}</figcaption>
+      </figure>
+      <div className={s.story}><div><h2>{fallback ? "While we reconnect" : "Behind the observation"}</h2><div className={s.actions}>
+        {image && !fallback && <button className={orbital.button} onClick={() => setOpen(true)}>View full image</button>}
+        {external && <a className={s.textLink} href={external} target="_blank" rel="noopener noreferrer">Original media</a>}
+      </div></div><div><p>{fallback ? "The daily NASA feed is temporarily unavailable. Explore the photographic archive while the next observation becomes available." : explanation || "NASA has not supplied an explanation for this observation."}</p><div className={s.actions}><Link className={s.textLink} href="/gallery">Continue into the image archive</Link></div></div></div>
+    </>}
+    <p className={s.caption}>Page generated {new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(build.time))} UTC. {fallback ? "The daily source is unavailable." : "The NASA publication date is shown separately."}</p>
+    {open && <MediaViewer kind="image" src={source} preview={photoData?.url} source={external} title={title} description={explanation} onClose={() => setOpen(false)} />}
+  </Chapter>;
 }

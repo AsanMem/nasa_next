@@ -1,135 +1,17 @@
-'use client';
-
-
-import { generatePagination } from '@/app/lib/utils';
-import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+"use client";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { generatePagination } from "@/app/lib/utils";
+import s from "../orbital/chapters.module.css";
 
 export default function Pagination({ totalPages }: { totalPages: number }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const currentPage = Number(searchParams.get('page')) || 1;
-
-  const createPageURL = (pageNumber: number | string) => {
-    const params = new URLSearchParams(searchParams as any);
-    params.set('page', pageNumber.toString());
-    return `${pathname}?${params.toString()}`;
-  };
-
-
-  const allPages = generatePagination(currentPage, totalPages);
-
-  return (
-    <>
-      <div className="inline-flex my-8">
-        <PaginationArrow
-          direction="left"
-          href={createPageURL(currentPage - 1)}
-          isDisabled={currentPage <= 1}
-        />
-
-        <div className="flex -space-x-px">
-          {allPages.map((page, index) => {
-            let position: 'first' | 'last' | 'single' | 'middle' | undefined;
-
-            if (index === 0) position = 'first';
-            if (index === allPages.length - 1) position = 'last';
-            if (allPages.length === 1) position = 'single';
-            if (page === '...') position = 'middle';
-
-            return (
-              <PaginationNumber
-                key={page}
-                href={createPageURL(page)}
-                page={page}
-                position={position}
-                isActive={currentPage === page}
-              />
-            );
-          })}
-        </div>
-
-        <PaginationArrow
-          direction="right"
-          href={createPageURL(currentPage + 1)}
-          isDisabled={currentPage >= totalPages}
-        />
-      </div>
-    </>
-  );
+  const params = useSearchParams();
+  const current = Math.max(1, Number(params.get("page")) || 1);
+  const href = (page: number) => { const next = new URLSearchParams(params.toString()); next.set("page", String(page)); return `${pathname}?${next.toString()}`; };
+  return <nav aria-label="Results pages" className={s.pagination}>
+    {current > 1 && <Link href={href(current - 1)} aria-label="Previous results page">Previous</Link>}
+    {generatePagination(current, totalPages).map((page, index) => typeof page === "number" ? page === current ? <span key={page} aria-current="page" aria-label={`Page ${page}`}>{page}</span> : <Link key={page} href={href(page)} aria-label={`Go to page ${page}`}>{page}</Link> : <span key={`gap-${index}`} aria-hidden="true">…</span>)}
+    {current < totalPages && <Link href={href(current + 1)} aria-label="Next results page">Next</Link>}
+  </nav>;
 }
-
-function PaginationNumber({
-  page,
-  href,
-  isActive,
-  position,
-}: {
-  page: number | string;
-  href: string;
-  position?: 'first' | 'last' | 'middle' | 'single';
-  isActive: boolean;
-}) {
-  // const className = clsx(
-  //   'flex h-10 w-10 items-center justify-center text-sm border',
-  //   {
-  //     'rounded-l-md': position === 'first' || position === 'single',
-  //     'rounded-r-md': position === 'last' || position === 'single',
-  //     'z-10 bg-blue-600 border-blue-600 text-white': isActive,
-  //     'hover:bg-gray-100': !isActive && position !== 'middle',
-  //     'text-gray-300': position === 'middle',
-  //   },
-  // );
-  const className = `flex h-10 w-10 items-center justify-center text-sm border text-white ${position === 'first' || position === 'single' ? 'rounded-l-md' : position === 'last' || position === 'single' as string ? 'rounded-r-md' : position === 'middle' ? 'text-gray-300' : ""}  ${isActive ? ' bg-blue-600 border-blue-600 text-white' : !isActive && position !== 'middle' ? 'hover:bg-gray-100 hover:text-black' : ""} `;
-
-  return isActive || position === 'middle' ? (
-    <div className={className}>{page}</div>
-  ) : (
-    <Link href={href} className={className}>
-      {page}
-    </Link>
-  );
-}
-
-function PaginationArrow({
-  href,
-  direction,
-  isDisabled,
-}: {
-  href: string;
-  direction: 'left' | 'right';
-  isDisabled?: boolean;
-}) {
-  // const className = clsx(
-  //   'flex h-10 w-10 items-center justify-center rounded-md border',
-  //   {
-  //     'pointer-events-none text-gray-300': isDisabled,
-  //     'hover:bg-gray-100': !isDisabled,
-  //     'mr-2 md:mr-4': direction === 'left',
-  //     'ml-2 md:ml-4': direction === 'right',
-  //   },
-  // );
-  const className = `flex h-10 w-10 items-center justify-center rounded-md border  ${isDisabled ? 'pointer-events-none text-gray-300' : 'hover:bg-gray-100 '}  ${direction === 'left' ? 'mr-2 md:mr-4' : direction === 'right' ? 'ml-2 md:ml-4' : ""} `;
-  const icon =
-    direction === 'left' ? (
-
-      <svg className="w-3 h-3 text-white hover:bg-gray-100 hover:text-black font-bold" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 8 14">
-        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 1 1.3 6.326a.91.91 0 0 0 0 1.348L7 13" />
-      </svg>
-
-    ) : (
-
-      <svg className="w-3 h-3 text-white  hover:bg-gray-100 hover:text-black font-bold" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 8 14">
-        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 13 5.7-5.326a.909.909 0 0 0 0-1.348L1 1" />
-      </svg>
-    );
-
-  return isDisabled ? (
-    <div className={className}>{icon}</div>
-  ) : (
-    <Link className={className} href={href}>
-      {icon}
-    </Link>
-  );
-}
-

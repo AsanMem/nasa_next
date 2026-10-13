@@ -65,6 +65,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   let disposed = false, lost = false, frame = 0, lastTime = 0, visible = false, orbitTime = .68;
   let binding: SceneBinding | null = null, controls: OrbitControls | undefined, observer: IntersectionObserver | undefined, resizeObserver: ResizeObserver | undefined;
   let activeRock: Rock | undefined;
+  let eventTurn = 0;
   const rocks = new Map<string, Rock>();
   const textures: THREE.Texture[] = [];
   let planetMapsReady = 0, planetMapFailed = false;
@@ -103,8 +104,8 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     const texture = loader.load(url, map => {
       if (disposed) { map.dispose(); return; }
       map.colorSpace = THREE.SRGBColorSpace; material.map = map; material.needsUpdate = true; planetMapsReady++;
-      if (binding?.config.kind === "home" && planetMapsReady === 2 && !planetMapFailed) binding.status("ready"); wake();
-    }, undefined, () => { planetMapFailed = true; if (binding?.config.kind === "home") binding.status("failed"); }); textures.push(texture);
+      if ((binding?.config.kind === "home" || binding?.config.kind === "events") && planetMapsReady === 2 && !planetMapFailed) binding.status("ready"); wake();
+    }, undefined, () => { planetMapFailed = true; if ((binding?.config.kind === "home" || binding?.config.kind === "events")) binding.status("failed"); }); textures.push(texture);
   }
   loadPlanet("/media/orbital/earth.jpg", earthMaterial); loadPlanet("/media/orbital/moon.jpg", moonMaterial);
   function selectRock(id: string) {
@@ -144,15 +145,23 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
       Object.assign(flightHost.style, { display: "block", left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px` });
       resize(width, height);
     } else if (rect) resize(rect.width, rect.height);
-    const isHome = config?.kind === "home";
+    const isEvents = config?.kind === "events";
+    const isHome = config?.kind === "home" || isEvents;
+    orbitalPlane.visible = !isEvents;
     const fromHome = flight?.from === "home";
     const comparing = !flight && config?.mode === "size" && !!config.diameter && activeRock;
     home.visible = (!!isHome || !!fromHome) && planetMapsReady === 2 && !planetMapFailed;
     home.scale.setScalar(fromHome ? Math.max(.02, 1 - flight!.t * 1.5) : 1);
     home.position.set(fromHome ? -flight!.t * 3 : 0, fromHome ? flight!.t : 0, fromHome ? -flight!.t * 16 : 0);
-    if (moving) { earth.rotation.y += delta * .023; orbitTime += delta * .025; }
+    if (moving && !isEvents) { earth.rotation.y += delta * .023; orbitTime += delta * .025; }
     moon.position.set(Math.cos(orbitTime) * 2.35, Math.sin(orbitTime) * .9, Math.sin(orbitTime) * 2.17198);
     moon.rotation.y = -orbitTime;
+    if (isEvents) {
+      const latitude = (config.focus?.latitude ?? 0)*Math.PI/180;
+      const longitude = (config.focus?.longitude ?? 0)*Math.PI/180;
+      if (moving) eventTurn += delta * .035;
+      earth.rotation.set(latitude,-Math.PI/2-longitude+eventTurn,0,'XYZ');
+    }
     stars.visible = !comparing; particles.visible = !isHome && !comparing || !!flight;
     const speed = config?.speed;
     const particleSpeed = flight ? 10 : speed != null ? speed * .055 : 0;
@@ -192,6 +201,16 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     if (!controls || !controls.enabled || flight) { camera.position.set(0, .15, flightDistance); camera.lookAt(0, 0, 0); }
     else if (Math.abs(camera.position.length() - distance - (config?.progress?.current ?? 0) * .65) > .05) camera.position.setLength(distance + (config?.progress?.current ?? 0) * .65);
     renderer.render(scene, comparing ? scaleCamera : camera);
+    if (isEvents && config.projectMarkers && rect) {
+      earth.updateMatrixWorld(true); camera.updateMatrixWorld(true);
+      config.projectMarkers((config.markers || []).map(point => {
+        const lat=point.latitude*Math.PI/180,lon=point.longitude*Math.PI/180;
+        const world=new THREE.Vector3(Math.cos(lat)*Math.cos(lon),Math.sin(lat),-Math.cos(lat)*Math.sin(lon)).multiplyScalar(1.39).applyMatrix4(earth.matrixWorld);
+        const facing=world.clone().normalize().dot(camera.position.clone().sub(world).normalize())>0;
+        const projected=world.project(camera);
+        return {id:point.id,x:(projected.x+1)*50,y:(1-projected.y)*50,visible:facing};
+      }));
+    }
     if (moving || flight || entrance.t < 1) frame = requestAnimationFrame(draw);
   }
   function releaseObservers() { observer?.disconnect(); resizeObserver?.disconnect(); controls?.dispose(); controls = undefined; }
@@ -206,7 +225,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     camera.position.set(0, .15, next.config.kind === "home" ? 7.6 : 4.6); controls.update();
     observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; wake(); }); observer.observe(next.host);
     resizeObserver = new ResizeObserver(wake); resizeObserver.observe(next.host);
-    next.status(next.config.kind === "home" ? planetMapFailed ? "failed" : planetMapsReady === 2 ? "ready" : "loading" : "ready");
+    next.status((next.config.kind === "home" || next.config.kind === "events") ? planetMapFailed ? "failed" : planetMapsReady === 2 ? "ready" : "loading" : "ready");
     if (!flight && oldId !== next.config.id) enter();
     wake();
   }
@@ -217,6 +236,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   function update(config: SceneConfig) {
     if (!binding || disposed || lost) return;
     if (config.id && binding.config.id !== config.id) { selectRock(config.id); enter(); }
+    if (config.focus?.latitude !== binding.config.focus?.latitude || config.focus?.longitude !== binding.config.focus?.longitude) eventTurn = 0;
     binding.config = config; wake();
   }
   function depart(destination: string) {

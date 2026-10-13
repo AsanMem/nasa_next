@@ -21,7 +21,7 @@ export default function OrbitalSceneProvider({ children }: { children: ReactNode
           if (cancelled || !alive.current || current.current !== binding || !layer.current) return;
           engine.current ??= createSceneEngine(layer.current);
           engine.current.attach(binding);
-        }).catch(() => { if (!cancelled && current.current === binding) binding.status("failed"); });
+        }).catch((error) => { console.warn("[Orbital scene]", error); if (!cancelled && current.current === binding) binding.status("failed"); });
       }, { rootMargin: "100px" });
       observer.observe(binding.host);
       return () => {
@@ -49,7 +49,7 @@ export default function OrbitalSceneProvider({ children }: { children: ReactNode
     return () => { alive.current = false; document.removeEventListener("click", click, true); window.removeEventListener("popstate", pop); clearTimeout(cleanupTimer.current); engine.current?.dispose(); engine.current = null; };
   }, []);
   useEffect(() => {
-    if (pathname === "/" || pathname === "/asteroids" || /^\/asteroids\/[^/]+\/[^/]+$/.test(pathname)) return;
+    if (pathname === "/eonet" || pathname === "/" || pathname === "/asteroids" || /^\/asteroids\/[^/]+\/[^/]+$/.test(pathname)) return;
     engine.current?.dispose(); engine.current = null;
   }, [pathname]);
   return <SceneContext.Provider value={api}>{children}<div ref={layer} data-orbital-flight="true" aria-hidden="true" style={{ display: "none", position: "fixed", pointerEvents: "none", zIndex: 30, overflow: "hidden" }} /></SceneContext.Provider>;

@@ -20,8 +20,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "SPACE TRAVEL",
-  description: "NASA , UFO , Astronaut , Astronauts , NASA Gallery",
+  title: "Orbital | Explore Earth and beyond",
+  description: "Explore NASA observations, near-Earth objects, imagery and the science of our changing universe.",
   manifest: "/manifest.json",
   icons: {
     icon: '/media/favicon.ico',

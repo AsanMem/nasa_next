@@ -2,9 +2,9 @@
 import { usePathname } from "next/navigation";
 import OrbitalHeader from "./orbital-header";
 
-// These existing archive pages have no header of their own. Their content stays intact.
+// Home and asteroid scenes own their header; all archive chapters share this one.
 export default function ArchiveNavigation() {
   const pathname = usePathname();
-  const routes = ["/eonet", "/space-weather", "/library", "/epic", "/techport", "/techtransfer", "/publics"];
+  const routes = ["/day", "/gallery", "/video", "/eonet", "/space-weather", "/library", "/epic", "/techport", "/techtransfer", "/publics"];
   return routes.some(route => pathname === route || pathname.startsWith(`${route}/`)) ? <OrbitalHeader /> : null;
 }

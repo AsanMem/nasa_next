@@ -1,81 +1,15 @@
-import { formatMetadataDate } from "@/app/lib/utils/formatMetadataDate";
-import { BUTTON_CLASS, PREVIEW_SECTIONS, PreviewContent, SECTION_CARD_CLASS } from "./constants";
-
-import { renderEonetPreview } from "./render-eonet-preview";
-import { renderMedia } from "./render-media";
-import { renderMediaGrid } from "./render-media-grid";
 import Link from "next/link";
-import EpicSlideshow from "./epic-slide-show";
-import { renderAsteroidPreview } from "./render-asteroid-preview";
+import { observationDate } from "@/app/lib/observations/dates";
+import { PREVIEW_SECTIONS, type PreviewContent } from "./constants";
+import MediaImage from "../orbital/media-image";
+import s from "../orbital/chapters.module.css";
 
-export function PreviewCard({
-    section,
-    content,
-    query
-}: {
-    section: (typeof PREVIEW_SECTIONS)[number];
-    content: PreviewContent | null;
-    query?: string;
-}) {
-    const isGallerySection =
-        section.key === "images" || section.key === "videos";
-    const isEpicSection = section.key === "epic";
-    const isAsteroid = section.key === "neos";
-    const metadata = formatMetadataDate(content?.metadata, {
-        includeTime: isEpicSection || isAsteroid,
-    });
-
-    const isEonetSection = section.key === "eonet";
-    const href =
-        query && isGallerySection
-            ? `${section.href}?page=1&query=${encodeURIComponent(query)}`
-            : section.href;
-
-    let mediaNode: React.ReactNode;
-
-    if (isEpicSection && content?.slideshow?.length) {
-        mediaNode = <EpicSlideshow slides={content.slideshow} />;
-    } else if (isEonetSection) {
-        mediaNode = renderEonetPreview()
-    } else if (isGallerySection && content?.gallery?.length) {
-        mediaNode = renderMediaGrid(content.gallery);
-    } else if (isAsteroid) {
-        mediaNode = renderAsteroidPreview()
-    }
-
-    else {
-        mediaNode = renderMedia(content?.media);
-    }
-
-    return (
-        <div className={SECTION_CARD_CLASS}>
-            {mediaNode}
-
-            <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between text-xs uppercase tracking-[0.4em] text-white/50">
-                    <span>{section.title}</span>
-                    <span>Featured</span>
-                </div>
-
-                <h3 className="break-words [overflow-wrap:anywhere] text-xl font-semibold tracking-tight">
-                    {content?.title ?? section.title}
-                </h3>
-
-                <p className="text-readable break-words [overflow-wrap:anywhere] text-sm text-white/70">
-                    {content?.description ?? section.description}
-                </p>
-
-                {metadata ? (
-                    <p className="text-xs uppercase tracking-[0.4em] text-white/40">
-                        {metadata}
-                    </p>
-                ) : null}
-            </div>
-
-            <div className="flex-1" />
-            <Link href={href} className={BUTTON_CLASS}>
-                Open
-            </Link>
-        </div>
-    );
+export function PreviewCard({ section, content, query }: { section: (typeof PREVIEW_SECTIONS)[number]; content: PreviewContent | null; query?: string }) {
+  const href = query && (section.key === "images" || section.key === "videos") ? `${section.href}?page=1&query=${encodeURIComponent(query)}` : section.href;
+  const media = content?.media || content?.gallery?.[0] || content?.slideshow?.[0];
+  const illustration = section.key === "neos" ? "/media/main/1.optimized.webp" : section.key === "eonet" ? "/media/eonet/1.jpg" : undefined;
+  const title = section.key === "neos" ? "Near-Earth objects" : section.title;
+  const illustrative = Boolean(illustration && !media || media?.url.startsWith("/"));
+  const unavailableObservation = section.key === "apod" && media?.url.startsWith("/");
+  return <article className={s.archiveTile}><Link href={href}><div className={s.mediaPreview}><MediaImage src={media?.url || illustration} alt={media?.alt || title} loading="lazy" />{illustrative && <span className={s.mediaType}>Illustrative view</span>}</div><h3>{title}</h3></Link><p>{unavailableObservation ? "The daily NASA observation is unavailable. Open the chapter for more options." : content?.title || section.description}</p>{content?.metadata && !unavailableObservation && <small>{(section.key === 'epic' ? 'Archived observation: ' : section.key === 'neos' ? 'Encounter: ' : 'Published: ') + observationDate(content.metadata)}</small>}</article>;
 }

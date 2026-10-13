@@ -1,55 +1,22 @@
 import SearchData from "../ui/gallery/search-images";
-import Header from "../ui/header/Header";
-import HelloTitle from "../ui/shared/hello-title";
 import ListVideos from "../ui/videos/list-videos";
 import { fetchFilteredVideos } from "@/app/lib/data/fetchFilteredVideos";
 import { fetchWikipediaArticles } from "@/app/lib/wiki";
 import WikiSidebar from "../ui/wiki/wiki-sidebar";
-
-
-
-interface IProps {
-    searchParams?: {
-        query?: string;
-        page?: string;
-    };
-}
+import { Chapter, ChapterHeading } from "../ui/orbital/chapter";
+import s from "../ui/orbital/chapters.module.css";
 
 export const revalidate = 43200;
-
-export default async function PageVideos({ searchParams }: IProps) {
-    const query = searchParams?.query || "";
-    const currentPage = Number(searchParams?.page) || 1;
-
-    const effectiveQuery = query.trim() || "space";
-
-    const [{ videos, totalPages }, wikiArticles] = await Promise.all([
-        (async () => (await fetchFilteredVideos(effectiveQuery, currentPage)) || { videos: [], totalPages: 0 })(),
-        fetchWikipediaArticles(effectiveQuery, 8),
-    ]);
-
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-black via-black to-slate-950 text-white">
-            <Header />
-            <div className="relative z-10">
-                <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 pt-16">
-                    <HelloTitle
-                        mainText="Hello Earthlings!"
-                        supportiveText="Here you can find videos of our planet, other planets, stars and galaxies!"
-                    />
-                    <SearchData />
-                </div>
-                <main className="relative z-10 mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10">
-                    <div className="grid gap-8 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
-                        <section className="space-y-6">
-                            <ListVideos videos={videos} totalPages={totalPages} query={query} />
-                        </section>
-                        <aside className="space-y-4 self-start lg:sticky lg:top-24">
-                            <WikiSidebar articles={wikiArticles} />
-                        </aside>
-                    </div>
-                </main>
-            </div>
-        </div>
-    );
+export const metadata = { title: "Films from space · Orbital", description: "Watch NASA missions, launches and discoveries from the video archive." };
+export default async function PageVideos({ searchParams }: { searchParams?: { query?: string; page?: string } }) {
+  const query = searchParams?.query || "";
+  const currentPage = Number(searchParams?.page) || 1;
+  const effectiveQuery = query.trim() || "space";
+  const [{ videos, totalPages }, wikiArticles] = await Promise.all([
+    (async () => (await fetchFilteredVideos(effectiveQuery, currentPage)) || { videos: [], totalPages: 0 })(),
+    fetchWikipediaArticles(effectiveQuery, 8),
+  ]);
+  return <Chapter><ChapterHeading label="Missions in motion" title="See exploration unfold." description="Launches, life in orbit and stories from deep space. Find a film and take a closer look at the work of exploration." />
+    <SearchData /><div className={s.archiveLayout}><section aria-label="NASA video results"><ListVideos videos={videos} totalPages={totalPages} query={query} /></section><WikiSidebar articles={wikiArticles} /></div>
+  </Chapter>;
 }

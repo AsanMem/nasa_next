@@ -1,138 +1,37 @@
 import Link from "next/link";
-import { ROUTES } from "@/app/lib/constants/routes";
+import { observationDate } from '../lib/observations/dates';
 import { fetchDonkiNotifications } from "@/app/lib/nasa/donki";
 import { sanitizePlainText } from "@/app/lib/utils/text";
-import {
-  extractImageUrlsFromText,
-  extractSourceUrlsFromText,
-  formatNasaSummaryText,
-} from "../ui/library/helpers";
+import { extractImageUrlsFromText, extractSourceUrlsFromText, formatNasaSummaryText } from "../ui/library/helpers";
+import { Chapter, ChapterHeading, EmptyState } from "../ui/orbital/chapter";
+import MediaImage from "../ui/orbital/media-image";
+import s from "../ui/orbital/chapters.module.css";
 
-
-const CARD_CLASS =
-  "rounded-3xl bg-white/5 p-6 ring-1 ring-white/10 backdrop-blur hover:bg-white/10 hover:ring-white/20 transition";
-
-export const metadata = {
-  title: "NASA Space Weather (DONKI)",
-  description: "Get the latest space weather alerts from NASA’s DONKI service.",
-};
-
+export const metadata = { title: "Space weather · Orbital", description: "Read the latest available NASA DONKI reports of solar activity and geomagnetic events." };
 export const revalidate = 43200;
-
 export default async function SpaceWeatherPage() {
   const notifications = await fetchDonkiNotifications({ limit: 20 });
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-black to-slate-950 text-white">
-      <div className="mx-auto flex max-w-5xl flex-col gap-10 px-6 py-16">
-        <header className="flex flex-col gap-4">
-          <p className="text-sm uppercase tracking-[0.6em] text-white/50">Space Weather</p>
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-            Space weather alerts from NASA DONKI
-          </h1>
-          <p className="text-readable max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
-            Keep an eye on solar activity, geomagnetic storms.
-          </p>
-          <Link
-            href={ROUTES.library}
-            className="inline-flex items-center justify-center self-start rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
-          >
-            Back to Library
-          </Link>
-        </header>
-
-        <section className="flex flex-col gap-6">
-          {notifications.length > 0 ? (
-            notifications.map((notification) => {
-              const imageUrls = extractImageUrlsFromText(notification.messageBody).slice(0, 2);
-              const sourceUrls = extractSourceUrlsFromText(notification.messageBody).slice(0, 4);
-              const messageBody = formatNasaSummaryText(notification.messageBody, 520);
-              const messageTitle = sanitizePlainText(notification.messageTitle);
-
-              return (
-                <article
-                  key={notification.messageID ?? notification.messageTitle}
-                  className={CARD_CLASS}
-                >
-                  <div className="flex flex-col gap-2">
-                    <p className="text-xs uppercase tracking-[0.4em] text-white/40">
-                      {notification.messageType ?? "Notification"}
-                    </p>
-                    <h2 className="text-2xl font-semibold tracking-tight">
-                      {messageTitle ?? "Space weather alert"}
-                    </h2>
-                    {notification.formattedTime ? (
-                      <p className="text-xs uppercase tracking-[0.4em] text-white/50">
-                        Issued {notification.formattedTime}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  {imageUrls.length > 0 && (
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      {imageUrls.map((url) => (
-                        <div
-                          key={url}
-                          className="overflow-hidden rounded-xl border border-white/10 bg-white/5"
-                        >
-                          <img
-                            src={url}
-                            alt={
-                              messageTitle ??
-                              notification.messageType ??
-                              "Space weather visualization"
-                            }
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <p className="text-readable mt-4 whitespace-pre-line text-sm leading-relaxed text-white/70">
-                    {messageBody ?? "Details are not available for this notification."}
-                  </p>
-
-                  {sourceUrls.length > 0 ? (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {sourceUrls.map((url, index) => (
-                        <a
-                          key={url}
-                          href={url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/70 transition hover:bg-white/20"
-                        >
-                          Source {index + 1}
-                        </a>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  {notification.messageURL ? (
-                    <a
-                      href={notification.messageURL}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-6 inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 hover:bg-white/20"
-                    >
-                      View full bulletin
-                    </a>
-                  ) : null}
-                </article>
-              );
-            })
-          ) : (
-            <div className={CARD_CLASS}>
-              <p className="text-readable text-sm leading-relaxed text-white/60">
-                Space weather notifications are currently unavailable. NASA’s DONKI service might be
-                updating—try again shortly.
-              </p>
-            </div>
-          )}
-        </section>
-
-      </div>
+  const reports = notifications.filter(item => !item.isFallback);
+  const fallback = notifications.some(item => item.isFallback);
+  return <Chapter><ChapterHeading label="The Sun's influence" title="Beyond the visible Sun." description="Solar eruptions send energy and material through our neighborhood. Read the latest available NASA reports and the observations behind them." />
+    <div className={s.split}><aside className={s.context}><h2>Reading the solar environment</h2><p>DONKI is NASA&apos;s Database Of Notifications, Knowledge, Information. These reports describe observed activity and scientific analysis; they are not a live safety forecast.</p><p>A solar flare is a burst of radiation. A coronal mass ejection carries plasma and magnetic fields into space. Geomagnetic storms describe disturbances near Earth.</p><Link href="/library" className={s.textLink}>Continue through the NASA archive</Link></aside>
+      <section aria-label="Space weather bulletins">
+        {!reports.length ? <EmptyState title={fallback ? "NASA reports are temporarily unavailable" : "No bulletins in this snapshot"}><p>{fallback ? "The upstream feed could not be loaded. Check again later for observations." : "No notifications were returned for the requested period. This is not a measurement of current solar conditions."}</p></EmptyState> : reports.map((item, index) => {
+          const title = sanitizePlainText(item.messageTitle) || "Space weather bulletin";
+          const summary = formatNasaSummaryText(item.messageBody, 520);
+          const sources = extractSourceUrlsFromText(item.messageBody).slice(0, 4);
+          const images = extractImageUrlsFromText(item.messageBody).slice(0, 2);
+          return <article className={s.record} key={item.messageID || `${title}-${index}`}>
+            <div className={s.meta}><span>{item.messageType || "NASA notification"}</span><time dateTime={item.messageIssueTime}>Published {observationDate(item.messageIssueTime)}</time></div>
+            <h2>{title}</h2><p>{summary || "No summary was supplied."}</p>
+            <details><summary>Read bulletin details</summary><p style={{ whiteSpace: "pre-line" }}>{sanitizePlainText(item.messageBody) || "Details are unavailable."}</p>
+              {images.length > 0 && <div className={s.recordGrid} style={{ marginTop: 24 }}>{images.map(url => <a href={url} key={url} target="_blank" rel="noopener noreferrer" className={s.artwork}><MediaImage src={url} alt={`Supporting visualization for ${title}`} loading="lazy" /></a>)}</div>}
+              <div className={s.actions}>{sources.map((url, i) => <a key={url} className={s.textLink} href={url} target="_blank" rel="noopener noreferrer">Supporting source {i + 1}</a>)}</div>
+            </details>
+            {item.messageURL && <a href={item.messageURL} className={s.textLink} target="_blank" rel="noopener noreferrer">Original NASA bulletin</a>}
+          </article>;
+        })}
+      </section>
     </div>
-  );
+  </Chapter>;
 }

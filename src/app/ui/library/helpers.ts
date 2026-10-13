@@ -190,7 +190,7 @@ export function getEpicPreview(images: EpicImage[]): PreviewContent | null {
     slideshow: slides.length ? slides : undefined,
     title: sanitizePlainText(first.caption) ?? "EPIC Earth capture",
     description: sanitizePlainText(first.identifier),
-    metadata: first.date,
+    metadata: first.identifier === 'local-epic-fallback' ? undefined : first.date,
   };
 }
 
@@ -212,7 +212,7 @@ export function getNeoPreview(neos: NeoFeedItem[]): PreviewContent | null {
     },
     title: sanitizePlainText(neo.name) ?? "Near-Earth object",
     description: sanitizePlainText(neo.summary),
-    metadata: neo.closeApproachTime,
+    metadata: neo.approachDate,
   };
 }
 

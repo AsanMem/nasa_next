@@ -1,5 +1,13 @@
 # NASA Next continuity
 
+## Complete interface pass — 2026-09-22 (in progress)
+
+The user now authorizes one complete visual/interaction pass through the remaining application, followed by review of the finished result. This supersedes the earlier chapter-by-chapter restriction. Preserve the accepted homepage and asteroid journey. NASA fetching/cache policy, Firebase, scheduled workflows and dependencies remain unchanged; no commit, push or deployment is requested.
+
+Direction: use the Orbital space/raised/foreground/secondary/warm tokens (#030609, #0b1118, #f1f4f6, #a8b3bf, #edc18c) and existing Space Grotesk. Let actual NASA imagery define the media chapters; use a contact sheet and a dark, keyboard-accessible image/video viewer. Earth events use a geographic overview tied to event selection; solar reports use a chronological reading layout. The archive and technology chapters use readable source-led indexes. Quiet shared navigation, honest source dates/fallbacks, visible content, native scrolling, purposeful controls, and responsive layouts are the shared rules. No ornamental telemetry or autoplay gallery animations.
+
+Layout plan: media chapter = wide image above a two-column caption/story; search chapters = large heading, search, contact sheet with a quieter reading sidebar; Earth chapter = map/selected observation followed by category-filtered reports; solar chapter = compact context column alongside expandable bulletins. This uses the subject of each page instead of repeating one card template.
+
 Recovered on 2026-09-21 from the actual repository and two saved Codex tasks.
 
 ## Canonical locations

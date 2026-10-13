@@ -73,7 +73,10 @@ function getGeometryCenter(geometry: EonetGeometry): CoordinatePair | undefined 
     },
   );
 
-  const longitude = (bounds.minLongitude + bounds.maxLongitude) / 2;
+  const radians = pairs.map(([longitude]) => longitude * Math.PI / 180);
+  const longitude = bounds.maxLongitude - bounds.minLongitude > 180
+    ? Math.atan2(radians.reduce((sum,value)=>sum+Math.sin(value),0),radians.reduce((sum,value)=>sum+Math.cos(value),0))*180/Math.PI
+    : (bounds.minLongitude + bounds.maxLongitude) / 2;
   const latitude = (bounds.minLatitude + bounds.maxLatitude) / 2;
 
   return isValidCoordinate(longitude, latitude) ? [longitude, latitude] : undefined;
