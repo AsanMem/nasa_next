@@ -1,14 +1,14 @@
 /** One full-bleed A3 sheet. Lossless RGB art at 300 dpi, no font substitution or print-dialog margins. */
 export const A3_POINTS=[297/25.4*72,420/25.4*72] as const;
-export async function posterPdf(rgb:Uint8Array,width:number,height:number,description:string):Promise<Blob>{
+export async function posterPdf(rgb:Uint8Array<ArrayBuffer>,width:number,height:number,description:string):Promise<Blob>{
  if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width*height>40_000_000||rgb.length!==width*height*3)throw new Error('Invalid poster image.');
  const encoder=new TextEncoder(),bytes=(value:string)=>encoder.encode(value);
  const compressed=typeof CompressionStream!=='undefined';
  const image=compressed?new Uint8Array(await new Response(new Blob([rgb]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer()):rgb;
  const [w,h]=A3_POINTS,page=`0 0 ${w.toFixed(6)} ${h.toFixed(6)}`;
- const parts:Uint8Array[]=[new Uint8Array([37,80,68,70,45,49,46,55,10,37,226,227,207,211,10])],offsets:number[]=[0];let length=parts[0].length;
- const add=(value:Uint8Array)=>{parts.push(value);length+=value.length;};
- function object(id:number,text:string,data?:Uint8Array){offsets[id]=length;add(bytes(`${id} 0 obj\n${text}`));if(data){add(bytes(`\nstream\n`));add(data);add(bytes('\nendstream'));}add(bytes('\nendobj\n'));}
+ const parts:Uint8Array<ArrayBuffer>[]=[new Uint8Array([37,80,68,70,45,49,46,55,10,37,226,227,207,211,10])],offsets:number[]=[0];let length=parts[0].length;
+ const add=(value:Uint8Array<ArrayBuffer>)=>{parts.push(value);length+=value.length;};
+ function object(id:number,text:string,data?:Uint8Array<ArrayBuffer>){offsets[id]=length;add(bytes(`${id} 0 obj\n${text}`));if(data){add(bytes(`\nstream\n`));add(data);add(bytes('\nendstream'));}add(bytes('\nendobj\n'));}
  function utf16(value:string){let hex='FEFF';for(let i=0;i<value.length;i++)hex+=value.charCodeAt(i).toString(16).padStart(4,'0');return `<${hex}>`;}
  const escaped=description.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]!));
  const xmp=bytes(`<?xpacket begin="\ufeff" id="W5M0MpCehiHzreSzNTczkc9d"?><x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title><rdf:Alt><rdf:li xml:lang="x-default">Orbital birth sky poster</rdf:li></rdf:Alt></dc:title><dc:description><rdf:Alt><rdf:li xml:lang="x-default">${escaped}</rdf:li></rdf:Alt></dc:description></rdf:Description></rdf:RDF></x:xmpmeta><?xpacket end="w"?>`);
