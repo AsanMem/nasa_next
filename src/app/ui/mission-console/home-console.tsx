@@ -35,9 +35,9 @@ export default function HomeConsole() {
         <div className={styles.heroCopy}>
           <p className={styles.intro}>A little curiosity. An entire universe.</p>
           <h1 id="console-title">Our world.<br />And beyond.</h1>
-          <p className={styles.description}>From the Earth beneath us to the objects passing by. Explore our universe through NASA&apos;s observations, images and discoveries.</p>
+          <p className={styles.description}>Our planet. Passing asteroids. A universe to explore.</p>
           <div className={styles.heroActions}>
-            <MissionButton href={ROUTES.neos}>Explore near-Earth objects</MissionButton>
+            <Link href={ROUTES.neos} className={styles.asteroidCta}><span><strong>Explore asteroids</strong><small>How close do they pass Earth?</small></span><span className={styles.ctaArrow} aria-hidden="true"><ArrowIcon /></span></Link>
             <MissionButton href={ROUTES.apod} variant="quiet">Discover today&apos;s image</MissionButton>
           </div>
         </div>
@@ -66,12 +66,14 @@ export default function HomeConsole() {
       </section>
 
       <section className={styles.observationEntrances} aria-label="More ways to observe">
-        <Link href="/epic"><span>Earth from deep space</span><h2>A day on Earth, frame by frame.</h2><p>Play a sequence of real DSCOVR / EPIC observations.</p></Link>
-        <Link href="/library"><span>Observation journal</span><h2>Follow the latest discoveries.</h2><p>Source-dated reports, imagery and encounters in one journal.</p></Link>
+        <Link href="/epic"><span className={styles.entranceImage} style={{backgroundImage:"url(/media/orbital/earth.jpg)"}} aria-hidden="true"/><span><h2>EPIC observations</h2><p>Earth, frame by frame.</p></span><span aria-hidden="true">↗</span></Link>
+        <Link href="/library"><span className={styles.entranceImage} style={{backgroundImage:"url(/media/main/3.optimized.webp)"}} aria-hidden="true"/><span><h2>Observation journal</h2><p>Recent discoveries and reports.</p></span><span aria-hidden="true">↗</span></Link>
+        <Link href="/birthday"><span className={styles.entranceImage} style={{backgroundImage:"url(/media/sky/birth-sky-preview.webp)"}} aria-hidden="true"/><span><h2>Your birth sky</h2><p>See your first sky. Make it a poster.</p></span><span aria-hidden="true">↗</span></Link>
+        <Link href="/learn"><span className={styles.entranceImage} style={{backgroundImage:"url(/orbital-lessons.svg)"}} aria-hidden="true"/><span><h2>For teachers</h2><p>Five ready-to-use lesson collections.</p></span><span aria-hidden="true">↗</span></Link>
       </section>
       <footer className={styles.footer}>
         <div><Link href="/" className={styles.footerBrand}>Orbital</Link><p>Space is closer than you think.</p></div>
-        <Link href="/privacy">Privacy & sources</Link><p>An independent exploration project.<br />Powered by NASA&apos;s public data.</p>
+        <Link href="/privacy">Privacy & sources</Link><p>By Asan Memetov.<br />Powered by NASA&apos;s public data.</p>
         <a href="#console-title">Back to the beginning <span className={styles.upArrow}><ArrowIcon /></span></a>
       </footer>
     </main>

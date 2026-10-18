@@ -1,5 +1,5 @@
 import { Approach, Asteroid, numberLabel } from "@/app/lib/asteroids/view-model";
-import { asteroidProjection, asteroidVisual } from "@/app/lib/asteroids/visual";
+import { asteroidProjection, asteroidVisual, asteroidDisplayScale } from "@/app/lib/asteroids/visual";
 import s from "./asteroids.module.css";
 import { useId, useMemo } from "react";
 
@@ -11,8 +11,10 @@ function RockProjection({ id }: { id: string }) {
     <path d={projection.path} fill={visual.tint}/><path d={projection.path} fill={`url(#${key}-stone)`}/><path d={projection.path} fill={`url(#${key}-light)`} stroke="#bdb4a766" strokeWidth=".3"/>
   </g>;
 }
-export function AsteroidPortrait({ id }: { id: string }) {
-  return <svg viewBox="-110 -12 220 125" role="img" aria-label="Static artistic reconstruction of this asteroid"><RockProjection id={id}/></svg>;
+export function AsteroidPortrait({ id, thumbnail = false,diameter }: { id: string; thumbnail?: boolean;diameter?:number|null }) {
+  const width=useMemo(()=>thumbnail?Math.max(125,asteroidProjection(asteroidVisual(id)).width)*1.35+16:300,[id,thumbnail]);
+  const scale=asteroidDisplayScale(diameter);
+  return <svg viewBox={`${-width/2} -34 ${width} 168`} role="img" aria-label="Static artistic reconstruction of this asteroid"><g transform={`translate(0 50) scale(${scale}) translate(0 -50)`}><RockProjection id={id}/></g></svg>;
 }
 export function SizeComparison({ asteroid }: { asteroid: Pick<Asteroid, "id" | "diameter"> }) {
   const silhouetteWidth = useMemo(() => asteroidProjection(asteroidVisual(asteroid.id)).width, [asteroid.id]);

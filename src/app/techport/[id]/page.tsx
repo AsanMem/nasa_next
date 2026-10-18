@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/app/lib/site";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fetchTechportProject } from "@/app/lib/nasa/techport";
@@ -7,7 +8,7 @@ import s from "../../ui/orbital/chapters.module.css";
 type Props = { params: { id: string } };
 export async function generateMetadata({ params }: Props) {
   const project = await fetchTechportProject(params.id);
-  return { title: `${project?.title || "Technology project"} · Orbital`, description: "NASA Techport project details." };
+  return pageMetadata(`/techport/${encodeURIComponent(params.id)}`,`${project?.title || "Technology project"} · Orbital`,"NASA Techport project details.");
 }
 export default async function TechportProjectPage({ params }: Props) {
   const project = await fetchTechportProject(params.id);

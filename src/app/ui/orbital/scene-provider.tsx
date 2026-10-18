@@ -28,7 +28,7 @@ export default function OrbitalSceneProvider({ children }: { children: ReactNode
         cancelled = true; observer.disconnect();
         if (current.current !== binding) return;
         current.current = null; engine.current?.detach(binding.host);
-        cleanupTimer.current = setTimeout(() => { if (!current.current) { engine.current?.dispose(); engine.current = null; } }, 1400);
+        cleanupTimer.current = setTimeout(() => { if (!current.current) { engine.current?.dispose(); engine.current = null; } }, 8000);
       };
     },
     update(host, config) { if (current.current?.host === host) { engine.current?.update(config); current.current.config = config; } },
@@ -49,12 +49,12 @@ export default function OrbitalSceneProvider({ children }: { children: ReactNode
     return () => { alive.current = false; document.removeEventListener("click", click, true); window.removeEventListener("popstate", pop); clearTimeout(cleanupTimer.current); engine.current?.dispose(); engine.current = null; };
   }, []);
   useEffect(() => {
-    if (pathname === "/space-weather" || pathname === "/eonet" || pathname === "/" || pathname === "/asteroids" || /^\/asteroids\/[^/]+\/[^/]+$/.test(pathname)) return;
+    if (pathname === "/birthday" || pathname === "/space-weather" || pathname === "/eonet" || pathname === "/" || pathname === "/asteroids" || /^\/asteroids\/[^/]+\/[^/]+$/.test(pathname)) return;
     engine.current?.dispose(); engine.current = null;
   }, [pathname]);
   return <SceneContext.Provider value={api}>{children}<div ref={layer} data-orbital-flight="true" aria-hidden="true" style={{ display: "none", position: "fixed", pointerEvents: "none", zIndex: 30, overflow: "hidden" }} /></SceneContext.Provider>;
 }
-export function useOrbitalScene(config: SceneConfig) {
+export function useOrbitalScene(config: SceneConfig, enabled = true) {
   const api = useContext(SceneContext);
   if (!api) throw new Error("OrbitalSceneProvider is required");
   const host = useRef<HTMLDivElement>(null), latest = useRef(config);
@@ -62,14 +62,15 @@ export function useOrbitalScene(config: SceneConfig) {
   const [status, setStatus] = useState<SceneStatus>("loading");
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
-    if (!host.current) return;
+    if (!host.current || !enabled) return;
+    setStatus("loading");
     return api.register({ host: host.current, config: latest.current, status: setStatus });
-  }, [api]);
-  useEffect(() => { if (host.current) api.update(host.current, config); }, [api, config]);
+  }, [api,enabled]);
+  useEffect(() => { if (host.current && enabled) api.update(host.current, config); }, [api, config,enabled]);
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => setReduced(media.matches); update(); media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
-  return { host, status, reduced, rotate: api.rotate, reset: api.reset };
+  return { host, status:enabled?status:"loading" as SceneStatus, reduced, rotate: api.rotate, reset: api.reset };
 }

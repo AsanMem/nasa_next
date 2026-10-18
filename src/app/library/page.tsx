@@ -1,3 +1,5 @@
+import { pageMetadata } from "@/app/lib/site";
+export const metadata=pageMetadata("/library","Space observation journal | Orbital","Explore source-dated NASA observations, recent discoveries, Earth imagery and asteroid encounters in one journal.");
 import { Chapter, ChapterHeading, EmptyState } from "../ui/orbital/chapter";
 import s from "../ui/orbital/chapters.module.css";
 import Link from "next/link";

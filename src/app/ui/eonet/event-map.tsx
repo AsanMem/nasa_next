@@ -19,7 +19,7 @@ function Globe({ points, focus, focusRevision, paused, onFailure, children }: { 
   const config = useMemo(() => ({ kind: "events" as const, paused, focus, focusRevision, markers: points, projectMarkers }), [paused, focus, focusRevision, points, projectMarkers]);
   const { host, status } = useOrbitalScene(config);
   useEffect(() => { if (status === "failed") onFailure(); }, [status, onFailure]);
-  return <div className={s.globeMap} ref={container}><div ref={host} className={s.globeHost} />{status !== "ready" && <p className={s.mapStatus} role="status">Preparing Earth reference…</p>}{children}</div>;
+  return <div className={s.globeMap} ref={container} data-ready={status==="ready"}><div ref={host} className={s.globeHost} />{status !== "ready" && <p className={s.mapStatus} role="status">Preparing Earth reference…</p>}{children}</div>;
 }
 export default function EventMap({ points, selectedId, onSelect, focusRevision = 0 }: { points: MapPoint[]; selectedId?: string; focusRevision?: number; onSelect: (id: string) => void }) {
   const [desktop, setDesktop] = useState(false), [failed, setFailed] = useState(false), [flat, setFlat] = useState(false), [paused, setPaused] = useState(true);
@@ -40,12 +40,13 @@ export default function EventMap({ points, selectedId, onSelect, focusRevision =
   const fail = useCallback(() => setFailed(true), []);
   const groups = useMemo(() => clusterPoints(points, desktop ? 12 : 32), [points, desktop]);
   const anchors = useMemo(() => groups.map(group => group[0]), [groups]);
-  const globe = desktop && !failed && !flat;
+  const globe = !failed && !flat;
   const pins = groups.map(group => <button key={group[0].id} data-marker={group[0].id} type="button" className={s.eventPin} style={{ left: `${(group[0].longitude + 180) / 3.6}%`, top: `${(90 - group[0].latitude) / 1.8}%` }} aria-label={group.length > 1 ? `Show ${group.length} nearby events` : `Select ${group[0].title}`} aria-pressed={group.some(point => point.id === selectedId)} aria-expanded={group.length > 1 ? expanded === group[0].id : undefined} aria-controls={group.length > 1 ? "event-cluster-list" : undefined} onClick={event => { if (group.length > 1) { clusterTrigger.current = event.currentTarget; setExpanded(group[0].id); setPaused(true); setLocalRevision(value => value + 1); setClusterTarget({ point: group[0], selection: focusRevision, selected: selectedId }); } else select(group[0].id); }}><CategoryIcon category={group[0].category} />{group.length > 1 && <span>{group.length}</span>}</button>);
   const expandedGroup = groups.find(group => group[0].id === expanded);
-  return <><div className={s.actions}><button className={s.chip} onClick={() => setFlat(value => !value)} disabled={!desktop || failed}>{globe ? "Use flat map" : "Flat map"}</button>{globe && <button className={s.chip} disabled={reduced} onClick={() => setPaused(value => !value)} aria-pressed={paused || reduced}>{reduced ? "Reduced motion" : paused ? "Rotate Earth" : "Pause rotation"}</button>}</div>
+  return <><div className={s.actions}><button className={s.chip} onClick={() => setFlat(value => !value)} disabled={failed}>{globe ? "Flat map" : "Show globe"}</button>{globe && <button className={s.chip} disabled={reduced} onClick={() => setPaused(value => !value)} aria-pressed={paused || reduced}>{reduced ? "Reduced motion" : paused ? "Rotate Earth" : "Pause rotation"}</button>}</div>
     {globe ? <Globe points={anchors} focus={focus} focusRevision={targetRevision} paused={paused} onFailure={fail}>{pins}</Globe> : <div className={s.worldMap} aria-label="Event locations on a reference map">{pins}</div>}
     {expandedGroup && <div id="event-cluster-list" className={s.clusterList} aria-label="Nearby events"><p>Nearby observations</p>{expandedGroup.map(point => <button className={s.chip} key={point.id} aria-pressed={selectedId === point.id} onClick={() => select(point.id)}>{point.title}</button>)}<button className={s.chip} onClick={() => { setExpanded(null); clusterTrigger.current?.focus(); }}>Close list</button></div>}
-    <p className={s.caption}>{failed ? "3D is unavailable. " : ""}Reference imagery. Marks show reported locations, not affected areas or trajectories. Nearby marks are grouped. Every event is available in the list below.</p>
+    <details className={s.mapExplanation}><summary>About this map</summary><p>Markers locate NASA reports. They do not outline affected areas or show trajectories. Latitude and longitude are geographic coordinates, not temperature readings. Every report is also available in the list below.</p></details>
+    <p className={s.caption}>{failed ? "3D is unavailable. " : ""}Reported locations. Select a marker to explore; nearby reports are grouped.</p>
   </>;
 }

@@ -1,0 +1,17 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');
+function load(relative,overrides={}){const exports={};const file=path.resolve(__dirname,'../src/app',relative);vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,URL,Date,Intl,process:{env:{}},...overrides,require(name){if(overrides.require)return overrides.require(name);if(name.startsWith('.'))return load(path.relative(path.resolve(__dirname,'../src/app'),path.resolve(path.dirname(file),name+'.ts')));return require(name);}});return exports;}
+test('public metadata, sitemap and robots use the confirmed site and allow a future domain change',()=>{
+ const site=load('lib/site.ts');assert.equal(site.site.origin,'https://nasa-odisey.web.app');assert.equal(site.site.author,'Asan Memetov');assert.equal(site.site.email,'amemetoff.it@gmail.com');
+ assert.equal(site.siteOrigin('https://new.example/path?date=private'),'https://new.example');assert.throws(()=>site.siteOrigin('javascript:bad'));assert.throws(()=>site.siteOrigin('https://name:secret@example.com'));
+ const metadata=site.pageMetadata('/birthday','A birthday poster','Real observations');assert.equal(metadata.alternates.canonical,'https://nasa-odisey.web.app/birthday');assert.equal(metadata.openGraph.url,metadata.alternates.canonical);
+ const map=load('sitemap.ts').default();assert.ok(map.some(item=>item.url.endsWith('/birthday')));assert.equal(map.some(item=>item.url.includes('/api/')||item.url.includes('?')||item.url.includes('/privacy')),false);assert.ok(map.every(item=>item.lastModified===undefined));
+ const robots=load('robots.ts').default();assert.equal(robots.sitemap,'https://nasa-odisey.web.app/sitemap.xml');assert.equal(robots.rules.allow,'/');
+});
+test('poster printing isolates the selected poster and restores the page after printing or leaving',()=>{
+ const effects=[],listeners=new Map(),document={documentElement:{dataset:{}}};let prints=0;
+ const jsx=(type,props)=>({type,props});
+ const Component=load('ui/day/sky-poster.tsx',{document,window:{print(){prints++;},addEventListener:(key,fn)=>listeners.set(key,fn),removeEventListener:key=>listeners.delete(key)},require(name){if(name==='react')return {useState:value=>[value,()=>{}],useRef:()=>({current:null}),useMemo:fn=>fn(),useEffect:fn=>effects.push(fn)};if(name.includes('lib/sky/poster'))return {posterSvg:()=>'<svg/>',skyCredits:'Credits'};if(name==='react/jsx-runtime')return {jsx,jsxs:jsx,Fragment:'fragment'};return {default:()=>null};}}).default;
+ const tree=Component({sky:{utc:0},date:'1980-06-06',time:'22:30',zone:'GMT+02:00'});
+ function find(node){if(!node||typeof node!=='object')return;if(Array.isArray(node))return node.map(find).find(Boolean);if(node.type==='button'&&node.props.children==='Print poster')return node;return find(node.props?.children);}
+ const cleanup=effects[0]();find(tree).props.onClick();assert.equal(prints,1);assert.equal(document.documentElement.dataset.printView,'sky');listeners.get('afterprint')();assert.equal(document.documentElement.dataset.printView,undefined);find(tree).props.onClick();cleanup();assert.equal(document.documentElement.dataset.printView,undefined);assert.equal(listeners.size,0);
+});

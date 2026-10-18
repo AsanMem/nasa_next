@@ -1,5 +1,5 @@
 export const destinations = [
-  { title: "Near-Earth objects", description: "Meet the asteroids passing through our corner of space.", href: "/asteroids", category: "Our neighborhood", image: "/media/main/1.optimized.webp" },
+  { title: "Asteroids", description: "Find their next close pass, speed and distance from Earth.", menuDescription: "Close passes by Earth", href: "/asteroids", category: "Passing our planet", image: "/media/main/Asteroid Psyche (Illustration).jpg" },
   { title: "Media of the day", description: "A new perspective on the universe, selected by NASA.", href: "/day", category: "A daily discovery", image: "/media/main/3.optimized.webp" },
   { title: "Earth events", description: "Follow the fires, storms and natural events shaping our planet.", href: "/eonet", category: "A changing planet", image: "/media/eonet/1.jpg" },
   { title: "Space weather", description: "Explore solar activity and its effects beyond the Sun.", href: "/space-weather", category: "The Sun's influence" },

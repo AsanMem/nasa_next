@@ -1,0 +1,18 @@
+"use client";
+import { useMemo,useRef,useState } from 'react';
+import type { BirthSky } from '../../lib/sky/model';
+import { projectSky,skyLight } from '../../lib/sky/coordinates';
+import { useOrbitalScene } from '../orbital/scene-provider';
+import s from './birth-sky.module.css';
+export default function SkyView({sky}:{sky:BirthSky}){
+ const [azimuth,setAzimuth]=useState(180),[altitude,setAltitude]=useState(45),[points,setPoints]=useState<{id:string;x:number;y:number;visible:boolean}[]>([]);
+ const drag=useRef<{x:number;y:number;azimuth:number}|null>(null);
+ const config=useMemo(()=>({kind:'sky' as const,paused:true,sky:{data:sky,azimuth,altitude},projectBodies:setPoints}),[sky,azimuth,altitude]);
+ const {host,status}=useOrbitalScene(config);
+ const visible=useMemo(()=>sky.bodies.filter(p=>p.altitude>=0),[sky]);
+ const fallback=useMemo(()=><svg className={s.skyFallback} viewBox="-1.13 -1.13 2.26 2.26" aria-label="Whole sky chart; north up, east left"><circle r="1" fill="#091c38" stroke="#89b0c1" strokeWidth=".003"/>{sky.lines.filter(([a,b])=>a.altitude>=0&&b.altitude>=0).map(([a,b],i)=>{const u=projectSky(a),v=projectSky(b);return <path key={i} d={`M${u.x},${u.y}L${v.x},${v.y}`} fill="none" stroke="#91bdda" opacity=".25" strokeWidth=".002"/>;})}{sky.stars.filter(p=>p.altitude>=0&&p.magnitude<6).map(p=>{const q=projectSky(p);return <circle key={p.id} cx={q.x} cy={q.y} r={Math.max(.001, .008-p.magnitude*.001)} fill={p.color}/>;})}{visible.map(p=>{const q=projectSky(p);return <g key={p.id}><circle cx={q.x} cy={q.y} r=".016" fill={p.color}/><text x={q.x+.025} y={q.y-.025} fill="#e8e5df" fontSize=".045">{p.name}</text></g>;})}<g fill="#c4d6e7" fontSize=".06" textAnchor="middle"><text y="-1.04">N</text><text y="1.1">S</text><text x="-1.07" y=".02">E</text><text x="1.07" y=".02">W</text></g></svg>,[sky,visible]);
+ return <><div className={s.skyScene} role="group" aria-label="3D sky at your birthplace"><div className={s.skyHost} ref={host} onPointerDown={e=>{drag.current={x:e.clientX,y:e.clientY,azimuth};}} onPointerMove={e=>{if(!drag.current||!e.buttons)return;const dx=e.clientX-drag.current.x,dy=e.clientY-drag.current.y;if(Math.abs(dx)>Math.abs(dy))setAzimuth((drag.current.azimuth-dx*.25+720)%360);}} onPointerUp={()=>drag.current=null} onPointerCancel={()=>drag.current=null}/>{status!=='ready'&&fallback}
+ {status==='ready'&&points.filter(p=>p.visible).map(p=><span key={p.id} className={s.bodyLabel} style={{left:`${p.x}%`,top:`${p.y}%`}}>{p.id}</span>)}<div className={s.sceneStatus}>{status==='ready'?'3D sky':'Whole sky map'} · {skyLight(sky.sunAltitude)}</div></div>
+ <div className={s.viewControls}><label>Look around <input type="range" min="0" max="359" value={Math.round(azimuth)} aria-valuetext={`${Math.round(azimuth)} degrees clockwise from north`} onChange={e=>setAzimuth(+e.target.value)}/></label><label>Look up <input type="range" min="0" max="90" value={altitude} aria-valuetext={`${altitude} degrees above the horizon`} onChange={e=>setAltitude(+e.target.value)}/></label><button type="button" onClick={()=>{setAzimuth(180);setAltitude(45);}}>Reset view</button></div>
+ <p className={s.note}>{status==='failed'?'3D is unavailable on this device. The calculated sky map and poster still work.':'Drag sideways or use the controls to look around. Scroll vertically to continue.'} {sky.sunAltitude>=0?'The Sun was up. Stars are shown to reveal their positions.':sky.sunAltitude>=-18?'The sky was in twilight. Fainter stars may not have been visible.':'Stars are shown without weather or light pollution.'}</p><p className={s.visibleBodies}>Above the horizon: {visible.map(p=>p.name).join(', ')||'no Solar System bodies in this view'}.</p></>;
+}

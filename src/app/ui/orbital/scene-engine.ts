@@ -1,9 +1,11 @@
 import { createSolarModel } from "./solar-model";
+import { createSkyModel } from "./sky-model";
+import { createEncounterModel } from "./encounter-model";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { gsap } from "gsap";
-import { asteroidVisual, randomStream, surfaceSampler } from "../../lib/asteroids/visual";
+import { asteroidVisual, asteroidDisplayScale, randomStream, surfaceSampler } from "../../lib/asteroids/visual";
 import type { SceneBinding, SceneConfig, SceneEngine } from "./scene-types";
 
 type Rock = { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; dispose(): void; height: number; bottom: number; left: number; right: number; rotation: THREE.Euler };
@@ -26,7 +28,7 @@ export function createRock(id: string, wake: () => void): Rock {
   let disposed = false;
   const texture = new THREE.TextureLoader().load(`/media/asteroid/textures/${descriptor.texture}`, loaded => {
     if (disposed) { loaded.dispose(); return; }
-    loaded.colorSpace = THREE.SRGBColorSpace; material.map = loaded; material.bumpMap = loaded;
+    loaded.colorSpace = THREE.SRGBColorSpace; loaded.wrapS=loaded.wrapT=THREE.RepeatWrapping; loaded.repeat.set(descriptor.textureScale,descriptor.textureScale); loaded.offset.set(...descriptor.textureOffset); material.map = loaded; material.bumpMap = loaded;
     material.needsUpdate = true; wake();
   }, undefined, () => { /* The lit base material remains usable. */ });
   return { mesh, height: bounds.max.y - bounds.min.y, bottom: bounds.min.y, left: bounds.min.x, right: bounds.max.x, rotation: mesh.rotation.clone(),
@@ -46,7 +48,10 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   scene.add(new THREE.AmbientLight(0xb9cbe0, .5));
   const sun = new THREE.DirectionalLight(0xffe9d0, 3.5); sun.position.set(-3, 4, 5); scene.add(sun);
   const rim = new THREE.DirectionalLight(0x9ab7d9, 1.25); rim.position.set(3, 1, -3); scene.add(rim);
+  const rockFill = new THREE.DirectionalLight(0xe0e9f2, 5); rockFill.position.set(0, 1, 5); scene.add(rockFill);
   let solarModel: ReturnType<typeof createSolarModel> | undefined;
+  let skyModel: ReturnType<typeof createSkyModel> | undefined;
+  let encounterModel:ReturnType<typeof createEncounterModel>|undefined;
   const home = new THREE.Group(); scene.add(home);
   const earthGeometry = new THREE.SphereGeometry(1.38, 64, 48);
   const earthMaterial = new THREE.MeshPhongMaterial({ shininess: 6, specular: 0x27333b });
@@ -79,8 +84,9 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   let planetMapsReady = 0, planetMapFailed = false;
   const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
   let transition: gsap.core.Tween | undefined, switchTween: gsap.core.Tween | undefined;
-  let flight: { from: SceneConfig["kind"]; destination: string; rect: DOMRect; t: number } | undefined;
+  let flight: { from: SceneConfig["kind"]; destination: string; rect: DOMRect; t: number; source: SceneConfig; camera: THREE.Vector3; rotation: THREE.Quaternion } | undefined;
   const entrance = { t: 1 };
+  const arrivalCamera = new THREE.Vector3(), arrivalRotation = new THREE.Quaternion();
   const particleRandom = randomStream(82941);
   const starPositions = new Float32Array(450 * 3);
   for (let i = 0; i < starPositions.length; i += 3) { starPositions[i] = (particleRandom() - .5) * 38; starPositions[i+1] = (particleRandom() - .5) * 24; starPositions[i+2] = -3 - particleRandom() * 25; }
@@ -104,8 +110,8 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   const rulerMaterial = new THREE.LineBasicMaterial({ color: 0x7e8a94, transparent: true, opacity: .7 }); comparison.add(new THREE.LineSegments(rulerGeometry, rulerMaterial));
   const running = () => !disposed && !lost && !document.hidden && (!!flight || (visible && !!binding && binding.config.mode !== "distance"));
   function wake() {
-    cancelAnimationFrame(frame); frame = 0;
-    if (running()) frame = requestAnimationFrame(draw); else lastTime = 0;
+    if (!running()) { cancelAnimationFrame(frame); frame = 0; lastTime = 0; return; }
+    if (!frame) frame = requestAnimationFrame(draw);
   }
   const loader = new THREE.TextureLoader();
   function loadPlanet(url: string, material: THREE.MeshPhongMaterial) {
@@ -139,32 +145,40 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   }
   function draw(time: number) {
     frame = 0; if (!running()) return;
-    const config = binding?.config;
+    const config = binding?.config ?? flight?.source;
     const delta = lastTime ? Math.min((time - lastTime) / 1000, .04) : 0; lastTime = time;
     const moving = !preference.matches && !config?.paused;
     let rect = binding?.host.getBoundingClientRect();
     if (flight) {
       const source = flight.rect, target = rect && rect.width ? rect : source;
       const middle = { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
-      const first = flight.t < .4, t = first ? flight.t / .4 : (flight.t - .4) / .6;
-      const eased = t * t * (3 - 2 * t), a = first ? source : middle, b = first ? middle : target;
+      // Catalog → profile follows one uninterrupted host-to-host move. A cold
+      // route keeps the original model visible until its destination is ready.
+      const direct = flight.from === "catalog";
+      const first = flight.t < .4, t = direct ? flight.t : first ? flight.t / .4 : (flight.t - .4) / .6;
+      const eased = t * t * (3 - 2 * t), a = direct || first ? source : middle, b = direct ? target : first ? middle : target;
       const left = a.left + (b.left - a.left) * eased, top = a.top + (b.top - a.top) * eased;
       const width = a.width + (b.width - a.width) * eased, height = a.height + (b.height - a.height) * eased;
       Object.assign(flightHost.style, { display: "block", left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px` });
       resize(width, height);
     } else if (rect) resize(rect.width, rect.height);
+    if(config?.kind==='sky'&&skyModel){skyModel.update(config,camera.aspect);renderer.render(skyModel.scene,skyModel.camera);return;}
     const isSolar = config?.kind === "solar";
+    const isEncounter=config?.kind==="encounters";
+    if(encounterModel)encounterModel.group.visible=isEncounter;
     const isEvents = config?.kind === "events";
     const isHome = config?.kind === "home" || isEvents || isSolar;
+    rockFill.visible = !isHome;
     if (solarModel) { solarModel.group.visible = isSolar && planetMapsReady === 2 && !planetMapFailed; if (isSolar && moving && solarModel.group.visible) solarModel.update(delta); }
     sun.position.set(-3, isSolar ? 1 : 4, isSolar ? 2 : 5); sun.intensity = isSolar ? 2.5 : 3.5; rim.intensity = isSolar ? .3 : 1.25;
     orbitalPlane.visible = !isEvents;
     const fromHome = flight?.from === "home";
+    orbitalPlane.scale.setScalar(window.innerWidth <= 760 && (config?.kind === "home" || fromHome) ? .82 : 1);
     const comparing = !flight && config?.mode === "size" && !!config.diameter && activeRock;
     home.visible = ((!!isHome && !isSolar) || !!fromHome) && planetMapsReady === 2 && !planetMapFailed;
     home.scale.setScalar(fromHome ? Math.max(.02, 1 - flight!.t * 1.5) : 1);
     home.position.set(fromHome ? -flight!.t * 3 : 0, fromHome ? flight!.t : 0, fromHome ? -flight!.t * 16 : 0);
-    if (moving && !isEvents && !isSolar && planetMapsReady === 2) { earth.rotation.y += delta * .023; orbitTime += delta * .025; }
+    if (moving && !isEvents && !isSolar && !isEncounter && planetMapsReady === 2) { earth.rotation.y += delta * .023; orbitTime += delta * .025; }
     moon.position.set(Math.cos(orbitTime) * 2.35, Math.sin(orbitTime) * .9, Math.sin(orbitTime) * 2.17198);
     moon.rotation.y = -orbitTime;
     if (isEvents) {
@@ -175,7 +189,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
         if (t === 1) eventFocus = undefined;
       } else if (moving) earth.rotation.y += delta * .035;
     }
-    stars.visible = !comparing; particles.visible = !isHome && !comparing || !!flight;
+    stars.visible = !comparing; particles.visible = !isHome && !comparing && !isEncounter || !!flight;
     const speed = config?.speed;
     const particleSpeed = flight ? 10 : speed != null ? speed * .055 : 0;
     for (let i = 0; i < particlePositions.length; i += 6) {
@@ -205,14 +219,24 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
       } else {
         if (moving) mesh.rotation.y += delta * .065;
         const arrival = fromHome ? Math.max(0, (flight!.t - .28) / .72) : entrance.t;
-        mesh.scale.setScalar(Math.max(.01, arrival)); mesh.position.set((1 - arrival) * 1.5, (1 - arrival) * -.25, 0);
+        mesh.scale.setScalar(Math.max(.01, arrival)*asteroidDisplayScale(config?.diameter)); mesh.position.set((1 - arrival) * 1.5, (1 - arrival) * -.25, 0);
       }
     }
-    if (controls) controls.enabled = !isHome && !comparing && !flight;
-    const distance = isSolar ? Math.max(8.8, 14 / camera.aspect) : isHome ? camera.aspect < 1.1 ? 8.6 : 7.6 : Math.max(flight?.from === "catalog" ? 4.6 - flight.t * .5 : config?.kind === "catalog" ? 4.6 : 4.1, 3.5 / camera.aspect);
-    const flightDistance = fromHome ? (camera.aspect < 1.1 ? 8.6 : 7.6) * (1 - flight!.t) + distance * flight!.t : distance;
+    if (controls) controls.enabled = !isHome && !comparing && !flight && !isEncounter;
+    const homeDistance = window.innerWidth <= 760 ? Math.max(6.2,4.8/camera.aspect) : camera.aspect < 1.1 ? 8.6 : 7.6;
+    const distance = isSolar ? Math.max(8.8, 14 / camera.aspect) : isEvents ? Math.max(6.2,4.7/camera.aspect) : isHome ? homeDistance : Math.max(flight?.from === "catalog" ? 4.6 - flight.t * .5 : config?.kind === "catalog" ? window.innerWidth <= 760 ? 3.8 : 4.6 : 4.1, 3.5 / camera.aspect);
+    const flightDistance = fromHome ? homeDistance * (1 - flight!.t) + distance * flight!.t : distance;
     if (!controls || !controls.enabled || flight) { camera.position.set(0, .15, flightDistance); camera.lookAt(0, 0, 0); }
     else if (Math.abs(camera.position.length() - distance - (config?.progress?.current ?? 0) * .65) > .05) camera.position.setLength(distance + (config?.progress?.current ?? 0) * .65);
+    if (flight?.from === "catalog") {
+      const t = flight.t, blend = t * t * (3 - 2 * t);
+      const destinationDistance = Math.max(4.1, 3.5 / camera.aspect);
+      arrivalCamera.set(0, .15, destinationDistance); camera.position.copy(arrivalCamera); camera.lookAt(0, 0, 0); arrivalRotation.copy(camera.quaternion);
+      camera.position.lerpVectors(flight.camera, arrivalCamera, blend);
+      camera.position.multiplyScalar(1 + Math.sin(Math.PI * t) * .08);
+      camera.quaternion.slerpQuaternions(flight.rotation, arrivalRotation, blend);
+    }
+    if(isEncounter&&config.encounter&&activeRock)encounterModel?.update(config,camera,activeRock.mesh);
     renderer.render(scene, comparing ? scaleCamera : camera);
     if (isEvents && config.projectMarkers && rect) {
       earth.updateMatrixWorld(true); camera.updateMatrixWorld(true);
@@ -234,15 +258,23 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     focusEarth(next.config, true);
     if (next.config.kind === "home") { earth.rotation.set(.12, 3.9, -.12); orbitTime = .68; }
     if (next.config.kind === "solar" && !solarModel) { solarModel = createSolarModel(earthGeometry, earthMaterial); scene.add(solarModel.group); }
+    if (next.config.kind === 'sky' && !skyModel) skyModel=createSkyModel();
+    if(next.config.kind==="encounters"&&!encounterModel){encounterModel=createEncounterModel(earthMaterial,moonMaterial);scene.add(encounterModel.group);}
     if (next.config.id) selectRock(next.config.id);
     if (!flight) next.host.appendChild(renderer.domElement);
-    controls = new OrbitControls(camera, next.host); controls.enableZoom = false; controls.enablePan = false; controls.enableDamping = false; controls.rotateSpeed = .6;
-    controls.addEventListener("change", wake); next.host.style.touchAction = "pan-y";
-    camera.position.set(0, .15, next.config.kind === "home" ? 7.6 : 4.6); controls.update();
+    if (next.config.kind === "catalog" || next.config.kind === "profile") {
+      controls = new OrbitControls(camera, next.host); controls.enableZoom = false; controls.enablePan = false; controls.enableDamping = false; controls.rotateSpeed = .6;
+      controls.addEventListener("change", wake);
+    }
+    // Vertical gestures belong to the document; only asteroid hosts need drag rotation.
+    next.host.style.touchAction = "pan-y pinch-zoom"; renderer.domElement.style.touchAction = "pan-y pinch-zoom";
+    if (!flight) { camera.position.set(0, .15, next.config.kind === "home" ? 7.6 : 4.6); controls?.update(); }
     observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; wake(); }); observer.observe(next.host);
     resizeObserver = new ResizeObserver(wake); resizeObserver.observe(next.host);
     next.status((next.config.kind === "home" || next.config.kind === "events" || next.config.kind === "solar") ? planetMapFailed ? "failed" : planetMapsReady === 2 ? "ready" : "loading" : "ready");
-    if (!flight && oldId !== next.config.id) enter();
+    if (flight?.from === "catalog" && next.config.kind === "profile") {
+      transition = gsap.to(flight, { t: 1, duration: .65, ease: "none", onUpdate: wake, onComplete: finishFlight });
+    } else if (!flight && oldId !== next.config.id) enter();
     wake();
   }
   function enter() {
@@ -261,9 +293,13 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     const from = binding.config.kind;
     const valid = from === "home" && destination === "/asteroids" || from === "catalog" && /^\/asteroids\/[^/]+\/[^/]+$/.test(destination);
     if (!valid) return;
-    flight = { from, destination, rect: binding.host.getBoundingClientRect(), t: 0 };
+    const sourceRect = binding.host.getBoundingClientRect();
+    if (sourceRect.bottom < 0 || sourceRect.top > window.innerHeight) return;
+    if (from === "catalog" && destination.split("/")[2] !== binding.config.id) return;
+    switchTween?.kill(); entrance.t = 1;
+    flight = { from, destination, rect: sourceRect, t: 0, source: binding.config, camera: camera.position.clone(), rotation: camera.quaternion.clone() };
     flightHost.appendChild(renderer.domElement);
-    transition = gsap.to(flight, { t: 1, duration: window.innerWidth < 760 ? .65 : from === "home" ? 1.2 : .8, ease: "power2.inOut", onUpdate: wake, onComplete: finishFlight });
+    if (from === "home") transition = gsap.to(flight, { t: 1, duration: window.innerWidth < 760 ? .65 : 1.2, ease: "power2.inOut", onUpdate: wake, onComplete: finishFlight });
     wake();
   }
   const lostContext = (event: Event) => { event.preventDefault(); lost = true; transition?.kill(); switchTween?.kill(); flight = undefined; flightHost.style.display = "none"; cancelAnimationFrame(frame); frame = 0; binding?.status("failed"); renderer.domElement.remove(); };
@@ -279,6 +315,8 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
       if (disposed) return; disposed = true; transition?.kill(); switchTween?.kill(); cancelAnimationFrame(frame); releaseObservers();
       preference.removeEventListener("change", changePreference); document.removeEventListener("visibilitychange", wake); renderer.domElement.removeEventListener("webglcontextlost", lostContext);
       solarModel?.dispose();
+      skyModel?.dispose();
+      encounterModel?.dispose();
       rocks.forEach(rock => rock.dispose()); rocks.clear(); textures.forEach(texture => texture.dispose());
       [earthGeometry, atmosphereGeometry, orbitGeometry, moonGeometry, starGeometry, particleGeometry, humanGeometry, headGeometry, rulerGeometry].forEach(item => item.dispose());
       [earthMaterial, atmosphereMaterial, orbitMaterial, moonMaterial, starMaterial, particleMaterial, humanMaterial, rulerMaterial].forEach(item => item.dispose());

@@ -1,9 +1,10 @@
+import { pageMetadata } from "@/app/lib/site";
 import { fetchTechTransferPatents, fetchTechTransferSoftware } from "@/app/lib/nasa/techtransfer";
 import { sanitizePlainText } from "@/app/lib/utils/text";
 import { Chapter, ChapterHeading, EmptyState } from "../ui/orbital/chapter";
 import s from "../ui/orbital/chapters.module.css";
 
-export const metadata = { title: "Patents & software · Orbital", description: "Explore NASA technology transfer patents and software." };
+export const metadata=pageMetadata("/techtransfer","NASA patents and software | Orbital","Explore public NASA technology transfer patents and software records.");
 export const revalidate = 86400;
 function AssetList({ items, label }: { items: Awaited<ReturnType<typeof fetchTechTransferPatents>>; label: string }) {
   if (!items.length) return <EmptyState title={`${label} are unavailable`}><p>No entries were returned in this snapshot. Check again later.</p></EmptyState>;

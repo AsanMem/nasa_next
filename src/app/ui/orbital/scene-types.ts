@@ -1,6 +1,11 @@
 import type { MutableRefObject } from "react";
+import type { EncounterMotion } from "../../lib/asteroids/encounters";
+import type { BirthSky } from "../../lib/sky/model";
 export type SceneConfig = {
-  kind: "home" | "catalog" | "profile" | "events" | "solar";
+  kind: "home" | "catalog" | "profile" | "events" | "solar" | "encounters" | "sky";
+  sky?: {data:BirthSky;azimuth:number;altitude:number};
+  encounter?: { bodies:string[]; body:string; eventKey?:string; motion:MutableRefObject<EncounterMotion|null> };
+  projectBodies?: (points:{id:string;x:number;y:number;visible:boolean}[])=>void;
   focus?: { latitude:number; longitude:number };
   focusRevision?: number;
   markers?: { id:string; latitude:number; longitude:number }[];

@@ -1,11 +1,15 @@
 import { createNoise3D } from "simplex-noise";
 
 export type Vec3 = [number, number, number];
+/** Bounded display scale only. Never use for the exact human comparison. */
+export function asteroidDisplayScale(diameter?:number|null) {
+  return diameter!=null&&Number.isFinite(diameter)&&diameter>0?Math.max(.5,Math.min(1.35,(diameter/150)**.3)):1;
+}
 export type AsteroidVisualDescriptor = {
-  version: 3; id: string; seed: number;
+  version: 4; id: string; seed: number;
   family: "rubble" | "elongated" | "shard" | "bilobed";
   proportions: Vec3; rotation: Vec3; texture: string; tint: string;
-  roughness: number; relief: number;
+  roughness: number; relief: number; textureScale: number; textureOffset: [number,number];
   craters: { direction: Vec3; width: number; depth: number }[];
 };
 export function hashSeed(value: string): number {
@@ -23,25 +27,29 @@ export function randomStream(seed: number) {
 }
 // Versioned, named material slots: never derive identity from a mutable asset list.
 const surfaces = [
-  { texture: "stone-2.jpg", tint: "#a5a39d" },
-  { texture: "stone-8.jpg", tint: "#adaba0" },
-  { texture: "stone-2.jpg", tint: "#707779" },
-  { texture: "stone-8.jpg", tint: "#b7a593" },
+  { texture: "stone-1.jpg", tint: "#b9b4a9" },
+  { texture: "stone-2.jpg", tint: "#999e9c" },
+  { texture: "stone-5.jpg", tint: "#aaa69e" },
+  { texture: "stone-8.jpg", tint: "#9f9d97" },
+  { texture: "stone-10.jpg", tint: "#b3a28c" },
+  { texture: "stone-12.jpg", tint: "#b4b7b2" },
 ] as const;
+const tints = ["#c2beb4", "#aaa8a0", "#979d9e", "#b5a69a", "#93928e", "#b3b6b6"] as const;
 export function asteroidVisual(id: string): AsteroidVisualDescriptor {
-  const shape = randomStream(hashSeed(`orbital:3:shape:${id}`));
-  const material = randomStream(hashSeed(`orbital:3:material:${id}`));
-  const family = (["rubble", "elongated", "shard", "bilobed"] as const)[Math.floor(shape() * 4)];
-  const proportions: Vec3 = family === "elongated" ? [1.5 + shape() * .35, .7 + shape() * .15, .75]
+  const shape = randomStream(hashSeed(`orbital:4:shape:${id}`));
+  const material = randomStream(hashSeed(`orbital:4:material:${id}`));
+  const familyDraw=shape();
+  const family = familyDraw < .6 ? "rubble" : familyDraw < .85 ? "elongated" : familyDraw < .97 ? "shard" : "bilobed";
+  const proportions: Vec3 = family === "elongated" ? [1.25 + shape() * .4, .8 + shape() * .14, .8 + shape() * .14]
     : family === "shard" ? [1.25, .7, .55 + shape() * .15]
-    : family === "bilobed" ? [1.4, .84, .76] : [1.04 + shape() * .15, .9 + shape() * .14, .92];
+    : family === "bilobed" ? [1.2 + shape()*.15, .92, .88] : [1.0 + shape() * .2, .88 + shape() * .2, .85 + shape()*.22];
   const craters = Array.from({ length: 6 }, () => {
     const z = shape() * 2 - 1, angle = shape() * Math.PI * 2, r = Math.sqrt(1 - z * z);
     return { direction: [r * Math.cos(angle), r * Math.sin(angle), z] as Vec3, width: .12 + shape() * .22, depth: .025 + shape() * .085 };
   });
-  return { version: 3, id, family, seed: hashSeed(`orbital:3:noise:${id}`), proportions,
+  return { version: 4, id, family, seed: hashSeed(`orbital:4:noise:${id}`), proportions,
     rotation: [.16 + shape() * .25, -.5 + shape(), -.6 + shape() * 1.2],
-    ...surfaces[Math.floor(material() * 4)], roughness: .86 + material() * .12,
+    ...surfaces[Math.floor(material() * 6)], tint: tints[Math.floor(material()*tints.length)], roughness: .87 + material() * .11, textureScale: .8 + material()*.8, textureOffset: [material(),material()],
     relief: .065 + shape() * .045, craters };
 }
 export function surfaceSampler(descriptor: AsteroidVisualDescriptor) {
@@ -55,8 +63,11 @@ export function surfaceSampler(descriptor: AsteroidVisualDescriptor) {
       const distance = 1 - (x * crater.direction[0] + y * crater.direction[1] + z * crater.direction[2]);
       radius -= crater.depth * Math.exp(-distance / (crater.width * crater.width));
     }
-    if (descriptor.family === "bilobed") radius *= .52 + .7 * Math.abs(x + .12 * y) + .17 * x;
-    if (descriptor.family === "shard") radius = Math.min(radius, .9 / Math.max(.1, Math.abs(x + z * .25 + .12)), .72 / Math.max(.1, Math.abs(y - z * .3 - .09)), .8 / Math.max(.1, Math.abs(z - x * .2 + .07)));
+    if (descriptor.family === "bilobed") radius *= .84 + .19 * Math.abs(x + .21 * y) + .11 * x + .04*y;
+    if (descriptor.family === "shard") {
+      const chipped = Math.min(radius, .9 / Math.max(.1, Math.abs(x + z * .25 + .12)), .72 / Math.max(.1, Math.abs(y - z * .3 - .09)), .8 / Math.max(.1, Math.abs(z - x * .2 + .07)));
+      radius = .35 * radius + .65 * chipped;
+    }
     return [x * radius * descriptor.proportions[0], y * radius * descriptor.proportions[1], z * radius * descriptor.proportions[2]];
   };
 }

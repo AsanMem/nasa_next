@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/app/lib/site";
 import { Suspense } from "react";
 import { fetchAsteroids, resolveAsteroidFeedSelection } from "../lib/data/asteroids/fetchAsteroids";
 import { getNasaUtcDate } from "../lib/nasa/api";
@@ -7,7 +8,7 @@ import AsteroidCatalog from "../ui/asteroids/asteroid-catalog";
 import orbital from "../ui/orbital/orbital.module.css";
 
 export const revalidate = 3600;
-export const metadata = { title: "Near-Earth objects · Orbital", description: "Meet the small worlds passing near Earth. Explore NASA asteroid encounters, size and distance." };
+export const metadata=pageMetadata("/asteroids","Asteroids passing Earth | Orbital","Explore NASA close approaches, estimated asteroid sizes, speeds and an illustrated journey through past and future encounters.");
 export default async function Asteroids() {
   const today = getNasaUtcDate();
   const data = await fetchAsteroids();

@@ -16,7 +16,8 @@
 html {
   min-height: 100%;
   background: #030609;
-  overflow-x: hidden;
+  overflow-x: clip;
+  overflow-y: auto;
 }
 
 body {
@@ -24,7 +25,7 @@ body {
   min-height: 100%;
   background: #030609;
   color: #fff;
-  overflow-x: hidden;
+  overflow: visible;
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.55) rgba(0, 0, 0, 0.35);
 }
@@ -89,4 +90,19 @@ body::-webkit-scrollbar-thumb:hover {
   .timeline-scroll::-webkit-scrollbar {
     display: none;
   }
+}
+@media print {
+  html, body { background: white !important; color: black !important; overflow: visible !important; height: auto !important; }
+  body > div > header, body > header, body > footer, dialog, canvas, [data-orbital-scene] { display: none !important; }
+  @page { margin: 16mm; }
+}
+
+@media print {
+ html[data-print-view='birthday'] body *:not(:has([data-birthday-poster])):not([data-birthday-poster]):not([data-birthday-poster] *) { display: none !important; }
+ html[data-print-view='birthday'] body *:has([data-birthday-poster]) { margin: 0 !important; padding: 0 !important; min-height: 0 !important; width: 100% !important; max-width: none !important; overflow: visible !important; }
+}
+@media print {
+ html[data-print-view='sky'] body *:not(:has([data-sky-poster])):not([data-sky-poster]):not([data-sky-poster] *) { display: none!important; }
+ html[data-print-view='sky'] body *:has([data-sky-poster]) { margin: 0!important; padding: 0!important; min-height: 0!important; width: 100%!important; max-width: none!important; overflow: visible!important; display: block!important; }
+ html[data-print-view='sky'],html[data-print-view='sky'] body { margin: 0!important; padding: 0!important; background: #091f3d!important; }
 }

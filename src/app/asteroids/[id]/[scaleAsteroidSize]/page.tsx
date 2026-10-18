@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/app/lib/site";
 import { Suspense } from "react";
 import Link from "next/link";
 import { getAsteroid } from "@/app/lib/data/asteroids/getAsteroid";
@@ -9,7 +10,7 @@ import s from "@/app/ui/asteroids/asteroids.module.css";
 import orbital from "@/app/ui/orbital/orbital.module.css";
 
 export const revalidate = 3600;
-export const metadata = { title: "An asteroid encounter · Orbital" };
+export function generateMetadata({params}:{params:{id:string}}){return pageMetadata(`/asteroids/${encodeURIComponent(params.id)}/view`,`Asteroid ${params.id}: encounters and size | Orbital`,"Explore NASA encounter dates, distance, speed and estimated size, with an illustrative journey through years.");}
 export default async function Page({params}: {params: {id: string; scaleAsteroidSize: string}}) {
   // The legacy path remains valid. Its scale/speed segment is intentionally ignored.
   const asteroid = /^\d+$/.test(params.id) ? toAsteroid(await getAsteroid(params.id)) : null;

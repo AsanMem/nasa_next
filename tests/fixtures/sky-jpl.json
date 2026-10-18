@@ -1,0 +1,25 @@
+{
+  "source": "NASA JPL Horizons API, observer coord@399, geodetic lon13.405/lat52.52/0km, 1980-06-06 20:30 UT, airless quantity4, retrieved 2026-10-18",
+  "bodies": [
+    [
+      "Sun",
+      324.372739,
+      -7.528626
+    ],
+    [
+      "Moon",
+      47.654796,
+      -32.830783
+    ],
+    [
+      "Venus",
+      313.365772,
+      -0.535781
+    ],
+    [
+      "Jupiter",
+      253.615972,
+      26.49551
+    ]
+  ]
+}

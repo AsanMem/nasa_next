@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=r
 
 // Execute the actual components with controlled hooks; renderer motion has its own
 // lifecycle tests. These checks do not substitute for real-browser keyboard QA.
-function setup(entry, props, reduced=false) {
+function setup(entry, props, reduced=false, desktop=true) {
   const hooks=[],effects=[],cache=new Map();let cursor=0,dirty=true,tree,focusRestores=0;
   const equal=(a,b)=>a&&b&&a.length===b.length&&a.every((x,i)=>Object.is(x,b[i]));
   const react={
@@ -17,7 +17,7 @@ function setup(entry, props, reduced=false) {
   function load(file){
     file=path.resolve(file);if(cache.has(file))return cache.get(file);const exports={};cache.set(file,exports);
     const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2020}}).outputText;
-    vm.runInNewContext(code,{exports,Date,Intl,URL,console,matchMedia:query=>({matches:query.includes('reduced')?reduced:true,addEventListener(){},removeEventListener(){}}),require(name){
+    vm.runInNewContext(code,{exports,Date,Intl,URL,console,matchMedia:query=>({matches:query.includes('reduced')?reduced:desktop,addEventListener(){},removeEventListener(){}}),require(name){
       if(name==='react')return react;
       if(name==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props}),Fragment:'fragment'};
       if(name==='next/link')return{default:'a'};
@@ -34,6 +34,11 @@ function setup(entry, props, reduced=false) {
   return{get focusRestores(){return focusRestores;},flush,all,find:fn=>all(fn)[0],update(next){Object.assign(props,next);dirty=true;flush();},click(fn){const node=all(fn)[0];assert.ok(node,'control exists');node.props.onClick({currentTarget:{focus(){focusRestores++;}}});flush();}};
 }
 const named=text=>node=>node.type==='button'&&node.props.children===text;
+test('mobile EONET starts with a globe, allows flat-map switching and falls back after WebGL failure',()=>{
+ const app=setup('src/app/ui/eonet/event-map.tsx',{points:[{id:'a',title:'A',category:'Storm',latitude:10,longitude:20}],selectedId:'a',onSelect(){}},false,false);app.flush();
+ assert.ok(app.find(node=>node.type?.name==='Globe'));app.click(named('Flat map'));assert.equal(app.find(node=>node.type?.name==='Globe'),undefined);
+ app.click(named('Show globe'));const globe=app.find(node=>node.type?.name==='Globe');assert.ok(globe);globe.props.onFailure();app.flush();assert.equal(app.find(node=>node.type?.name==='Globe'),undefined);assert.equal(app.find(named('Show globe')).props.disabled,true);
+});
 test('EONET cluster click focuses Earth on every click; individual selection restores its coordinates while paused',()=>{
   const points=[{id:'a',title:'A',category:'Storm',latitude:10,longitude:20},{id:'b',title:'B',category:'Storm',latitude:11,longitude:21}];
   let chosen;const app=setup('src/app/ui/eonet/event-map.tsx',{points,selectedId:'b',focusRevision:0,onSelect:id=>chosen=id});app.flush();

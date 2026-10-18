@@ -1,57 +1,42 @@
 "use client";
 import Link from "next/link";
-import { apodExhibit } from '../../lib/observations/apod';
 import { useState } from "react";
-import type { ApodItem } from "@/app/lib/nasa/apod";
-import { sanitizePlainText } from "@/app/lib/utils/text";
+import type { ApodItem } from "../../lib/nasa/apod";
+import { apodExhibit } from "../../lib/observations/apod";
+import { displayCredit } from "../../lib/observations/video";
+import { sanitizePlainText } from "../../lib/utils/text";
 import { Chapter, ChapterHeading, EmptyState } from "../orbital/chapter";
 import MediaImage from "../orbital/media-image";
 import MediaViewer from "../orbital/media-viewer";
-import orbital from "../orbital/orbital.module.css";
+import ExternalVideo from "./external-video";
 import s from "../orbital/chapters.module.css";
+import orbital from "../orbital/orbital.module.css";
 
-function embedUrl(raw?: string) {
-  if (!raw) return undefined;
-  try {
-    const url = new URL(raw);
-    if (url.protocol !== "https:") return undefined;
-    if (url.hostname === "youtu.be") return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(url.pathname.slice(1))}`;
-    if (["youtube.com", "www.youtube.com", "www.youtube-nocookie.com"].includes(url.hostname)) {
-      const id = url.searchParams.get("v");
-      return id ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}` : url.pathname.startsWith("/embed/") ? url.href : undefined;
-    }
-    if (url.hostname === "player.vimeo.com" && url.pathname.startsWith("/video/")) return url.href;
-  } catch { return undefined; }
-}
-export default function DayClient({ photoData, build, embedded = false }: { photoData: ApodItem | null; build: { time: string; commit?: string }; embedded?: boolean }) {
-  const Container = embedded ? "section" : Chapter;
-  const [open, setOpen] = useState(false);
-  const [loadedVideo, setLoadedVideo] = useState<string>();
-  photoData = apodExhibit(photoData);
-  const title = sanitizePlainText(photoData?.title) || "A new perspective awaits.";
-  const explanation = sanitizePlainText(photoData?.explanation);
-  const fallback = Boolean(photoData?.url?.startsWith("/"));
-  const source = photoData?.media_type === "image" ? photoData.hdurl || photoData.url : photoData?.url;
-  const external = /^https?:\/\//i.test(source || "") ? source : undefined;
-  const video = embedUrl(photoData?.url);
-  const image = photoData?.media_type === "image";
+export default function DayClient({photoData,build,embedded=false}:{photoData:ApodItem|null;build:{time:string;commit?:string};embedded?:boolean}) {
+  const Container=embedded?"section":Chapter,[open,setOpen]=useState(false);
+  photoData=apodExhibit(photoData);
+  const title=sanitizePlainText(photoData?.title)||"Media of the day",explanation=sanitizePlainText(photoData?.explanation);
+  const fallback=!!photoData?.url?.startsWith("/"),image=photoData?.media_type==="image";
+  const source=image?photoData?.hdurl||photoData?.url:photoData?.url;
+  const external=/^https?:\/\//i.test(source||"")?source:undefined;
+  const credit=displayCredit(photoData?.copyright);
+  const date=photoData?.date;
   return <Container>
-    {embedded ? <header><h2>{title}</h2><p className={s.meta}>NASA publication <time dateTime={photoData?.date}>{photoData?.date}</time></p></header> : <>
-    <ChapterHeading label="Media of the day" title={fallback ? "Our universe, one discovery at a time." : title}>
-      <div className={s.meta}>{!fallback && photoData?.date && <span>NASA publication · <time dateTime={photoData.date}>{photoData.date}</time></span>}<span>{fallback ? "NASA feed unavailable · Illustrative archive image" : photoData?.media_type === "video" ? "Astronomy video" : "Astronomy Picture of the Day"}</span></div>
-    </ChapterHeading></>}
-    {!photoData ? <EmptyState title="The daily observation is unavailable"><p>NASA did not return this observation. You can try again or explore the image archive.</p><div className={s.actions}><button className={orbital.button} onClick={() => window.location.reload()}>Try again</button><Link className={s.textLink} href="/gallery">Explore images</Link></div></EmptyState> : <>
-      <figure>
-        <div className={s.artwork}>{image ? <MediaImage src={photoData.url} fallbackSrc={photoData.hdurl} alt={title} loading="eager" /> : /\.(mp4|webm)(?:[?#]|$)/i.test(photoData.url || "") ? <video src={photoData.url} controls preload="none" poster={photoData.thumbnail_url} aria-label={title} /> : video ? loadedVideo === video ? <iframe src={video} title={title} referrerPolicy="no-referrer" allow="fullscreen; picture-in-picture" allowFullScreen /> : <div className={s.embedPrompt}><p>Load this video from {new URL(video).hostname}? The provider receives your IP address and may use browser storage.</p><button className={orbital.button} onClick={() => setLoadedVideo(video)}>Load external video</button><Link href="/privacy" className={s.textLink}>About external services</Link></div> : <EmptyState title="Watch at the original source"><p>This media cannot be embedded here.</p>{external && <a href={external} target="_blank" rel="noopener noreferrer">Open NASA&apos;s selected video</a>}</EmptyState>}</div>
-        <figcaption className={s.caption}>{fallback ? "Illustrative image from the local archive; not today's NASA observation." : photoData.copyright ? `Image credit: ${photoData.copyright}` : "Credit not supplied in this publication. See the NASA source."}</figcaption>
+    {embedded?<header className={s.embeddedHeading}><h2>{title}</h2>{date&&<p className={s.meta}>NASA publication · <time dateTime={date}>{date}</time></p>}</header>:<ChapterHeading compact label="Media of the day" title={fallback?"The daily source is unavailable":title}><div className={s.meta}>{!fallback&&date&&<span>NASA publication · <time dateTime={date}>{date}</time></span>}<span>{fallback?"Illustrative archive image":image?"Image":"Video"}</span></div></ChapterHeading>}
+    {!photoData?<EmptyState title="The daily observation is unavailable"><p>NASA did not return this publication.</p><div className={s.actions}><button className={`${orbital.button} ${orbital.quiet}`} onClick={()=>window.location.reload()}>Try again</button><Link className={s.textLink} href="/gallery">Explore images ↗</Link></div></EmptyState>:<>
+      <figure className={s.dailyFigure}>
+        {image?<button type="button" className={s.dailyImage} aria-label={fallback?"View illustrative archive image":`Enlarge image: ${title}`} aria-haspopup="dialog" onClick={()=>{if(!fallback)setOpen(true);}} disabled={fallback}>
+          <span className={s.imageAtmosphere} aria-hidden="true"><MediaImage src={photoData.url} alt="" loading="eager"/></span>
+          <MediaImage src={photoData.url} fallbackSrc={photoData.hdurl} alt={title} loading="eager"/>
+          {!fallback&&<span className={s.enlargeHint} aria-hidden="true">⤢ Enlarge</span>}
+        </button>:/\.(mp4|webm)(?:[?#]|$)/i.test(photoData.url||"")?<video className={s.dailyVideo} src={photoData.url} controls playsInline preload="none" poster={photoData.thumbnail_url} aria-label={title}/>:photoData.url?<ExternalVideo key={photoData.url} url={photoData.url} title={title}/>:<p>Video unavailable.</p>}
+        <figcaption className={s.caption}>{fallback?"Illustrative image from the local archive; not today's NASA observation.":credit?`Credit: ${credit}`:"Credits: see NASA source."}</figcaption>
       </figure>
-      <div className={s.story}><div><h2>{fallback ? "While we reconnect" : "Behind the observation"}</h2><div className={s.actions}>
-        {image && !fallback && <button className={orbital.button} onClick={() => setOpen(true)}>View full image</button>}
-        {photoData.sourceUrl && <a className={s.textLink} href={photoData.sourceUrl} target="_blank" rel="noopener noreferrer">NASA publication and credits</a>}
-        {external && <a className={s.textLink} href={external} target="_blank" rel="noopener noreferrer">Original media</a>}
-      </div></div><div><p>{fallback ? "The daily NASA feed is temporarily unavailable. Explore the photographic archive while the next observation becomes available." : explanation || "NASA has not supplied an explanation for this observation."}</p><div className={s.actions}><Link className={s.textLink} href="/gallery">Continue into the image archive</Link></div></div></div>
+      <div className={s.observationDetails}>
+        <details><summary>About this observation</summary><p>{fallback?"The daily source is unavailable. This local image is illustrative.":explanation||"NASA has not supplied an explanation for this publication."}</p></details>
+        <details><summary>Source & credits</summary>{credit&&<p>{credit}</p>}{photoData.sourceUrl&&<a href={photoData.sourceUrl} className={s.textLink} target="_blank" rel="noopener noreferrer">NASA publication ↗</a>}{!image&&external&&/\.(mp4|webm)(?:[?#]|$)/i.test(external)&&<p><a href={external} className={s.textLink} target="_blank" rel="noopener noreferrer">Original video source ↗</a></p>}{!embedded&&<p className={s.caption}>Page generated {new Intl.DateTimeFormat("en-GB",{dateStyle:"medium",timeStyle:"short",timeZone:"UTC"}).format(new Date(build.time))} UTC. Publication dates are separate from observation dates.</p>}</details>
+      </div>
     </>}
-    {!embedded && <p className={s.caption}>Page generated {new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(build.time))} UTC. {fallback ? "The daily source is unavailable." : "The NASA publication date is shown separately."}</p>}
-    {open && <MediaViewer kind="image" src={source} preview={photoData?.url} source={external} credit={photoData?.copyright} title={title} description={explanation} onClose={() => setOpen(false)} />}
+    {open&&<MediaViewer kind="image" src={source} preview={photoData?.url} source={external} sourceRecord={photoData?.sourceUrl} credit={credit} title={title} description={explanation} onClose={()=>setOpen(false)}/>}
   </Container>;
 }

@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/app/lib/site";
 import BulletinTimeline from "../ui/space-weather/bulletin-timeline";
 import SolarInfluence from "../ui/space-weather/solar-influence";
 import Link from "next/link";
@@ -5,7 +6,7 @@ import { fetchDonkiNotifications } from "@/app/lib/nasa/donki";
 import { Chapter, ChapterHeading } from "../ui/orbital/chapter";
 import s from "../ui/orbital/chapters.module.css";
 
-export const metadata = { title: "Space weather · Orbital", description: "Read the latest available NASA DONKI reports of solar activity and geomagnetic events." };
+export const metadata=pageMetadata("/space-weather","Space weather and solar activity | Orbital","Explore available NASA DONKI reports of solar activity and geomagnetic events alongside an illustrative Sun–Earth environment.");
 export const revalidate = 43200;
 export default async function SpaceWeatherPage() {
   const notifications = await fetchDonkiNotifications({ limit: 100 });

@@ -1,6 +1,6 @@
 # Orbital privacy and launch audit
 
-Reviewed 13 October 2026. Operator: Asan Memetov. No statement about nationality or country of origin is made. The public privacy email is deliberately pending, as requested by the operator. Target markets have not been specified. This is an implementation audit and launch requirements list, not a worldwide compliance opinion. The draft visitor notice is implemented at `/privacy` and is marked noindex.
+Reviewed 13 October 2026. Operator: Asan Memetov. No statement about nationality or country of origin is made. The operator confirmed the public privacy contact amemetoff.it@gmail.com on October 18, 2026. Target markets have not been specified. This is an implementation audit and launch requirements list, not a worldwide compliance opinion. The visitor notice at `/privacy` was updated on October 18 and remains noindex. The deployment-level checks below are separate from the completed contact and factual notice.
 
 ## Actual implementation
 
@@ -37,7 +37,7 @@ Earth and Moon textures retain the established [Three.js r167 examples provenanc
 
 ## Required owner follow-up
 
-- Supply a working privacy email and confirm the operator’s establishment details and target markets.
+- Public email supplied: amemetoff.it@gmail.com. Confirm establishment details and target markets for jurisdiction-specific review.
 - Verify production logging categories, retention periods, deletion/access process, subprocessors and cross-border arrangements; then replace the corresponding draft wording with facts.
 - Verify browser storage and outgoing media requests in a fresh production session, before and after enabling each optional player. Decide consent requirements by purpose, not the presence of a cookie.
 - Complete the media rights register and final notice review. The draft does not promise compliance in all countries.
@@ -45,4 +45,16 @@ Earth and Moon textures retain the established [Three.js r167 examples provenanc
 
 The chosen-date APOD feature is now implemented at `/birthday`. The date stays in client component memory, is posted to `/api/apod` rather than added to the browser URL, and is sent server-side to NASA Science to retrieve a public publication. Application diagnostics omit dates, request URLs and bodies. Public NASA responses use the existing cache with no user association; the browser-facing POST response is no-store. No profile or localStorage write was added. Hosting request-body logging still needs deployment-level verification.
 
-The teacher lesson collection remains a future concept: articles, photographs and videos assembled by topic without pupil accounts, payments or paid AI. Product value would be selection, explanation and presentation, with rights reviewed for each included work.
+The teacher lesson collection is implemented at /learn with curated articles, photographs and videos by topic, without pupil accounts, payments or paid AI. Product value would be selection, explanation and presentation, with rights reviewed for each included work.
+
+
+## October 18 recording follow-up
+
+Public author Asan Memetov, contact and current Firebase domain were explicitly confirmed by the owner. The public draft label and contact placeholder were replaced with the current factual notice. No fixed infrastructure log retention, worldwide legal compliance, new consent certification or public deployment is claimed. The existing production-level follow-ups remain relevant. Birthday poster options, including optional birth year, are client memory only; Hubble still posts only day/month and uses the shared public CSV. The poster print action is visitor-initiated, with actual observation years and original source/credit links. No analytics, advertising, accounts or new providers were enabled.
+
+
+## Birth sky — 18 October 2026
+
+The current birthday default calculates a local sky. Birth date, local time, coordinates, chosen IANA zone and personal poster title stay in browser component memory, not URL or persistent browser storage. Sky calculations use bundled catalogue/library data. The user-triggered city search posts only the city query to Orbital; the server sends it to Open-Meteo/GeoNames, with no-store on both sides and no new input logging. Manual coordinate/timezone entry bypasses geocoding. Providers still process ordinary network metadata; deployment-level logging settings require the same owner review as before.
+
+The new provider is covered by the visitor notice and on-page source attribution. Open-Meteo’s free endpoint is for non-commercial use; before future advertising/commercial operation, arrange a permitted commercial or self-hosted geocoding service and review provider terms. No account, subscription, paid geocoding, ads or analytics was enabled in this change. HYG/Stellarium chart data uses CC BY-SA 4.0; source/licence metadata accompanies SVG and PNG downloads. Check attribution/share-alike obligations when redistributing chart derivatives; this is separate from the old NASA/APOD image-rights register.

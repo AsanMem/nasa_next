@@ -3,6 +3,7 @@ import { Bungee, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import OrbitalSceneProvider from "./ui/orbital/scene-provider";
 import type { Viewport } from 'next'
+import { pageMetadata,site } from "./lib/site";
 
 
 const bungee = Bungee({
@@ -20,8 +21,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Orbital | Explore Earth and beyond",
-  description: "Explore NASA observations, near-Earth objects, imagery and the science of our changing universe.",
+  ...pageMetadata("/","Orbital | Explore Earth and beyond","Explore NASA observations, asteroid encounters, Earth imagery and space birthday posters."),
   manifest: "/manifest.json",
   icons: {
     icon: '/orbital-icon.svg',
@@ -39,7 +39,8 @@ export function generateViewport(): Viewport {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="bg-black">
-      <body className={`${bungee.variable} ${spaceGrotesk.variable} w-full h-full min-h-[100vh] overflow-x-hidden bg-black`}>
+      <body className={`${bungee.variable} ${spaceGrotesk.variable} w-full min-h-[100svh] bg-black`}>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify({"@context":"https://schema.org","@type":"WebSite",name:site.name,url:site.origin,inLanguage:"en",creator:{"@type":"Person",name:site.author}}).replace(/</g,"\\u003c")}}/>
         <OrbitalSceneProvider>{children}</OrbitalSceneProvider>
       </body>
     </html >

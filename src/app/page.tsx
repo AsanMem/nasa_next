@@ -1,10 +1,7 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/app/lib/site";
 import HomeConsole from "./ui/mission-console/home-console";
 
-export const metadata: Metadata = {
-  title: "Orbital | Explore Earth and beyond",
-  description: "Explore our universe through NASA's observations, images and discoveries. Start with near-Earth objects, our changing planet, or the image of the day.",
-};
+export const metadata=pageMetadata("/","Orbital | Explore Earth and beyond","Explore NASA observations, asteroid encounters, Earth imagery and space birthday posters.");
 
 export default function MainPage() {
   return <HomeConsole />;

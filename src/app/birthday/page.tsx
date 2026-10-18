@@ -1,3 +1,4 @@
-import BirthdaySearch from "../ui/day/birthday-search";
-export const metadata = { title: "Universe on your birthday | Orbital", description: "Find NASA's Astronomy Picture of the Day for a date in your life." };
-export default function BirthdayPage() { return <BirthdaySearch />; }
+import { pageMetadata } from "@/app/lib/site";
+import BirthdayHub from "../ui/day/birthday-hub";
+export const metadata=pageMetadata("/birthday","Your birth sky in 3D & a star map poster | Orbital","Enter your birth date, time and city to explore the calculated sky in 3D and create a personal star map poster for printing.");
+export default function BirthdayPage(){return <BirthdayHub/>;}

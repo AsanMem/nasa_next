@@ -1,8 +1,9 @@
+import { pageMetadata } from "@/app/lib/site";
 import Link from "next/link";
 import { fetchTechportProjects } from "@/app/lib/nasa/techport";
 import { Chapter, ChapterHeading, EmptyState } from "../ui/orbital/chapter";
 import s from "../ui/orbital/chapters.module.css";
-export const metadata = { title: "Technology projects · Orbital", description: "Explore the NASA Techport technology development portfolio." };
+export const metadata=pageMetadata("/techport","NASA technology projects | Orbital","Explore the NASA Techport technology development portfolio and public project details.");
 export default async function TechportPage() {
   const projects = await fetchTechportProjects(24);
   return <Chapter><ChapterHeading label="NASA Techport" title="Ideas that take us further." description="From early research to technologies ready for a mission. Explore the work behind NASA's next discoveries." />
