@@ -18,6 +18,7 @@ export default function PrivacyPage() {
       <h2>Browsing and searches</h2>
       <p>No account is needed. Orbital has no advertising or audience analytics and does not create a visitor profile. Search terms and selected asteroid encounters can appear in page URLs, browser history and hosting request logs. Please avoid personal information in searches.</p>
       <p>Firebase Hosting and its Google Cloud backend process technical request information, including IP addresses and HTTP headers, to deliver and protect the site. Technical logs are managed under the providers’ service settings. <a href="https://firebase.google.com/support/privacy">Firebase privacy information</a>.</p>
+      <p>Asteroid trajectories are requested by Orbital’s server from JPL Horizons. A shared server cache reuses public ephemerides for 24 hours; it contains no birth-sky inputs or visitor profiles.</p>
     </section>
     <section>
       <h2>Your birth sky and archive searches</h2>
@@ -36,7 +37,7 @@ export default function PrivacyPage() {
     </section>
     <section>
       <h2>Sources and credits</h2>
-      <p>Dates, source links and available credits accompany the content. Asteroid surfaces and encounter flight paths are artistic illustrations. Birth-sky directions are calculated; decorative colours and enlarged markers are artistic. Earth-event coordinates locate reported observations, not temperature readings or affected-area boundaries.</p>
+      <p>Dates, source links and available credits accompany the content. Asteroid surfaces are artistic reconstructions. Encounter positions and sampled trajectories come from <a href="https://ssd.jpl.nasa.gov/horizons/">JPL Horizons</a>; planet sizes and markers are enlarged for visibility, and time is accelerated. Gaps between recorded encounters are explicit time jumps. Birth-sky directions are calculated; decorative colours and enlarged markers are artistic. Earth-event coordinates locate reported observations, not temperature readings or affected-area boundaries.</p>
       <p>Image rights vary, including third-party NASA archive and APOD contributions. Check the original item’s credits before reuse. <a href="https://www.nasa.gov/nasa-brand-center/images-and-media/">NASA media guidance</a>.</p>
       <p>Birth-sky stars: HYG v4.1 by David Nash / Astronexus. Constellation lines: Stellarium modern skyculture. Catalogue data and derived chart: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Calculations: Astronomy Engine 2.1.19 by Don Cross (MIT). Exported PDF, SVG and PNG files include source and licence metadata. Decorative Carina Nebula and Whirlpool Galaxy photographs have separate credits beside the artwork and in export metadata. Keep credits with shared copies. Typography: Space Grotesk, SIL Open Font License.</p>
     </section>

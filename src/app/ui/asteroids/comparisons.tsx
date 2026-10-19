@@ -1,5 +1,6 @@
 import { Approach, Asteroid, numberLabel } from "@/app/lib/asteroids/view-model";
 import { asteroidProjection, asteroidVisual, asteroidDisplayScale } from "@/app/lib/asteroids/visual";
+import { defaultSizeReference, referenceSvgPath, sizeComparisonLayout, sizeReference, validComparisonDiameter, type SizeReferenceId } from "@/app/lib/asteroids/size-reference";
 import s from "./asteroids.module.css";
 import { useId, useMemo } from "react";
 
@@ -16,21 +17,30 @@ export function AsteroidPortrait({ id, thumbnail = false,diameter }: { id: strin
   const scale=asteroidDisplayScale(diameter);
   return <svg viewBox={`${-width/2} -34 ${width} 168`} role="img" aria-label="Static artistic reconstruction of this asteroid"><g transform={`translate(0 50) scale(${scale}) translate(0 -50)`}><RockProjection id={id}/></g></svg>;
 }
-export function SizeComparison({ asteroid }: { asteroid: Pick<Asteroid, "id" | "diameter"> }) {
+export function SizeComparison({ asteroid, referenceId }: { asteroid: Pick<Asteroid, "id" | "diameter">; referenceId?: SizeReferenceId }) {
   const silhouetteWidth = useMemo(() => asteroidProjection(asteroidVisual(asteroid.id)).width, [asteroid.id]);
-  if (!asteroid.diameter) return <div className={s.unknownFigure}>NASA has not supplied a valid diameter range. A scale comparison is unavailable.</div>;
-  const diameter = asteroid.diameter, unit = Math.min(245 / Math.max(diameter, 1.8), 420 / (diameter * silhouetteWidth / 100)), human = 1.8 * unit, rock = diameter * unit;
-  return <figure className={s.comparison}>
-    <svg viewBox="0 0 650 380" role="img" aria-label={`Proportional comparison: asteroid representative diameter ${numberLabel(diameter, 2)} metres, person 1.8 metres.`}>
-      <line x1="20" x2="630" y1="280" y2="280" stroke="#a8b3bf55" />
-      <g transform={`translate(280 ${280-rock}) scale(${rock/100})`}><RockProjection id={asteroid.id}/></g>
-      <g transform={`translate(575 ${280-human}) scale(${human/180})`} fill="#edc18c"><circle cy="12" r="12"/><path d="M-13 29H13L23 87L15 90L9 53L10 108L13 180H3L0 117L-3 180H-13L-10 108L-9 53L-15 90L-23 87Z"/></g>
-      <path d={`M22 280H12V${280-rock}H22`} fill="none" stroke="#edc18c"/>
-      <text x="280" y="330" textAnchor="middle" fill="#f1f4f6" fontSize="20">{numberLabel(diameter, 2)} m</text>
-      <path d={`M575 ${280-human-8}V${Math.min(240,280-human-18)}`} stroke="#edc18c99" />
-      <text x="575" y={Math.min(230,Math.max(22,280-human-25))} textAnchor="middle" fill="#edc18c" fontSize="20">1.8 m</text>
+  if (!validComparisonDiameter(asteroid.diameter)) return <div className={s.unknownFigure}>NASA has not supplied a valid diameter range. A scale comparison is unavailable.</div>;
+  const diameter = asteroid.diameter;
+  const reference = sizeReference(referenceId ?? defaultSizeReference(diameter));
+  const layout = sizeComparisonLayout(diameter, silhouetteWidth / 100, reference)!;
+  const { unit, baseline, horizontal, rockExtent, rockHeight, rockWidth, rockX, referenceX, referenceCenterX } = layout;
+  const rockTransform = horizontal ? `translate(${rockX} ${baseline-rockHeight/2}) scale(${rockExtent/100}) rotate(-90) translate(0 -50)` : `translate(${rockX} ${baseline-rockHeight}) scale(${rockExtent/100})`;
+  return <figure className={`${s.comparison} ${s.sizeComparison}`} data-size-reference={reference.id} data-metres-to-units={unit}>
+    <svg viewBox="0 0 500 460" role="img" aria-label={`Proportional comparison: asteroid representative diameter ${numberLabel(diameter, 2)} metres; ${reference.label}, ${reference.metres} metres ${reference.dimension}. Same metres per pixel.`}>
+      <line x1="20" x2="480" y1={baseline} y2={baseline} stroke="#a8b3bf55" />
+      <g transform={rockTransform}><RockProjection id={asteroid.id}/></g>
+      <g transform={`translate(${referenceX} ${baseline}) scale(${unit})`}>
+        {reference.parts.map((points,index)=><path key={index} d={referenceSvgPath(points)} fill={reference.id === "pitch" ? "#33433d" : "#edc18c"} stroke={reference.id === "pitch" ? "#edc18c" : "none"} vectorEffect="non-scaling-stroke" strokeWidth="1"/>)}
+        {reference.lines.map((points,index)=><polyline key={`line-${index}`} points={points.map(([x,y])=>`${x},${-y}`).join(" ")} fill="none" stroke={reference.id === "pitch" ? "#edc18c" : "#0b1118"} vectorEffect="non-scaling-stroke" strokeWidth="1"/>)}
+      </g>
+      <path d={horizontal ? `M${rockX-rockWidth/2},${baseline+5}v9H${rockX+rockWidth/2}v-9` : `M${rockX-rockWidth/2-6},${baseline}h-8V${baseline-rockHeight}h8`} fill="none" stroke="#a8b3bf88"/>
+      <path d={horizontal ? `M${referenceCenterX-layout.referenceWidth/2},${baseline+5}v9H${referenceCenterX+layout.referenceWidth/2}v-9` : `M${referenceCenterX+layout.referenceWidth/2+6},${baseline}h8V${baseline-layout.referenceHeight}h-8`} fill="none" stroke="#edc18c88"/>
+      <text x={rockX} y={baseline+30} textAnchor="middle" fill="#f1f4f6" fontSize="20">{numberLabel(diameter, 2)} m</text>
+      <text x={rockX} y={baseline+57} textAnchor="middle" fill="#a8b3bf" fontSize="19">Diameter</text>
+      <text x={referenceCenterX} y={baseline+30} textAnchor="middle" fill="#edc18c" fontSize="20">{reference.metres} m</text>
+      <text x={referenceCenterX} y={baseline+57} textAnchor="middle" fill="#a8b3bf" fontSize="19">{reference.dimension === "height" ? "Height" : "Length"}</text>
     </svg>
-    <figcaption>Proportions preserved. The rock’s height represents the midpoint of NASA’s diameter estimate. Its shape and surface are artistic.</figcaption>
+    <figcaption>Both silhouettes use the same metres per pixel.</figcaption>
   </figure>;
 }
 export function DistanceComparison({ event, id }: { event: Approach | null; id: string }) {

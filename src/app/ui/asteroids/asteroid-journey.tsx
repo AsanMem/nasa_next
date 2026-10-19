@@ -6,6 +6,7 @@ import { Asteroid, nextEarthEncounter, classification, dateLabel, numberLabel, s
 import AsteroidScene from "./asteroid-scene";
 import EncounterStory from "./encounter-story";
 import { DistanceComparison, SizeComparison, SpeedComparison } from "./comparisons";
+import { defaultSizeReference, sizeReference, SIZE_REFERENCES, validComparisonDiameter, type SizeReferenceId } from "@/app/lib/asteroids/size-reference";
 import s from "./asteroids.module.css";
 import orbital from "../orbital/orbital.module.css";
 
@@ -16,6 +17,10 @@ export default function AsteroidJourney({ asteroid, today }: { asteroid: Asteroi
   const selected = asteroid.approaches.find(event => event.key === selectedKey && event.date === requested) ?? selectApproach(asteroid.approaches, requested, today);
   const [stage, setStage] = useState("object");
   const [historyActive,setHistoryActive]=useState(false);
+  const [referenceChoice, setReferenceChoice] = useState<"auto" | SizeReferenceId>("auto");
+  const automaticReference = defaultSizeReference(asteroid.diameter);
+  const reference = sizeReference(referenceChoice === "auto" ? automaticReference : referenceChoice);
+  useEffect(() => { setReferenceChoice("auto"); }, [asteroid.id]);
   const nextEncounter = nextEarthEncounter(asteroid.approaches, selected);
   const progress = useRef(0);
   const root = useRef<HTMLDivElement>(null);
@@ -46,7 +51,7 @@ export default function AsteroidJourney({ asteroid, today }: { asteroid: Asteroi
     <div className={s.breadcrumb}><Link href="/asteroids">← All near-Earth objects</Link><span>One small world. A different perspective.</span></div>
     <div className={s.journey} ref={root}>
       <div className={s.journeyVisual} data-stage={stage}>
-        <AsteroidScene id={asteroid.id} enabled={!historyActive} speed={selected?.speed} progress={progress} diameter={asteroid.diameter} sizeMode={stage === "size"} active={stage !== "distance"} />
+        <AsteroidScene id={asteroid.id} enabled={!historyActive} speed={selected?.speed} progress={progress} diameter={asteroid.diameter} sizeReference={reference.id} sizeMode={stage === "size"} active={stage !== "distance"} />
         <div className={s.stageFigure} data-visible={stage === "distance"} aria-hidden={stage !== "distance"}><DistanceComparison id={asteroid.id} event={selected} /></div>
       </div>
       <div className={s.chapters}>
@@ -60,11 +65,18 @@ export default function AsteroidJourney({ asteroid, today }: { asteroid: Asteroi
           <div className={s.nextEncounter}><span>Next Earth encounter after {dateLabel(selected?.date)}</span>{nextEncounter ? <button type="button" onClick={() => { selectEvent(nextEncounter.key,nextEncounter.date); document.getElementById("encounters")?.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"}); }}><strong>{nextEncounter.date.slice(0,4)}</strong><span>{dateLabel(nextEncounter.date)}<small>Explore this encounter ↗</small></span></button> : <p>No later Earth encounter is listed in NASA’s response.</p>}</div>
         </section>
         <section id="size-story" data-chapter="size" className={s.chapterSection}>
-          <p className={s.eyebrow}>A human sense of scale</p><h2>Small is<br />relative.</h2><p className={s.lead}>From a distance, a point of light. Up close, an entirely different scale.</p>
+          <p className={s.eyebrow}>A familiar sense of scale</p><h2>Small is<br />relative.</h2><p className={s.lead}>Compare this small world with something you know.</p>
           <dl className={s.metrics}><div><dt>NASA estimated diameter</dt><dd>{asteroid.diameter ? <>{numberLabel(asteroid.minDiameter,2)}–{numberLabel(asteroid.maxDiameter,2)} <small>m</small></> : "Unknown"}</dd></div></dl>
-          <p>We use the range midpoint, {numberLabel(asteroid.diameter,2)}{asteroid.diameter ? " m" : ""}, for the comparison. {asteroid.diameter && <>That is about {numberLabel(asteroid.diameter/1.8)} times the height of a 1.8 m person.</>}</p>
-          <div className={s.mobileFigure}><SizeComparison asteroid={asteroid}/></div>
-          <p className={s.sourceNote}>The comparison preserves proportions. The surface and shape are artistic, not a spacecraft observation of this asteroid.</p>
+          <label className={s.sizeReferenceControl}>Compare with
+            <select aria-label="Compare with" value={referenceChoice} disabled={!validComparisonDiameter(asteroid.diameter)} onChange={event=>setReferenceChoice(event.target.value as "auto" | SizeReferenceId)}>
+              <option value="auto">Automatic · {sizeReference(automaticReference).label}</option>
+              {SIZE_REFERENCES.map(item=><option key={item.id} value={item.id}>{item.label} · {item.metres} m {item.dimension}</option>)}
+            </select>
+          </label>
+          <p>{validComparisonDiameter(asteroid.diameter) ? <>We use the range midpoint, {numberLabel(asteroid.diameter,2)} m. Its representative diameter is about {numberLabel(asteroid.diameter/reference.metres,2)} times {reference.label === "Person" ? "the person’s" : `${reference.label}’s`} {reference.dimension}.</> : "NASA has not supplied a valid diameter range, so a scale comparison is unavailable."}</p>
+          <div className={s.mobileFigure}><SizeComparison asteroid={asteroid} referenceId={reference.id}/></div>
+          <p className={s.sourceNote}>{reference.note} {reference.source && <a href={reference.source.url} target="_blank" rel="noreferrer">{reference.source.label} ↗</a>}</p>
+          <p className={s.sourceNote}>Shape and surface are artistic reconstructions, not a spacecraft observation of this asteroid.</p>
         </section>
         <section data-chapter="distance" className={s.chapterSection}>
           <p className={s.eyebrow}>The space between</p><h2>Near, on a<br />cosmic scale.</h2><p className={s.lead}>“Close” has a different meaning out here. Use the Earth–Moon distance as a familiar reference.</p>

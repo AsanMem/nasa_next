@@ -1,11 +1,17 @@
 export type Approach = {
   key: string; date: string; body: string; speed: number | null;
   distance: number | null; lunar: number | null;
+  /** Exact NASA epoch milliseconds; null when only a calendar day is available. */
+  utcMs?: number | null;
+  timePrecision?: "epoch" | "minute" | "date";
 };
+export type OrbitSolution = { id: string | null; epochJd: number | null; periodDays: number | null; uncertainty: string | null; determinedAt: string | null; designation: string | null;
+  elements: { semiMajorAxisAu: number | null; eccentricity: number | null; inclinationDeg: number | null; ascendingNodeDeg: number | null; perihelionArgumentDeg: number | null; meanAnomalyDeg: number | null; meanMotionDegPerDay: number | null; equinox: string | null } };
 export type Asteroid = {
   id: string; name: string; minDiameter: number | null; maxDiameter: number | null;
   diameter: number | null; hazardous: boolean | null; sentry: boolean | null;
   approaches: Approach[]; orbit: [string, string][]; jplUrl: string | null;
+  orbitSolution?: OrbitSolution;
 };
 type RecordValue = Record<string, unknown>;
 const record = (value: unknown): RecordValue => value && typeof value === "object" ? value as RecordValue : {};
@@ -20,6 +26,19 @@ export function validDate(value: unknown): value is string {
   const time = Date.parse(`${value}T00:00:00Z`);
   return Number.isFinite(time) && new Date(time).toISOString().slice(0, 10) === value;
 }
+/** NeoWs' full timestamp is English-month text in UTC, never a browser-local Date parse. */
+export function approachMoment(event: RecordValue): { utcMs: number | null; timePrecision: "epoch" | "minute" | "date" } {
+  const epoch = typeof event.epoch_date_close_approach === "number" || (typeof event.epoch_date_close_approach === "string" && event.epoch_date_close_approach.trim()) ? Number(event.epoch_date_close_approach) : NaN;
+  if (Number.isFinite(epoch) && Number.isFinite(new Date(epoch).getTime()) && new Date(epoch).toISOString().slice(0, 10) === event.close_approach_date) return { utcMs: epoch, timePrecision: "epoch" };
+  const full = typeof event.close_approach_date_full === "string" ? /^(\d{4})-([A-Za-z]{3})-(\d{2}) (\d{2}):(\d{2})$/.exec(event.close_approach_date_full) : null;
+  if (full) {
+    const month = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"].indexOf(full[2].toLowerCase());
+    const year = Number(full[1]), day = Number(full[3]), hour = Number(full[4]), minute = Number(full[5]);
+    const utcMs = Date.UTC(year, month, day, hour, minute), parsed = new Date(utcMs);
+    if (month >= 0 && hour < 24 && minute < 60 && parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month && parsed.getUTCDate() === day && parsed.toISOString().slice(0, 10) === event.close_approach_date) return { utcMs, timePrecision: "minute" };
+  }
+  return { utcMs: null, timePrecision: "date" };
+}
 export function toAsteroid(raw: unknown): Asteroid | null {
   const item = record(raw);
   if (typeof item.id !== "string" || !/^\d+$/.test(item.id)) return null;
@@ -33,11 +52,17 @@ export function toAsteroid(raw: unknown): Asteroid | null {
     const miss = record(event.miss_distance);
     const distance = measurement(miss.kilometers);
     const body = typeof event.orbiting_body === "string" ? event.orbiting_body : "Unknown body";
+    const moment = approachMoment(event);
     return [{ key: `${event.close_approach_date}-${body}-${index}`, date: event.close_approach_date, body,
+      ...moment,
       speed: measurement(record(event.relative_velocity).kilometers_per_second), distance,
       lunar: measurement(miss.lunar) ?? (distance === null ? null : distance / 384400) }];
   }).sort((a, b) => a.date.localeCompare(b.date));
-  const orbit: [string, string][] = Object.entries(record(item.orbital_data)).flatMap(([key, value]) => {
+  const orbital = record(item.orbital_data);
+  const fieldText = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : typeof value === "number" && Number.isFinite(value) ? String(value) : null;
+  const signed = (value: unknown) => (typeof value === "number" || typeof value === "string" && value.trim()) && Number.isFinite(Number(value)) ? Number(value) : null;
+  const orbitSolution: OrbitSolution = { id: fieldText(orbital.orbit_id), epochJd: measurement(orbital.epoch_osculation), periodDays: measurement(orbital.orbital_period), uncertainty: fieldText(orbital.orbit_uncertainty), determinedAt: fieldText(orbital.orbit_determination_date), designation: fieldText(item.designation), elements: { semiMajorAxisAu: signed(orbital.semi_major_axis), eccentricity: measurement(orbital.eccentricity), inclinationDeg: signed(orbital.inclination), ascendingNodeDeg: signed(orbital.ascending_node_longitude), perihelionArgumentDeg: signed(orbital.perihelion_argument), meanAnomalyDeg: signed(orbital.mean_anomaly), meanMotionDegPerDay: signed(orbital.mean_motion), equinox: fieldText(orbital.equinox) } };
+  const orbit: [string, string][] = Object.entries(orbital).flatMap(([key, value]) => {
     if (value === null || value === undefined) return [];
     if (typeof value === "object") return Object.entries(record(value)).map(([child, text]): [string, string] => [child.replace(/_/g, " "), String(text)]);
     return [[key.replace(/_/g, " "), String(value)] as [string, string]];
@@ -50,7 +75,7 @@ export function toAsteroid(raw: unknown): Asteroid | null {
     diameter: rangeValid ? (low + high) / 2 : null,
     hazardous: typeof item.is_potentially_hazardous_asteroid === "boolean" ? item.is_potentially_hazardous_asteroid : null,
     sentry: typeof item.is_sentry_object === "boolean" ? item.is_sentry_object : null,
-    approaches, orbit, jplUrl };
+    approaches, orbit, orbitSolution, jplUrl };
 }
 export function selectApproach(events: Approach[], requested: unknown, today: string): Approach | null {
   const earth = events.filter(event => event.body.toLowerCase() === "earth").sort((a, b) => a.date.localeCompare(b.date));

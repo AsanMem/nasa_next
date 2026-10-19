@@ -5,7 +5,7 @@ export type Vec3 = [number, number, number];
 export function asteroidDisplayScale(diameter?:number|null) {
   return diameter!=null&&Number.isFinite(diameter)&&diameter>0?Math.max(.5,Math.min(1.35,(diameter/150)**.3)):1;
 }
-export type AsteroidVisualDescriptor = {
+export type AsteroidVisualDescriptorV4 = {
   version: 4; id: string; seed: number;
   family: "rubble" | "elongated" | "shard" | "bilobed";
   proportions: Vec3; rotation: Vec3; texture: string; tint: string;
@@ -35,7 +35,8 @@ const surfaces = [
   { texture: "stone-12.jpg", tint: "#b4b7b2" },
 ] as const;
 const tints = ["#c2beb4", "#aaa8a0", "#979d9e", "#b5a69a", "#93928e", "#b3b6b6"] as const;
-export function asteroidVisual(id: string): AsteroidVisualDescriptor {
+/** Frozen v4 identity: retained for explicit legacy comparison, never edited in place. */
+export function asteroidVisualV4(id: string): AsteroidVisualDescriptorV4 {
   const shape = randomStream(hashSeed(`orbital:4:shape:${id}`));
   const material = randomStream(hashSeed(`orbital:4:material:${id}`));
   const familyDraw=shape();
@@ -52,7 +53,7 @@ export function asteroidVisual(id: string): AsteroidVisualDescriptor {
     ...surfaces[Math.floor(material() * 6)], tint: tints[Math.floor(material()*tints.length)], roughness: .87 + material() * .11, textureScale: .8 + material()*.8, textureOffset: [material(),material()],
     relief: .065 + shape() * .045, craters };
 }
-export function surfaceSampler(descriptor: AsteroidVisualDescriptor) {
+export function surfaceSamplerV4(descriptor: AsteroidVisualDescriptorV4) {
   const noise = createNoise3D(randomStream(descriptor.seed));
   return (x: number, y: number, z: number): Vec3 => {
     const warp = noise(x * 1.3 + 7, y * 1.3 - 4, z * 1.3 + 2) * .28;
@@ -69,6 +70,80 @@ export function surfaceSampler(descriptor: AsteroidVisualDescriptor) {
       radius = .35 * radius + .65 * chipped;
     }
     return [x * radius * descriptor.proportions[0], y * radius * descriptor.proportions[1], z * radius * descriptor.proportions[2]];
+  };
+}
+
+export type AsteroidVisualDescriptorV5 = Omit<AsteroidVisualDescriptorV4, "version"> & {
+  version: 5;
+  surface: "calm" | "weathered" | "fractured" | "bouldery";
+  bend: Vec3;
+  planes: { direction: Vec3; offset: number }[];
+  patches: { direction: Vec3; width: number; strength: number }[];
+};
+export type AsteroidVisualDescriptor = AsteroidVisualDescriptorV4 | AsteroidVisualDescriptorV5;
+
+function randomDirection(random: () => number): Vec3 {
+  const z = random() * 2 - 1, angle = random() * Math.PI * 2, radius = Math.sqrt(1 - z * z);
+  return [radius * Math.cos(angle), radius * Math.sin(angle), z];
+}
+
+/** A deliberate v5 migration. Measurements never participate in this identity. */
+export function asteroidVisual(id: string, version: 4 | 5 = 5): AsteroidVisualDescriptor {
+  if (version === 4) return asteroidVisualV4(id);
+  const shape = randomStream(hashSeed(`orbital:5:shape:${id}`));
+  const surface = randomStream(hashSeed(`orbital:5:surface:${id}`));
+  const material = randomStream(hashSeed(`orbital:5:material:${id}`));
+  const draw = shape();
+  const family = draw < .6 ? "rubble" : draw < .85 ? "elongated" : draw < .97 ? "shard" : "bilobed";
+  const flattened = shape() < .32;
+  const proportions: Vec3 = family === "elongated" ? [1.35 + shape() * .45, .65 + shape() * .2, .7 + shape() * .22]
+    : family === "shard" ? [1.18 + shape() * .25, .62 + shape() * .22, .56 + shape() * .2]
+    : family === "bilobed" ? [1.25 + shape() * .25, .83 + shape() * .1, .78 + shape() * .1]
+    : [1.02 + shape() * .23, flattened ? .58 + shape() * .17 : .86 + shape() * .22, .84 + shape() * .23];
+  const profiles = ["calm", "weathered", "fractured", "bouldery"] as const;
+  const profile = profiles[Math.floor(surface() * profiles.length)];
+  const planes = Array.from({ length: family === "shard" ? 4 + Math.floor(shape() * 3) : profile === "fractured" ? 2 + Math.floor(shape() * 3) : Math.floor(shape() * 2) }, () => ({ direction: randomDirection(shape), offset: .79 + shape() * .18 }));
+  const craters = Array.from({ length: Math.floor(surface() * 5) }, () => ({ direction: randomDirection(surface), width: .25 + surface() * .3, depth: .012 + surface() * .045 }));
+  const patches = Array.from({ length: profile === "calm" ? 0 : 2 + Math.floor(surface() * 3) }, () => ({ direction: randomDirection(surface), width: .3 + surface() * .3, strength: profile === "bouldery" ? .025 + surface() * .028 : .008 + surface() * .015 }));
+  return {
+    version: 5, id, family, surface: profile, seed: hashSeed(`orbital:5:noise:${id}`), proportions,
+    rotation: [.13 + shape() * .35, -.8 + shape() * 1.6, -.55 + shape() * 1.1],
+    ...surfaces[Math.floor(material() * surfaces.length)], tint: tints[Math.floor(material() * tints.length)],
+    roughness: .88 + material() * .1, textureScale: .8 + material() * .8, textureOffset: [material(), material()],
+    relief: .08 + shape() * .08, craters, planes, patches,
+    bend: [(shape() - .5) * .2, (shape() - .5) * .13, (shape() - .5) * .13],
+  };
+}
+
+export function surfaceSampler(descriptor: AsteroidVisualDescriptor) {
+  if (descriptor.version === 4) return surfaceSamplerV4(descriptor);
+  const noise = createNoise3D(randomStream(descriptor.seed));
+  return (x: number, y: number, z: number): Vec3 => {
+    // Large, asymmetric volumes define the rock. Fine relief is local rather
+    // than the same corrugated displacement over every point of every body.
+    let radius = 1 + descriptor.relief * noise(x * .92 + 3, y * .92 - 2, z * .92 + 5)
+      + .045 * x - .035 * y * z;
+    for (const crater of descriptor.craters) {
+      const distance = 1 - (x * crater.direction[0] + y * crater.direction[1] + z * crater.direction[2]);
+      radius -= crater.depth * Math.exp(-distance / (crater.width * crater.width));
+    }
+    for (const patch of descriptor.patches) {
+      const distance = 1 - (x * patch.direction[0] + y * patch.direction[1] + z * patch.direction[2]);
+      const mask = Math.exp(-distance / (patch.width * patch.width));
+      const frequency = descriptor.surface === "bouldery" ? 3.1 : 2.1;
+      radius += patch.strength * mask * noise(x * frequency + 4, y * frequency - 7, z * frequency + 1);
+    }
+    for (const plane of descriptor.planes) {
+      const facing = x * plane.direction[0] + y * plane.direction[1] + z * plane.direction[2];
+      if (facing > .1) radius = Math.min(radius, plane.offset / facing);
+    }
+    if (descriptor.family === "bilobed") radius *= .86 + .16 * Math.abs(x + .18 * y) + .09 * x + .035 * z;
+    const px = x * radius, py = y * radius, pz = z * radius;
+    return [
+      (px + descriptor.bend[0] * (py * py - .25)) * descriptor.proportions[0],
+      (py + descriptor.bend[1] * px * pz) * descriptor.proportions[1],
+      (pz + descriptor.bend[2] * (px * px - .3)) * descriptor.proportions[2],
+    ];
   };
 }
 export function rotatePoint([x, y, z]: Vec3, [rx, ry, rz]: Vec3): Vec3 {

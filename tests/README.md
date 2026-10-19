@@ -1,3 +1,15 @@
+# Calculated encounters and reconstruction v5 — 19 October 2026
+
+The current complete suite has **178 tests**. This section supersedes the older illustrative-flight timing and v4-default expectations below. Compile `src/app/lib/asteroids/view-model.ts` to a temporary CommonJS directory, set `ORBITAL_TEST_MODEL` to its resulting `view-model.js`, and run every `tests/*.test.cjs` file. Set `ORBITAL_DEV_TREE_TEST=1` to include the real Windows child-tree cleanup integration. The final run passed 178/178 with no skips.
+
+New targeted suites: `trajectory-data.test.cjs`, `trajectory-cache.test.cjs`, `physical-encounter.test.cjs` and `size-reference.test.cjs`. They cover exact UTC event parsing, official target resolution, strict vector metadata, independent Hermite validation/refinement, cache expiry, CAS contention/coalescing/backoff/deadlines, orbit-solution changes, cancellation, calculated playback and time jumps, planet projection bounds, exact reference ratios and unknown dimensions. Updated visual tests retain frozen v4 behavior and verify deterministic v5 families/local relief. Renderer tests use controlled WebGL boundaries; they are not real GPU evidence.
+
+TypeScript 5.9.3 (`tsc --noEmit --incremental false`), isolated Next/core-web-vitals ESLint for changed TypeScript components and the separate production build passed. All 24 static pages were generated. The existing Browserslist age notice remains; package files were not changed. Run production acceptance with the guarded dev server stopped; use `node scripts/smoke-deployment.mjs http://127.0.0.1:3101` against the isolated production instance.
+
+Real JPL samples, held-out interpolation checks and actual production Chromium checks at 1440×1000, 360×800 and 390×844 are documented in `docs/PROJECT_CONTEXT.md`. The Firestore REST protocol double is local integration evidence only. Cloud database/workload permissions still require the release preflight in `docs/CALCULATED_ENCOUNTERS.md`; expired local Google credentials prevented that inspection. Physical iOS Safari was unavailable. No deployment is included.
+
+---
+
 # Production recovery checks — 19 October 2026
 
 The current complete suite has **141 tests**. Keep the asteroid view-model compilation below and ORBITAL_TEST_MODEL, set ORBITAL_DEV_TREE_TEST=1 for the real Windows tree cleanup check, and run all tests/*.test.cjs (including the new firebase-runtime-env and deployment-smoke suites). No new dependencies are needed.

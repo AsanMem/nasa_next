@@ -6,11 +6,12 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { gsap } from "gsap";
 import { asteroidVisual, asteroidDisplayScale, randomStream, surfaceSampler } from "../../lib/asteroids/visual";
+import { defaultSizeReference, sizeReference, SIZE_REFERENCES, validComparisonDiameter, type SizeReferenceId } from "../../lib/asteroids/size-reference";
 import type { SceneBinding, SceneConfig, SceneEngine } from "./scene-types";
 
-type Rock = { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; dispose(): void; height: number; bottom: number; left: number; right: number; rotation: THREE.Euler };
-export function createRock(id: string, wake: () => void): Rock {
-  const descriptor = asteroidVisual(id), sample = surfaceSampler(descriptor);
+type Rock = { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; dispose(): void; height: number; bottom: number; left: number; right: number; rotation: THREE.Euler; lengthBounds: { width: number; height: number; bottom: number; left: number; right: number; rotation: THREE.Euler } };
+export function createRock(id: string, wake: () => void, version: 4 | 5 = 5): Rock {
+  const descriptor = asteroidVisual(id, version), sample = surfaceSampler(descriptor);
   const original = new THREE.IcosahedronGeometry(1, 24);
   const geometry = mergeVertices(original); original.dispose();
   const positions = geometry.attributes.position, v = new THREE.Vector3();
@@ -21,17 +22,25 @@ export function createRock(id: string, wake: () => void): Rock {
   geometry.computeVertexNormals(); geometry.computeBoundingSphere();
   const normalizer = 1 / geometry.boundingSphere!.radius;
   geometry.scale(normalizer, normalizer, normalizer);
-  const material = new THREE.MeshStandardMaterial({ color: descriptor.tint, roughness: descriptor.roughness, metalness: .015, bumpScale: .018 });
+  const material = new THREE.MeshStandardMaterial({ color: descriptor.tint, roughness: descriptor.roughness, metalness: descriptor.version === 4 ? .015 : 0, bumpScale: descriptor.version === 4 ? .018 : 0 });
   const mesh = new THREE.Mesh(geometry, material); mesh.name = `asteroid:${id}`;
   mesh.rotation.set(...descriptor.rotation);
   const bounds = new THREE.Box3().setFromObject(mesh, true);
+  const rotation = mesh.rotation.clone();
+  mesh.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2));
+  const horizontalBounds = new THREE.Box3().setFromObject(mesh,true);
+  const lengthBounds = { width: horizontalBounds.max.x-horizontalBounds.min.x, height: horizontalBounds.max.y-horizontalBounds.min.y, bottom: horizontalBounds.min.y, left: horizontalBounds.min.x, right: horizontalBounds.max.x, rotation: mesh.rotation.clone() };
+  mesh.rotation.copy(rotation);
   let disposed = false;
   const texture = new THREE.TextureLoader().load(`/media/asteroid/textures/${descriptor.texture}`, loaded => {
     if (disposed) { loaded.dispose(); return; }
-    loaded.colorSpace = THREE.SRGBColorSpace; loaded.wrapS=loaded.wrapT=THREE.RepeatWrapping; loaded.repeat.set(descriptor.textureScale,descriptor.textureScale); loaded.offset.set(...descriptor.textureOffset); material.map = loaded; material.bumpMap = loaded;
+    loaded.colorSpace = THREE.SRGBColorSpace; loaded.wrapS=loaded.wrapT=THREE.RepeatWrapping; loaded.repeat.set(descriptor.textureScale,descriptor.textureScale); loaded.offset.set(...descriptor.textureOffset); material.map = loaded;
+    // A colour photograph is not a measured height map. Only explicit legacy
+    // v4 comparisons retain the old universal RGB bump treatment.
+    if (descriptor.version === 4) material.bumpMap = loaded;
     material.needsUpdate = true; wake();
   }, undefined, () => { /* The lit base material remains usable. */ });
-  return { mesh, height: bounds.max.y - bounds.min.y, bottom: bounds.min.y, left: bounds.min.x, right: bounds.max.x, rotation: mesh.rotation.clone(),
+  return { mesh, height: bounds.max.y - bounds.min.y, bottom: bounds.min.y, left: bounds.min.x, right: bounds.max.x, rotation, lengthBounds,
     dispose() { disposed = true; geometry.dispose(); material.dispose(); texture.dispose(); } };
 }
 
@@ -48,7 +57,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   scene.add(new THREE.AmbientLight(0xb9cbe0, .5));
   const sun = new THREE.DirectionalLight(0xffe9d0, 3.5); sun.position.set(-3, 4, 5); scene.add(sun);
   const rim = new THREE.DirectionalLight(0x9ab7d9, 1.25); rim.position.set(3, 1, -3); scene.add(rim);
-  const rockFill = new THREE.DirectionalLight(0xe0e9f2, 5); rockFill.position.set(0, 1, 5); scene.add(rockFill);
+  const rockFill = new THREE.DirectionalLight(0xe0e9f2, 2.6); rockFill.position.set(0, 1, 5); scene.add(rockFill);
   let solarModel: ReturnType<typeof createSolarModel> | undefined;
   let skyModel: ReturnType<typeof createSkyModel> | undefined;
   let encounterModel:ReturnType<typeof createEncounterModel>|undefined;
@@ -100,12 +109,30 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
   const particleMaterial = new THREE.LineBasicMaterial({ color: 0xa6c3dc, transparent: true, opacity: .42 });
   const particles = new THREE.LineSegments(particleGeometry, particleMaterial); particles.name = "illustrative-speed-particles"; scene.add(particles);
   const comparison = new THREE.Group(); scene.add(comparison);
-  const human = new THREE.Group(); human.name = "human-1.8m"; comparison.add(human);
-  const shape = new THREE.Shape();
-  [[-.13,1.48],[.13,1.48],[.23,.93],[.15,.9],[.09,1.25],[.1,.72],[.13,0],[.03,0],[0,.63],[-.03,0],[-.13,0],[-.1,.72],[-.09,1.25],[-.15,.9],[-.23,.93]].forEach(([x,y], i) => i ? shape.lineTo(x,y) : shape.moveTo(x,y)); shape.closePath();
-  const humanGeometry = new THREE.ShapeGeometry(shape), headGeometry = new THREE.CircleGeometry(.12, 20);
+  const references = new Map<SizeReferenceId, THREE.Group>();
+  const referenceGeometries: THREE.BufferGeometry[] = [];
   const humanMaterial = new THREE.MeshBasicMaterial({ color: 0xedc18c, side: THREE.DoubleSide });
-  human.add(new THREE.Mesh(humanGeometry, humanMaterial)); const head = new THREE.Mesh(headGeometry, humanMaterial); head.position.y = 1.68; human.add(head);
+  const pitchMaterial = new THREE.MeshBasicMaterial({ color: 0x33433d, side: THREE.DoubleSide });
+  const detailMaterial = new THREE.LineBasicMaterial({ color: 0x0b1118 });
+  const pitchLineMaterial = new THREE.LineBasicMaterial({ color: 0xedc18c });
+  SIZE_REFERENCES.forEach(reference => {
+    const group = new THREE.Group(); group.name = reference.id === "person" ? "human-1.8m" : `reference-${reference.id}`;
+    reference.parts.forEach(points => {
+      const shape = new THREE.Shape();
+      points.forEach(([x,y],index) => index ? shape.lineTo(x,y) : shape.moveTo(x,y)); shape.closePath();
+      const geometry = new THREE.ShapeGeometry(shape); referenceGeometries.push(geometry);
+      group.add(new THREE.Mesh(geometry, reference.id === "pitch" ? pitchMaterial : humanMaterial));
+      if (reference.id === "pitch") {
+        const edge = new THREE.BufferGeometry().setFromPoints([...points,points[0]].map(([x,y])=>new THREE.Vector3(x,y,.002)));
+        referenceGeometries.push(edge); group.add(new THREE.Line(edge,pitchLineMaterial));
+      }
+    });
+    reference.lines.forEach(points=>{
+      const geometry = new THREE.BufferGeometry().setFromPoints(points.map(([x,y])=>new THREE.Vector3(x,y,.003)));
+      referenceGeometries.push(geometry); group.add(new THREE.Line(geometry,reference.id === "pitch" ? pitchLineMaterial : detailMaterial));
+    });
+    references.set(reference.id, group); comparison.add(group);
+  });
   const rulerGeometry = new THREE.BufferGeometry().setFromPoints([[-1.65,-1],[-1.65,1],[-1.75,-1],[-1.55,-1],[-1.75,1],[-1.55,1],[-1.5,-1],[2,-1]].map(([x,y]) => new THREE.Vector3(x,y,0)));
   const rulerMaterial = new THREE.LineBasicMaterial({ color: 0x7e8a94, transparent: true, opacity: .7 }); comparison.add(new THREE.LineSegments(rulerGeometry, rulerMaterial));
   const running = () => !disposed && !lost && !document.hidden && (!!flight || (visible && !!binding && binding.config.mode !== "distance"));
@@ -174,7 +201,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     orbitalPlane.visible = !isEvents;
     const fromHome = flight?.from === "home";
     orbitalPlane.scale.setScalar(window.innerWidth <= 760 && (config?.kind === "home" || fromHome) ? .82 : 1);
-    const comparing = !flight && config?.mode === "size" && !!config.diameter && activeRock;
+    const comparing = !flight && config?.mode === "size" && validComparisonDiameter(config.diameter) && activeRock;
     home.visible = ((!!isHome && !isSolar) || !!fromHome) && planetMapsReady === 2 && !planetMapFailed;
     home.scale.setScalar(fromHome ? Math.max(.02, 1 - flight!.t * 1.5) : 1);
     home.position.set(fromHome ? -flight!.t * 3 : 0, fromHome ? flight!.t : 0, fromHome ? -flight!.t * 16 : 0);
@@ -204,19 +231,28 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
       const mesh = activeRock.mesh;
       mesh.visible = !isHome && !!config?.id;
       if (comparing) {
-        mesh.rotation.copy(activeRock.rotation); const factor = 2 / activeRock.height;
-        mesh.scale.setScalar(factor); mesh.position.set(0, -1 - activeRock.bottom * factor, 0);
-        const personScale = 2 / config!.diameter!, rulerX = activeRock.left * factor - .25;
-        const humanX = activeRock.right * factor + .5 + .23 * personScale;
-        human.scale.setScalar(personScale); human.position.set(humanX, -1, 0);
-        const rightEdge = humanX + .23 * personScale, centerX = (rulerX + rightEdge) / 2;
+        mesh.userData.sizeComparison = true;
+        const diameter = config!.diameter!;
+        const reference = sizeReference(config!.sizeReference ?? defaultSizeReference(diameter));
+        const horizontal = reference.dimension === "length";
+        const basis = horizontal ? activeRock.lengthBounds : activeRock;
+        const factor = 2 / (horizontal ? activeRock.lengthBounds.width : activeRock.height);
+        mesh.rotation.copy(basis.rotation); mesh.scale.setScalar(factor); mesh.position.set(0, -1-basis.bottom*factor, 0);
+        const referenceScale = 2 / diameter, rulerX = basis.left * factor - .25;
+        const gap = Math.max(2, reference.width * referenceScale, reference.height * referenceScale) * .13;
+        const referenceX = basis.right * factor + gap - reference.minX * referenceScale;
+        references.forEach((group,id)=>{ group.visible = id === reference.id; group.scale.setScalar(referenceScale); if(group.visible) group.position.set(referenceX,-1,0); });
+        const rightEdge = referenceX + (reference.minX + reference.width) * referenceScale, centerX = (rulerX + rightEdge) / 2;
         const ruler = rulerGeometry.attributes.position;
-        [[rulerX,-1],[rulerX,1],[rulerX-.1,-1],[rulerX+.1,-1],[rulerX-.1,1],[rulerX+.1,1],[rulerX+.1,-1],[rightEdge+.15,-1]].forEach(([x,y],i) => ruler.setXYZ(i,x,y,0));
+        const rulerPoints = horizontal ? [[basis.left*factor,-1.18],[basis.right*factor,-1.18],[basis.left*factor,-1.25],[basis.left*factor,-1.11],[basis.right*factor,-1.25],[basis.right*factor,-1.11],[rulerX+.1,-1],[rightEdge+.15,-1]] : [[rulerX,-1],[rulerX,1],[rulerX-.1,-1],[rulerX+.1,-1],[rulerX-.1,1],[rulerX+.1,1],[rulerX+.1,-1],[rightEdge+.15,-1]];
+        rulerPoints.forEach(([x,y],i) => ruler.setXYZ(i,x,y,0));
         ruler.needsUpdate = true; rulerGeometry.computeBoundingSphere();
-        const half = Math.max(1.65, ((rightEdge-rulerX)/2+.35) / camera.aspect, 1.8 / config!.diameter! * 1.25), center = Math.max(0, 1.8 / config!.diameter! - 1);
+        const top = Math.max(-1+basis.height*factor, -1+reference.height*referenceScale);
+        const half = Math.max(((rightEdge-rulerX)/2+.25) / camera.aspect, (top+1)/2+.25), center = (top-1)/2;
         scaleCamera.left = -half * camera.aspect; scaleCamera.right = half * camera.aspect; scaleCamera.top = half; scaleCamera.bottom = -half;
         scaleCamera.position.set(centerX, center, 10); scaleCamera.lookAt(centerX, center, 0); scaleCamera.updateProjectionMatrix();
       } else {
+        if (mesh.userData.sizeComparison) { mesh.rotation.copy(activeRock.rotation); mesh.userData.sizeComparison = false; }
         if (moving) mesh.rotation.y += delta * .065;
         const arrival = fromHome ? Math.max(0, (flight!.t - .28) / .72) : entrance.t;
         mesh.scale.setScalar(Math.max(.01, arrival)*asteroidDisplayScale(config?.diameter)); mesh.position.set((1 - arrival) * 1.5, (1 - arrival) * -.25, 0);
@@ -255,6 +291,7 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
     if (disposed || lost) { next.status("failed"); return; }
     const oldId = binding?.config.id;
     releaseObservers(); binding = next; visible = true;
+    if (next.config.kind !== "encounters") { camera.near = .1; camera.far = 150; camera.updateProjectionMatrix(); }
     focusEarth(next.config, true);
     if (next.config.kind === "home") { earth.rotation.set(.12, 3.9, -.12); orbitTime = .68; }
     if (next.config.kind === "solar" && !solarModel) { solarModel = createSolarModel(earthGeometry, earthMaterial); scene.add(solarModel.group); }
@@ -318,8 +355,8 @@ export function createSceneEngine(flightHost: HTMLElement): SceneEngine {
       skyModel?.dispose();
       encounterModel?.dispose();
       rocks.forEach(rock => rock.dispose()); rocks.clear(); textures.forEach(texture => texture.dispose());
-      [earthGeometry, atmosphereGeometry, orbitGeometry, moonGeometry, starGeometry, particleGeometry, humanGeometry, headGeometry, rulerGeometry].forEach(item => item.dispose());
-      [earthMaterial, atmosphereMaterial, orbitMaterial, moonMaterial, starMaterial, particleMaterial, humanMaterial, rulerMaterial].forEach(item => item.dispose());
+      [earthGeometry, atmosphereGeometry, orbitGeometry, moonGeometry, starGeometry, particleGeometry, ...referenceGeometries, rulerGeometry].forEach(item => item.dispose());
+      [earthMaterial, atmosphereMaterial, orbitMaterial, moonMaterial, starMaterial, particleMaterial, humanMaterial, pitchMaterial, detailMaterial, pitchLineMaterial, rulerMaterial].forEach(item => item.dispose());
       renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove(); flightHost.style.display = "none";
     }
   };

@@ -20,21 +20,27 @@ function setup({reduced=false,webglFailure=false,textureFailure=false}={}) {
  const cache=new Map();
  function moduleAt(relative){const absolute=path.resolve(__dirname,'../src/app',relative);if(cache.has(absolute))return cache.get(absolute);const exports={};cache.set(absolute,exports);
   const code=ts.transpileModule(fs.readFileSync(absolute,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
-  vm.runInNewContext(code,{exports,console,Math,window:{innerWidth:1440,innerHeight:960,devicePixelRatio:2,matchMedia:()=>preference},document,
+  vm.runInNewContext(code,{exports,console,Math,Date,Intl,window:{innerWidth:1440,innerHeight:960,devicePixelRatio:2,matchMedia:()=>preference},document,
    requestAnimationFrame(fn){frames.set(++frameId,fn);return frameId;},cancelAnimationFrame(id){frames.delete(id);},
    IntersectionObserver:class {constructor(fn){this.fn=fn;observations.push(this);}observe(){}disconnect(){this.disconnected=true;}},ResizeObserver:class {observe(){}disconnect(){}},
-   require(name){if(name==='three')return {...THREE,WebGLRenderer:Renderer,TextureLoader};if(name.includes('OrbitControls'))return {OrbitControls:Controls};if(name.includes('BufferGeometryUtils'))return {mergeVertices:g=>g.clone()};if(name==='gsap')return {gsap:{to(target,options){const tween={target,options,kill(){this.killed=true;}};tweens.push(tween);return tween;}}};if(name.startsWith('.'))return moduleAt(path.relative(path.join(__dirname,'../src/app'),path.resolve(path.dirname(absolute),name+'.ts')));return require(name);}
+   require(name){if(name==='three')return {...THREE,WebGLRenderer:Renderer,TextureLoader};if(name.includes('OrbitControls'))return {OrbitControls:Controls};if(name.includes('BufferGeometryUtils'))return {mergeVertices:g=>g.clone()};if(name==='gsap')return {gsap:{to(target,options){const tween={target,options,kill(){this.killed=true;}};tweens.push(tween);return tween;}}};if(name.startsWith('.')){const base=path.resolve(path.dirname(absolute),name),target=['.ts','.js'].map(ext=>base+ext).find(fs.existsSync);return moduleAt(path.relative(path.join(__dirname,'../src/app'),target));}return require(name);}
   });return exports;
  }
  const exported=moduleAt('ui/orbital/scene-engine.ts');
  const engine=()=>exported.createSceneEngine(layer);
- return {engine,stats,element,layer,canvas,frames,listeners,document,preference,observations,canvasListeners,
+ return {engine,moduleAt,stats,element,layer,canvas,frames,listeners,document,preference,observations,canvasListeners,
   tick(time=100){const callbacks=[...frames.values()];frames.clear();callbacks.forEach(fn=>fn(time));},
   step(value){for(const tween of tweens){if(!tween.killed){tween.target.t=value;tween.options.onUpdate?.();}}},
   finish(){for(const tween of tweens.splice(0)){if(tween.killed)continue;tween.target.t=1;tween.options.onUpdate?.();tween.options.onComplete?.();}}
  };
 }
 function bind(app,engine,config={}){const binding={host:app.element(),config:{kind:'catalog',id:'3477703',paused:false,speed:9.17,...config},status(value){binding.state=value;}};engine.attach(binding);return binding;}
+function encounterFrame(body='Earth') {
+ const t=Date.UTC(2026,9,18,12),center=body==='Sun'?0:body==='Venus'?.72:1;
+ const sample=(utcMs,x,y,vx,vy)=>({utcMs,x,y,z:0,vx,vy,vz:0}),asteroid={id:'2000042',name:'Example',samples:[sample(t-86400000,center+.002,-.01,0,.01),sample(t,center+.002,0,0,.01),sample(t+86400000,center+.002,.01,0,.01)]},target={id:'399',name:body,samples:[sample(t-86400000,center,0,0,0),sample(t,center,0,0,0),sample(t+86400000,center,0,0,0)]},window={startUtcMs:t-86400000,endUtcMs:t+86400000,asteroid,target};
+ return {current:{trajectory:{eventKey:'example-'+body,body,encounterUtcMs:t,target:{spkId:'2000042'},overview:window,close:window},utcMs:t,phase:'idle',progress:.5}};
+}
+
 test('birth sky shares one renderer, stays frozen, updates on view changes and releases resources',async()=>{
  const app=setup(),engine=app.engine(),rock=bind(app,engine,{kind:'profile',paused:true});await settle();app.tick();engine.detach(rock.host);
  const star={id:'one',name:'Star',altitude:45,azimuth:180,magnitude:1,color:'#ffffff'};
@@ -47,14 +53,15 @@ test('birth sky shares one renderer, stays frozen, updates on view changes and r
  engine.dispose();assert.equal(freed,1);assert.equal(app.frames.size,0);
 });
 
-test('history includes every supplied body and leaves document gestures free of orbit controls',async()=>{
- const app=setup(),engine=app.engine(),bodies=['Mercury','Venus','Earth','Moon','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Unknown companion'];
- const binding=bind(app,engine,{kind:'encounters',diameter:50,paused:false,encounter:{bodies,body:'Venus',motion:{current:null}}});await settle();app.tick(100);
- for(const body of bodies)assert.ok(app.stats.scene.getObjectByName('encounter-body:'+body.toLowerCase()),body);
- assert.equal(binding.host.style.touchAction,'pan-y pinch-zoom');assert.equal(app.canvas.style.touchAction,'pan-y pinch-zoom');
- const queued=app.frames.size;engine.update({...binding.config,paused:false});engine.update({...binding.config,paused:false});assert.equal(app.frames.size,queued);
+test('physical history contains all eight planet contexts and leaves native document gestures free',async()=>{
+ const app=setup(),engine=app.engine();await app.moduleAt('lib/asteroids/physical-planets.ts').preparePlanetEphemeris();
+ const binding=bind(app,engine,{kind:'encounters',diameter:50,paused:false,encounter:{bodies:['Venus','Unknown companion'],body:'Venus',motion:{current:null},physical:encounterFrame('Venus')}});await settle();app.tick(100);
+ for(const body of ['Sun','Mercury','Venus','Earth','Moon','Mars','Jupiter','Saturn','Uranus','Neptune'])assert.ok(app.stats.scene.getObjectByName('encounter-body:'+body.toLowerCase()),body);
+ assert.equal(app.stats.scene.getObjectByName('encounter-body:unknown companion'),undefined,'no position is invented for an unresolved body');
+ assert.equal(binding.host.style.touchAction,'pan-y pinch-zoom');assert.equal(app.canvas.style.touchAction,'pan-y pinch-zoom');const queued=app.frames.size;engine.update({...binding.config,paused:false});engine.update({...binding.config,paused:false});assert.equal(app.frames.size,queued);
  engine.dispose();assert.equal(app.stats.controls,0);assert.equal(app.frames.size,0);
 });
+
 test('solar scene shares the existing Earth assets and renderer; pause and visibility suspend plasma time',async()=>{
  const app=setup(),engine=app.engine(),binding=bind(app,engine,{kind:'solar',id:undefined});await settle();app.tick(100);
  const solar=app.stats.scene.getObjectByName('illustrative-solar-environment');
@@ -159,20 +166,43 @@ test('reduced-motion Earth selection is immediate and keeps no animation queued'
  assert.ok(target.angleTo(earth.quaternion)<1e-7);assert.equal(app.frames.size,0);engine.dispose();
 });
 
-test('encounter stage reuses the asteroid and one renderer, moves camera between stops and restores profile',async()=>{
- const app=setup(),engine=app.engine(),profile=bind(app,engine,{kind:'profile',diameter:100,paused:true});await settle();app.finish();app.tick();
- const rock=app.stats.scene.getObjectByName('asteroid:3477703'),geometry=rock.geometry;
- engine.detach(profile.host);const motion={current:null};let labels;
- const history=bind(app,engine,{kind:'encounters',diameter:100,paused:true,encounter:{bodies:['Venus','Earth'],body:'Earth',motion},projectBodies:value=>labels=value});await settle();app.finish();app.tick();
- const model=app.stats.scene.getObjectByName('illustrative-encounter-history');assert.equal(model.visible,true);assert.equal(rock.geometry,geometry);assert.equal(app.stats.renderers,1);assert.equal(app.frames.size,0);assert.ok(labels.some(p=>p.id==='Earth'));assert.equal(app.stats.scene.getObjectByName('encounter-body:Mars'),undefined);
- const startCamera=app.stats.camera.position.clone(),startRock=rock.position.clone();motion.current={fromBody:'Earth',toBody:'Venus',progress:.5};engine.update({...history.config,paused:true});app.tick();assert.ok(app.stats.camera.position.distanceTo(startCamera)>3);assert.ok(rock.position.distanceTo(startRock)>1);
- motion.current={fromBody:'Earth',toBody:'Venus',progress:1};engine.update({...history.config,encounter:{...history.config.encounter,body:'Venus'}});app.tick();const venus=app.stats.scene.getObjectByName('encounter-body:venus');assert.ok(rock.position.distanceTo(venus.position)>1.5);
- engine.detach(history.host);bind(app,engine,{kind:'profile',diameter:100,paused:true});app.finish();app.tick();assert.equal(model.visible,false);assert.equal(app.stats.renderers,1);engine.dispose();assert.equal(app.frames.size,0);assert.equal(app.stats.disposed,1);
+test('physical encounter stage reuses one asteroid and renderer, zooms only the camera and restores profile projection',async()=>{
+ const app=setup(),engine=app.engine();await app.moduleAt('lib/asteroids/physical-planets.ts').preparePlanetEphemeris();const profile=bind(app,engine,{kind:'profile',diameter:100,paused:true});await settle();app.finish();app.tick();const rock=app.stats.scene.getObjectByName('asteroid:3477703'),geometry=rock.geometry;
+ engine.detach(profile.host);const physical=encounterFrame();physical.current.phase='flyby';physical.current.progress=0;physical.current.utcMs=physical.current.trajectory.close.startUtcMs;let labels;
+ const history=bind(app,engine,{kind:'encounters',diameter:100,paused:true,encounter:{bodies:['Earth'],body:'Earth',motion:{current:null},physical,view:'inner'},projectBodies:value=>labels=value});await settle();app.finish();app.tick();
+ const model=app.stats.scene.getObjectByName('physical-encounter-history');assert.equal(model.visible,true);assert.equal(rock.geometry,geometry);assert.equal(app.stats.renderers,1);assert.equal(app.frames.size,0);assert.ok(labels.some(p=>p.id==='Earth'));
+ const start=app.stats.camera.position.clone();physical.current.progress=.5;physical.current.utcMs=physical.current.trajectory.encounterUtcMs;engine.update({...history.config,paused:true});app.tick();assert.ok(app.stats.camera.position.distanceTo(start)>3);const earth=app.stats.scene.getObjectByName('encounter-body:earth');assert.ok(Math.abs(rock.position.distanceTo(earth.position)-.002)<1e-12);
+ physical.current.phase='jump';engine.update({...history.config,paused:true});app.tick();assert.equal(rock.visible,false);assert.equal(model.getObjectByName('jpl-asteroid-trajectory').visible,false);assert.equal(rock.geometry,geometry);
+ engine.detach(history.host);bind(app,engine,{kind:'profile',diameter:100,paused:true});app.finish();app.tick();assert.equal(model.visible,false);assert.equal(app.stats.camera.near,.1);assert.equal(app.stats.camera.far,150);assert.equal(app.stats.renderers,1);engine.dispose();assert.equal(app.frames.size,0);assert.equal(app.stats.disposed,1);
 });
+
 test('ordinary asteroid scale changes with diameter while exact human proportions remain independent',async()=>{
  const app=setup({reduced:true}),engine=app.engine(),binding=bind(app,engine,{kind:'profile',diameter:20,paused:true});await settle();app.tick();const rock=app.stats.scene.getObjectByName('asteroid:3477703'),small=rock.scale.x,geometry=rock.geometry;
  engine.update({...binding.config,diameter:243});app.tick();assert.ok(rock.scale.x>small);assert.equal(rock.geometry,geometry);
- engine.update({...binding.config,diameter:20,mode:'size'});app.tick();const person=app.stats.scene.getObjectByName('human-1.8m');const height=o=>new THREE.Box3().setFromObject(o,true).getSize(new THREE.Vector3()).y;assert.ok(Math.abs(height(rock)/height(person)-20/1.8)<1e-6);engine.dispose();
+ engine.update({...binding.config,diameter:20,mode:'size',sizeReference:'person'});app.tick();const person=app.stats.scene.getObjectByName('human-1.8m');const height=o=>new THREE.Box3().setFromObject(o,true).getSize(new THREE.Vector3()).y;assert.ok(Math.abs(height(rock)/height(person)-20/1.8)<1e-6);engine.dispose();
+});
+
+test('comparison renderer shares exact metres across reference axes and restores object orientation',async()=>{
+ const app=setup({reduced:true}),engine=app.engine(),binding=bind(app,engine,{kind:'profile',diameter:1.8,mode:'size',paused:true});await settle();app.tick();
+ const rock=app.stats.scene.getObjectByName('asteroid:3477703'),geometry=rock.geometry;
+ const references={person:'human-1.8m',bus:'reference-bus',pitch:'reference-pitch',burj:'reference-burj'};
+ const bounds=o=>new THREE.Box3().setFromObject(o,true);
+ const cases=[['person',1.8,1.8,'y'],['bus',12,12,'x'],['pitch',105,105,'x'],['burj',828,828,'y'],['burj',1656,828,'y']];
+ for(const [reference,diameter,metres,axis] of cases){
+  engine.update({...binding.config,diameter,mode:'size',sizeReference:reference});app.tick();
+  const model=app.stats.scene.getObjectByName(references[reference]);
+  const rockBounds=bounds(rock),referenceBounds=bounds(model),rockExtent=rockBounds.getSize(new THREE.Vector3())[axis],referenceExtent=referenceBounds.getSize(new THREE.Vector3())[axis];
+  assert.ok(Math.abs(rockExtent/referenceExtent-diameter/metres)<1e-6,reference+' '+diameter+' m on '+axis);
+  assert.ok(Math.abs(rockBounds.min.y-referenceBounds.min.y)<1e-6,reference+' shares the baseline');
+  for(const [id,name] of Object.entries(references))assert.equal(app.stats.scene.getObjectByName(name).visible,id===reference);
+  assert.equal(rock.geometry,geometry);
+ }
+ assert.equal(rock.material.bumpMap,null,'v5 colour textures do not create universal bump relief');
+ engine.update({...binding.config,mode:'object',diameter:243});app.tick();const normalRotation=rock.quaternion.clone();
+ engine.update({...binding.config,mode:'size',diameter:12,sizeReference:'bus'});app.tick();assert.ok(normalRotation.angleTo(rock.quaternion)>1);
+ engine.update({...binding.config,mode:'object',diameter:243});app.tick();assert.ok(normalRotation.angleTo(rock.quaternion)<1e-7);
+ for(const diameter of [null,NaN,0,-1]){engine.update({...binding.config,mode:'size',diameter});app.tick();assert.equal(app.stats.scene.getObjectByName(references.person).parent.visible,false);assert.ok(Number.isFinite(rock.scale.x));}
+ engine.dispose();assert.equal(app.frames.size,0);
 });
 
 
@@ -199,22 +229,11 @@ test('opening a different list object does not fly the previously selected aster
 });
 
 
-test('encounter anchors keep a visible projected gap beside Earth, Venus and Sun on narrow and wide stages',async()=>{
- const app=setup(),engine=app.engine(),binding=bind(app,engine,{kind:'encounters',diameter:243,paused:true,encounter:{bodies:['Venus','Earth'],body:'Earth',eventKey:'earth',motion:{current:null}}});await settle();app.finish();
- for(const aspect of [.45,1.6]){
-  const width=320*aspect;binding.host.getBoundingClientRect=()=>({left:0,top:0,width,height:320,bottom:320});
-  for(const body of ['Earth','Venus','Sun']){
-   engine.update({...binding.config,encounter:{...binding.config.encounter,body,eventKey:body.toLowerCase()}});app.tick();
-   const camera=app.stats.camera,rock=app.stats.scene.getObjectByName('asteroid:3477703');
-   const planet=body==='Sun'?new THREE.Vector3():app.stats.scene.getObjectByName('encounter-body:'+body.toLowerCase()).position;
-   const right=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0),center=planet.clone().project(camera),rockCenter=rock.position.clone().project(camera);
-   const planetRadius=Math.abs(planet.clone().addScaledVector(right,.72).project(camera).x-center.x);
-   const rockRadius=Math.abs(rock.position.clone().addScaledVector(right,rock.scale.x*1.35).project(camera).x-rockCenter.x);
-   const gap=(Math.abs(center.x-rockCenter.x)-planetRadius-rockRadius)*width/2;
-   assert.ok(gap>15,body+' '+aspect+' gap '+gap);assert.ok(Math.abs(rockCenter.x)+rockRadius<1);
-  }
- }
- engine.dispose();
+test('close views preserve the coherent JPL distance and physical radii on narrow and wide stages',async()=>{
+ const app=setup(),engine=app.engine();await app.moduleAt('lib/asteroids/physical-planets.ts').preparePlanetEphemeris();const physical=encounterFrame(),binding=bind(app,engine,{kind:'encounters',diameter:243,paused:true,encounter:{bodies:['Earth'],body:'Earth',motion:{current:null},physical,view:'close'}});await settle();app.finish();
+ const radii={Earth:6371,Venus:6051.8,Sun:695700};
+ for(const aspect of [.45,1.6]){const width=320*aspect;binding.host.getBoundingClientRect=()=>({left:0,top:0,width,height:320,bottom:320});for(const body of ['Earth','Venus','Sun']){physical.current=encounterFrame(body).current;engine.update({...binding.config,encounter:{...binding.config.encounter,body}});app.tick();const camera=app.stats.camera,rock=app.stats.scene.getObjectByName('asteroid:3477703'),planet=app.stats.scene.getObjectByName('encounter-body:'+body.toLowerCase());assert.ok(Math.abs(rock.position.distanceTo(planet.position)-.002)<1e-12);assert.ok(Math.abs(planet.scale.x-radii[body]/149597870.7)<1e-14);const projected=rock.position.clone().project(camera);assert.ok(Math.abs(projected.x)<1&&Math.abs(projected.y)<1);}}
+ engine.dispose();assert.equal(app.stats.disposed,1);assert.equal(app.frames.size,0);
 });
 
 

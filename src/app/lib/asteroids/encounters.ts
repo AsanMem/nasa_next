@@ -15,7 +15,7 @@ export function sampleEncounterFlight(out:FlightVector,start:FlightVector,end:Fl
   return out;
 }
 export function encounterTimeline(events: readonly Approach[]): TimelineEvent[] {
-  const ordered=events.map(event=>({event,time:Date.parse(event.date+"T00:00:00Z")})).filter(item=>Number.isFinite(item.time)).sort((a,b)=>a.time-b.time);
+  const ordered=events.map(event=>({event,time:event.utcMs??Date.parse(event.date+"T00:00:00Z")})).filter(item=>Number.isFinite(item.time)).sort((a,b)=>a.time-b.time);
   const first=ordered[0]?.time??0,last=ordered.at(-1)?.time??first;
   return ordered.map(item=>({...item,position:last===first ? .5 : (item.time-first)/(last-first)}));
 }

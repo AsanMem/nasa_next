@@ -12,3 +12,5 @@ Keep meaningful decisions and verification in docs/PROJECT_CONTEXT.md so a new c
 
 
 The latest journey correction removes all automatic holds at encounters. Flight and camera tangents remain continuous across real records, including repeated bodies and the loop seam; measurements still commit only at real event arrivals. Preserve manual Pause, timeline/filter inspection, offscreen/hidden suspension and reduced-motion fallback. Catalog entry keeps its source canvas/model until the profile is ready, then makes one host-to-host move instead of expanding through a full-window midpoint.
+
+The current approved calculated-encounter brief supersedes the earlier last paragraph's invented continuous transfer. Use verified JPL windows with explicit Time jump transitions. Preserve Pause, reduced motion, offscreen suspension, one renderer and native scroll. Do not reinstate an artistic orbit when calculated states are unavailable. See docs/CALCULATED_ENCOUNTERS.md.
