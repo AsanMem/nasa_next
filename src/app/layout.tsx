@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Bungee, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import PortfolioCapture from "./ui/portfolio-capture-temp";
 import OrbitalSceneProvider from "./ui/orbital/scene-provider";
 import type { Viewport } from 'next'
 import { pageMetadata,site } from "./lib/site";
@@ -42,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="bg-black">
       <body className={`${bungee.variable} ${spaceGrotesk.variable} w-full min-h-[100svh] bg-black`}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify({"@context":"https://schema.org","@type":"WebSite",name:site.name,url:site.origin,inLanguage:"en",creator:{"@type":"Person",name:site.author}}).replace(/</g,"\\u003c")}}/>
-        <OrbitalSceneProvider>{children}{process.env.NODE_ENV === "development" && <PortfolioCapture/>}</OrbitalSceneProvider>
+        <OrbitalSceneProvider>{children}</OrbitalSceneProvider>
       </body>
     </html >
   );

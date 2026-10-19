@@ -3,16 +3,16 @@ import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useSt
 import { usePathname } from "next/navigation";
 import type { SceneBinding, SceneConfig, SceneEngine, SceneStatus } from "./scene-types";
 
-type SceneAPI = { register(binding: SceneBinding): () => void; update(host: HTMLElement, config: SceneConfig): void; rotate(direction: number): void; reset(): void };
+type SceneAPI = { register(binding: SceneBinding): () => void; update(host: HTMLElement, config: SceneConfig): void; resolveWithoutScene(): void; rotate(direction: number): void; reset(): void };
 const SceneContext = createContext<SceneAPI | null>(null);
 export default function OrbitalSceneProvider({ children }: { children: ReactNode }) {
   const layer = useRef<HTMLDivElement>(null), engine = useRef<SceneEngine | null>(null), current = useRef<SceneBinding | null>(null);
   const cleanupTimer = useRef<ReturnType<typeof setTimeout>>();
-  const alive = useRef(true);
+  const alive = useRef(true), pendingDestination = useRef<string | null>(null);
   const pathname = usePathname();
   const api = useMemo<SceneAPI>(() => ({
     register(binding) {
-      clearTimeout(cleanupTimer.current); current.current = binding;
+      clearTimeout(cleanupTimer.current); pendingDestination.current = null; current.current = binding;
       let cancelled = false;
       const observer = new IntersectionObserver(([entry]) => {
         if (!entry.isIntersecting) return;
@@ -21,17 +21,24 @@ export default function OrbitalSceneProvider({ children }: { children: ReactNode
           if (cancelled || !alive.current || current.current !== binding || !layer.current) return;
           engine.current ??= createSceneEngine(layer.current);
           engine.current.attach(binding);
-        }).catch((error) => { console.warn("[Orbital scene]", error); if (!cancelled && current.current === binding) binding.status("failed"); });
+        }).catch((error) => { console.warn("[Orbital scene]", error); if (!cancelled && current.current === binding) { binding.status("failed"); engine.current?.cancelFlight(); } });
       }, { rootMargin: "100px" });
       observer.observe(binding.host);
       return () => {
         cancelled = true; observer.disconnect();
         if (current.current !== binding) return;
         current.current = null; engine.current?.detach(binding.host);
-        cleanupTimer.current = setTimeout(() => { if (!current.current) { engine.current?.dispose(); engine.current = null; } }, 8000);
+        cleanupTimer.current = setTimeout(() => { if (!current.current && !pendingDestination.current) { engine.current?.dispose(); engine.current = null; } }, 8000);
       };
     },
     update(host, config) { if (current.current?.host === host) { engine.current?.update(config); current.current.config = config; } },
+    resolveWithoutScene() {
+      // A resolved data-error route has no host. Invalidate pending imports before
+      // releasing the retained source canvas, rather than waiting for idle expiry.
+      current.current = null; pendingDestination.current = null; clearTimeout(cleanupTimer.current);
+      engine.current?.cancelFlight(); engine.current?.dispose(); engine.current = null;
+      if (layer.current) layer.current.style.display = "none";
+    },
     rotate(direction) { engine.current?.rotate(direction); }, reset() { engine.current?.reset(); },
   }), []);
   useEffect(() => {
@@ -42,17 +49,26 @@ export default function OrbitalSceneProvider({ children }: { children: ReactNode
       if (!link || link.target && link.target !== "_self" || link.hasAttribute("download")) return;
       const destination = new URL(link.href, window.location.href);
       if (destination.origin !== window.location.origin || destination.pathname === window.location.pathname) return;
+      const source = current.current?.config.kind;
+      const retainsSource = source === "home" && destination.pathname === "/asteroids" || source === "catalog" && /^\/asteroids\/[^/]+\/[^/]+$/.test(destination.pathname);
+      pendingDestination.current = engine.current && retainsSource ? destination.pathname : null;
       engine.current?.depart(destination.pathname);
     };
-    const pop = () => engine.current?.cancelFlight();
+    const pop = () => { pendingDestination.current = null; engine.current?.cancelFlight(); };
     document.addEventListener("click", click, true); window.addEventListener("popstate", pop);
     return () => { alive.current = false; document.removeEventListener("click", click, true); window.removeEventListener("popstate", pop); clearTimeout(cleanupTimer.current); engine.current?.dispose(); engine.current = null; };
   }, []);
   useEffect(() => {
     if (pathname === "/birthday" || pathname === "/space-weather" || pathname === "/eonet" || pathname === "/" || pathname === "/asteroids" || /^\/asteroids\/[^/]+\/[^/]+$/.test(pathname)) return;
-    engine.current?.dispose(); engine.current = null;
+    pendingDestination.current = null; engine.current?.dispose(); engine.current = null;
   }, [pathname]);
   return <SceneContext.Provider value={api}>{children}<div ref={layer} data-orbital-flight="true" aria-hidden="true" style={{ display: "none", position: "fixed", pointerEvents: "none", zIndex: 30, overflow: "hidden" }} /></SceneContext.Provider>;
+}
+/** Render only when a destination has resolved without a 3D scene, never while loading. */
+export function SceneUnavailable() {
+  const api = useContext(SceneContext);
+  useEffect(() => { api?.resolveWithoutScene(); }, [api]);
+  return null;
 }
 export function useOrbitalScene(config: SceneConfig, enabled = true) {
   const api = useContext(SceneContext);

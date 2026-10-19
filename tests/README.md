@@ -1,3 +1,13 @@
+# Production recovery checks — 19 October 2026
+
+The current complete suite has **141 tests**. Keep the asteroid view-model compilation below and ORBITAL_TEST_MODEL, set ORBITAL_DEV_TREE_TEST=1 for the real Windows tree cleanup check, and run all tests/*.test.cjs (including the new firebase-runtime-env and deployment-smoke suites). No new dependencies are needed.
+
+The new checks cover resolved unavailable/error scene cleanup, imports completing after failure, genuinely slow loading, Back/reset, private Firebase dotenv creation/cleanup, PR preview isolation and content-aware deployment checks that reject HTTP200 failure pages. After a release use `node scripts/smoke-deployment.mjs https://nasa-odisey.web.app`. The script uses public pages, no visitor input or secrets.
+
+Real production Chromium and the unresolved public redeployment are documented separately in docs/PRODUCTION_REPAIR_2026-10-19.md. Local typecheck/lint/build passed; physical Safari and deployed Cloud environment were not inspected.
+
+---
+
 # Current verification — uninterrupted flight, 18 October 2026
 
 The complete suite now contains **125 tests**. Append `tests/dev-isolation.test.cjs` to the latest full command (including `tests/site-presentation.test.cjs` and `tests/birth-sky.test.cjs`). For the real Windows child-tree cleanup test set `$env:ORBITAL_DEV_TREE_TEST='1'` and run with normal process permissions; restricted sandboxes may block taskkill. Without that opt-in, 124 pass and the platform integration is skipped. The temporary fixture cleanup only targets processes created by that test.

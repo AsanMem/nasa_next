@@ -216,3 +216,60 @@ test('encounter anchors keep a visible projected gap beside Earth, Venus and Sun
  }
  engine.dispose();
 });
+
+
+function providerSetup() {
+ const app=setup(),hooks=[],effects=[],observers=[],listeners=new Map(),windowListeners=new Map(),timers=new Map();
+ let cursor=0,pathname='/asteroids',api,boundary=false,clock=0,timerId=0,engine;
+ const equal=(a,b)=>a&&b&&a.length===b.length&&a.every((value,i)=>Object.is(value,b[i]));
+ const react={createContext:()=>({Provider:'provider'}),useContext:()=>api,useRef(value){const i=cursor++;hooks[i]??={current:value};return hooks[i];},useMemo(fn,deps){const i=cursor++;if(!equal(hooks[i]?.deps,deps))hooks[i]={deps,value:fn()};return hooks[i].value;},useEffect(fn,deps){if(boundary){effects.push({fn});return;}const i=cursor++;if(!equal(hooks[i]?.deps,deps)){const old=hooks[i];hooks[i]={deps,cleanup:old?.cleanup};effects.push({i,fn,cleanup:old?.cleanup});}}};
+ const jsx=(type,props)=>{if(props.ref)props.ref.current=app.layer;return {type,props};};
+ const module={exports:{}};
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../src/app/ui/orbital/scene-provider.tsx'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX}}).outputText,{module,exports:module.exports,console,URL,document:{addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)},window:{location:{origin:'http://127.0.0.1:3100',get pathname(){return pathname;},get href(){return 'http://127.0.0.1:3100'+pathname;}},addEventListener:(name,fn)=>windowListeners.set(name,fn),removeEventListener:name=>windowListeners.delete(name)},IntersectionObserver:class {constructor(fn){this.fn=fn;observers.push(this);}observe(){}disconnect(){this.disconnected=true;}},setTimeout:(fn,delay)=>{timers.set(++timerId,{fn,due:clock+delay});return timerId;},clearTimeout:id=>timers.delete(id),require(name){if(name==='react')return react;if(name==='react/jsx-runtime')return {jsx,jsxs:jsx};if(name==='next/navigation')return {usePathname:()=>pathname};if(name==='./scene-engine')return {createSceneEngine:()=>{engine=app.engine();return engine;}};return require(name);}});
+ function runEffects(){const pending=effects.splice(0);pending.forEach(item=>item.cleanup?.());pending.forEach(item=>{const cleanup=item.fn();if(item.i!=null)hooks[item.i].cleanup=cleanup;});}
+ function render(){cursor=0;const tree=module.exports.default({children:null});api=tree.props.value;runEffects();}
+ render();
+ return {app,async flush(){await settle();await settle();},register(config={kind:'catalog',id:'3477703',paused:false}){const binding={host:app.element(),config,status(value){binding.state=value;}};const release=api.register(binding),observer=observers.at(-1);return {binding,release,show(){observer.fn([{isIntersecting:true}]);}};},click(destination){listeners.get('click')({button:0,target:{closest:()=>({href:'http://127.0.0.1:3100'+destination,hasAttribute:()=>false})}});},route(path){pathname=path;render();},unavailable(){boundary=true;module.exports.SceneUnavailable();boundary=false;runEffects();},back(){windowListeners.get('popstate')();},advance(ms){clock+=ms;for(const [id,timer] of Array.from(timers)){if(timer.due<=clock){timers.delete(id);timer.fn();}}},unmount(){hooks.forEach(hook=>hook?.cleanup?.());},get engine(){return engine;}};
+}
+
+test('a resolved unavailable profile removes its retained flight immediately instead of covering the error',async()=>{
+ const provider=providerSetup(),catalog=provider.register();catalog.show();await provider.flush();provider.app.finish();provider.app.tick();
+ provider.click('/asteroids/3477703/view');catalog.release();provider.route('/asteroids/3477703/view');provider.app.tick();assert.equal(provider.app.canvas.parent,provider.app.layer);
+ provider.unavailable();assert.equal(provider.app.canvas.parent,null);assert.equal(provider.app.layer.style.display,'none');assert.equal(provider.app.frames.size,0);assert.equal(provider.app.stats.disposed,1);
+ provider.advance(20000);assert.equal(provider.app.stats.disposed,1);provider.route('/asteroids');const retry=provider.register();retry.show();await provider.flush();provider.app.finish();provider.app.tick();assert.equal(provider.app.canvas.parent,retry.binding.host);assert.equal(provider.app.stats.renderers,2);provider.unmount();
+});
+
+test('a genuine slow route keeps its source past idle expiry and transfers once when the profile is ready',async()=>{
+ const provider=providerSetup(),catalog=provider.register();catalog.show();await provider.flush();provider.app.finish();provider.app.tick();
+ provider.click('/asteroids/3477703/view');catalog.release();provider.route('/asteroids/3477703/view');provider.advance(20000);provider.app.tick();
+ assert.equal(provider.app.stats.disposed,0);assert.equal(provider.app.canvas.parent,provider.app.layer);
+ const profile=provider.register({kind:'profile',id:'3477703',paused:false});profile.show();await provider.flush();provider.app.finish();provider.app.tick();
+ assert.equal(provider.app.canvas.parent,profile.binding.host);assert.equal(provider.app.layer.style.display,'none');assert.equal(provider.app.stats.renderers,1);provider.unmount();assert.equal(provider.app.frames.size,0);
+});
+
+test('unavailable resolution invalidates a pending host import so late completion cannot recreate the overlay',async()=>{
+ const provider=providerSetup(),catalog=provider.register();catalog.show();await provider.flush();provider.app.finish();provider.app.tick();provider.click('/asteroids/3477703/view');catalog.release();
+ const pending=provider.register({kind:'profile',id:'3477703',paused:false});pending.show();provider.unavailable();await provider.flush();provider.app.finish();provider.app.tick();
+ assert.equal(provider.app.stats.renderers,1);assert.equal(provider.app.stats.disposed,1);assert.equal(provider.app.canvas.parent,null);assert.equal(provider.app.layer.style.display,'none');assert.equal(provider.app.frames.size,0);pending.release();provider.unmount();
+});
+
+test('rapid navigation and Back cancel pending flight without losing the next real host',async()=>{
+ const provider=providerSetup(),catalog=provider.register();catalog.show();await provider.flush();provider.app.finish();provider.app.tick();provider.click('/asteroids/3477703/view');catalog.release();
+ const late=provider.register({kind:'profile',id:'3477703',paused:false});late.show();provider.back();late.release();provider.route('/asteroids');
+ const returned=provider.register();returned.show();await provider.flush();provider.app.finish();provider.app.tick();
+ assert.equal(provider.app.canvas.parent,returned.binding.host);assert.equal(provider.app.layer.style.display,'none');assert.equal(provider.app.stats.renderers,1);provider.unmount();assert.equal(provider.app.frames.size,0);
+});
+
+test('leaving a pending profile for a route with no scene releases the shared renderer',async()=>{
+ const provider=providerSetup(),catalog=provider.register();catalog.show();await provider.flush();provider.app.finish();provider.app.tick();provider.click('/asteroids/3477703/view');catalog.release();provider.route('/privacy');await provider.flush();
+ assert.equal(provider.app.stats.disposed,1);assert.equal(provider.app.canvas.parent,null);assert.equal(provider.app.layer.style.display,'none');assert.equal(provider.app.frames.size,0);provider.unmount();
+});
+
+
+test('the asteroid route error boundary releases the scene and offers safe reset/catalog actions',()=>{
+ const exports={},marker=()=>null,jsx=(type,props)=>({type,props});let resets=0;
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../src/app/asteroids/error.tsx'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,require(name){if(name==='react/jsx-runtime')return {jsx,jsxs:jsx,Fragment:'fragment'};if(name==='next/link')return {default:'a'};if(name.endsWith('/Header'))return {default:'header'};if(name.endsWith('/scene-provider'))return {SceneUnavailable:marker};return {default:new Proxy({},{get:(_,key)=>key})};}});
+ const tree=exports.default({error:new Error('private upstream credentials must not render'),reset:()=>resets++});
+ function find(predicate,node=tree){if(!node||typeof node!=='object')return;if(Array.isArray(node)){for(const item of node){const result=find(predicate,item);if(result)return result;}return;}if(predicate(node))return node;return find(predicate,node.props?.children??null);}
+ assert.ok(find(node=>node.type===marker));find(node=>node.type==='button').props.onClick();assert.equal(resets,1);assert.equal(find(node=>node.type==='a').props.href,'/asteroids');assert.ok(!JSON.stringify(tree).includes('private upstream credentials'));
+});

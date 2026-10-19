@@ -26,9 +26,14 @@ jobs:
         with:
           # Build the latest master commit when this workflow is schedule-triggered.
           ref: master
-      - run: npm ci 
+      - run: npm ci
+      - name: Check runtime credential preparation
+        run: node --test tests/firebase-runtime-env.test.cjs tests/deployment-smoke.test.cjs
+      - name: Prepare server-only NASA credentials for Firebase SSR
+        run: node scripts/prepare-firebase-env.mjs
       - run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
+        id: firebase_deploy
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NASA_ODISEY }}
@@ -43,3 +48,8 @@ jobs:
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+      - name: Verify deployed pages and runtime NASA access
+        run: node scripts/smoke-deployment.mjs https://nasa-odisey.web.app
+      - name: Remove temporary Firebase runtime credentials
+        if: ${{ always() }}
+        run: node scripts/prepare-firebase-env.mjs --cleanup
